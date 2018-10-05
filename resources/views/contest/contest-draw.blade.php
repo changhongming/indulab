@@ -12,6 +12,13 @@
 		table tr:nth-child(even) {
 			background-color: #ffffff;
 		}
+		.row {
+			margin-bottom: 30px;
+		}
+
+		#deviation {
+			font-size: 22px;
+		}
 	</style>
 	<script>
 		//從session拿出數據跟單位
@@ -26,20 +33,26 @@
 				<div ng-controller="MyController">
 					<div class="row">
 						<div class="col-xs-10">
+							<h1><b>@{{experiment_title}}</b></h1>
+						</div>
+					</div>
+					<div class="row">
+						<div class="col-xs-10">
                             <!-- 輸入公式的欄位 -->
 							<div style="@{{ text_color }}">
-                                f(t) =
-							    <input type="text" size="50" ng-model="function">
+                                f(x) =
+							    <input type="text" size="50" placeholder="2x+sqrt(x)+pow(x,2)" ng-model="function">
 							    <button class="btn btn-default" style="@{{ draw_button }}" ng-click='sayHello()'>繪圖</button>
                                 <button type="submit" class="btn btn-default btn-lg" style="margin-left:25px" ng-click='final()'>
                                     @{{ buttom_state }}
                                 </button>
                             </div>
-                            <hr>
-                            <!-- 顯示誤差率 -->
-                            <h3>@{{ deviation }}</h3>
-                            <hr>
-
+						</div>
+					</div>
+					<div class="row">
+						<div class="col-xs-3 col-xs-offset-6">
+							<!-- 顯示誤差率 -->
+                            <p id=deviation><b>@{{ deviation }}</b></p>
 						</div>
 					</div>
 					<div class="row">
@@ -50,7 +63,7 @@
                             <!-- 顯示建模歷程 -->
 							<div id="myDiv" style="float:left; width: 600px; height: 500px;"></div>
 							<div style="float:left; padding-top: 105px;">
-								<div id="happyDIV" style="width:200px; height:350px; overflow-y:scroll;">
+								<div id="happyDIV" style="width:200px; height:350px; overflow-y:auto;">
 									<table>
 										<tr ng-repeat="error in errors">
 											<td>@{{ error.formula }}</td>
@@ -61,8 +74,6 @@
 
 							</div>
 						</div>
-
-
 					</div>
 				</div>
 			</div>

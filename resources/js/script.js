@@ -3,21 +3,27 @@
     angular.module('scopeExample', [])
       .controller('MyController', ['$scope', '$log', '$http', function($scope, $log, $http) {
         //預設公式為t
-        $scope.function = 't';
+        $scope.function = '';
         //用來儲存建模過程的誤差
         $scope.errors = [{formula:"公式", value:"誤差率"}];
+
+        $scope.experiment_title = "實驗主題：" + experiment.experiment;
+
+        //讓最右邊的大按鈕顯示“完成建模“
+        $scope.buttom_state = '完成建模';
+        
         //contest-draw.blade.php裡面的繪圖button，有使用ng-click讓它每按一次就觸發一次sayHello
         //sayHello用來將公式以及數據利用plotly繪出
         $scope.sayHello = function() {
-          //讓最右邊的大按鈕顯示“完成建模“
-          $scope.buttom_state = '完成建模';
+          
+          
           //如果輸入的公式與上一次的公式不同才做繪圖
           if ($scope.function != $scope.errors[$scope.errors.length - 1].formula) {
 
             //先將輸入的公式轉成math.eval可執行的f(x)=XXXX格式，並將裡面的t變數換成x
             //replace的說明可參考http://www.w3school.com.cn/jsref/jsref_replace.asp
             //轉換完之後給math.eval算出結果
-            var f = math.eval("f(x)=" + $scope.function.replace(/t/gi, "x"));
+            var f = math.eval("f(x)=" + $scope.function);
             var i;
             //預設顯示的圖，程式執行失敗才顯示
             var trace0 = {
@@ -78,6 +84,7 @@
               var save_data = {};
               save_data.formula = $scope.error_formula;
               save_data.error = $scope.error_value;
+              console.log(save_data);
               //點繪圖按鈕傳資料給資料庫
               $http.post('/draw', save_data)
                 .then(function success(response)
@@ -94,7 +101,7 @@
             //設定圖表的參數
             var layout = {
               //顯示實驗的名稱（從資料庫來的）
-              title: experiment.experiment,
+              //title: experiment.experiment,
               xaxis: {
                 //左下從0/0顯示
                 rangemode: 'tozero',
@@ -136,7 +143,7 @@
               .then(function success(response)
                 {
                   $log.log(response.data) ;
-                  location.href = "/rule";
+                  window.location.href = "/rule";
                 }
                 ,function error(response)
                 {
@@ -157,7 +164,7 @@
 
         };
         //剛進來頁面先進行一次繪圖，公式預設是f(t)=t
-        $scope.sayHello();
+        //$scope.sayHello();
       }]);
   }
 )(window.angular);
