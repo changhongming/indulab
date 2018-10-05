@@ -1,0 +1,1 @@
+初次執行請使用 php artisan migrate 指令來建立資料表

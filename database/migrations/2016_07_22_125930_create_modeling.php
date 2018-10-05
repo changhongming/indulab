@@ -22,11 +22,12 @@ class CreateModeling extends Migration
             $table->string('student_number', 10);
             $table->string('name', 20);
             $table->string('experiment', 100);
-            $table->text('formula');
-            $table->text('error');
-            $table->text('final_formula');
-            $table->text('final_error');
-            $table->timestamps();
+            $table->string('formula',100)->default('');
+            $table->string('error',10)->default('');
+            $table->string('final_formula',100)->default('');
+            $table->string('final_error',10)->default('');
+            $table->timestamp('created_at')->useCurrent();
+            $table->timestamp('updated_at')->default(DB::raw('CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP'));
         });
 
 

@@ -22,7 +22,8 @@ class CreateUploadData extends Migration
             $table->string('experiment', 100);
             $table->text('time_data');
             $table->text('value_data');
-            $table->timestamps();
+            $table->timestamp('created_at')->useCurrent();
+            $table->timestamp('updated_at')->default(DB::raw('CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP'));
         });
 
     }
