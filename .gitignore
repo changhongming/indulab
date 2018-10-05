@@ -1,6 +1,9 @@
+# 請自行安裝npm的套件管理器，並使用npm install 來安裝js套件
 /node_modules
 /public/hot
 /public/storage
+# js檔打包請自行使用laravel-mix打包 使用 npm run dev 指令可進行打包
+/public/js
 /storage/*.key
 /vendor
 /.idea
@@ -10,5 +13,6 @@ Homestead.json
 Homestead.yaml
 npm-debug.log
 yarn-error.log
+# .env檔請自行從 .env.example修改並重新命名.env
 .env
 .phpunit.result.cache
