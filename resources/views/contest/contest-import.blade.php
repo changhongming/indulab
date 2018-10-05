@@ -1,7 +1,7 @@
 @extends('layouts.layout')
 @section('content')
 <div class="starter-template">
-	<form class="form-horizontal" role="form" method="post" action="/import">
+	<form id="import-form" class="form-horizontal" role="form" method="post" action="/import">
 		<!--<img src="{{ asset('img/title.jpg') }}" class="img-responsive" alt="InduLab">-->
 		<div class="form-group">
 			<div class="col-sm-offset-1 col-sm-9">
@@ -19,8 +19,8 @@
 		<input type="file" id="files" name="files[]" multiple />
 		</div>
 
-		<input type="hidden" id="time" name="time" value=110>
-		<input type="hidden" id="value" name="value" value=0>
+		<input type="hidden" id="time" name="time">
+		<input type="hidden" id="value" name="value">
 		<div class="form-group">
 			<div class="col-md-offset-0 col-md-2 ">
 				<br> 
@@ -36,6 +36,17 @@
         $(document).ready(function() {
 			if(isAPIAvailable()) {
 				$('#files').bind('change', handleFileSelect);
+			}
+		});
+		
+
+		$('#import-form').submit(function(event) {
+			const x = document.getElementById('time').value;
+		 	const y = document.getElementById('value').value;
+			if(x === '' || y === '') {
+				alert('沒有上傳資料，請先上傳在繼續');
+				// 取消submit
+				event.preventDefault();
 			}
 		});
 
@@ -55,7 +66,7 @@
 		function handleFileSelect(evt) {
 			var files = evt.target.files; // FileList object
 			var file = files[0];
-
+					
 			// read the file contents
 			printTable(file);
 		}
