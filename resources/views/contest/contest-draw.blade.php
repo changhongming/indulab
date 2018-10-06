@@ -21,9 +21,15 @@
 		}
 	</style>
 	<script>
+		// x軸與y軸取出的物件位置
+		var xIndex = 0;
+		var yIndex = 1;
+
 		//從session拿出數據跟單位
-        var data_time = [{{ $time }}];
-		var data_value = [{{ $value }}];
+		var data = <?php echo htmlspecialchars_decode($data) ?>;
+        var data_time = data[xIndex].data;
+		var data_value = data[yIndex].data;
+	
         var experiment = {!! json_encode($units) !!};
 	</script>
 <!-- @大括號*2的內容跟script.js裡面的scopt.XXX綁定（ex. script.js裡的scopt.greeting改變，這裡的greeting也會跟著變） -->

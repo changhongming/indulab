@@ -7,8 +7,7 @@
         //用來儲存建模過程的誤差
         $scope.errors = [{formula:"公式", value:"誤差率"}];
 
-        $scope.experiment_title = "實驗主題：" + experiment.experiment;
-
+        $scope.experiment_title = "實驗主題：" + experiment.experiment;        
         //讓最右邊的大按鈕顯示“完成建模“
         $scope.buttom_state = '完成建模';
         
@@ -52,8 +51,8 @@
             trace1.x = data_time;
             trace1.y = data_value;
 
-            //trace0與trace1放入data，之後顯示的Plotly.newPlot函式要用
-            var data = [trace1, trace0];
+            //trace0與trace1放入data_plot，之後顯示的Plotly.newPlot函式要用
+            var data_plot = [trace1, trace0];
             $scope.greeting = "";
             //從實驗數據取得時間帶入建模公式
             trace0.x = trace1.x;
@@ -89,11 +88,11 @@
               $http.post('/draw', save_data)
                 .then(function success(response)
                   {
-                    $log.log(response.data) ;
+                    $log.log(response.data_plot) ;
                   }
                   ,function error(response)
                   {
-                    console.log(response.data) ;
+                    console.log(response.data_plot) ;
                   });
             }
 
@@ -107,18 +106,18 @@
                 rangemode: 'tozero',
                 autorange: true,
                 //x軸單位（從資料庫）
-                title: experiment.x_unit
+                title: data[xIndex].title + '(' + data[xIndex].unit + ')'// experiment.x_unit
               },
               yaxis: {
                 //左下從0/0顯示
                 rangemode: 'tozero',
                 autorange: true,
                 //y軸單位（從資料庫）
-                title: experiment.y_unit
+                title: data[yIndex].title + '(' + data[yIndex].unit+ ')'//experiment.y_unit
               }
             };
             //繪圖
-            Plotly.newPlot('myDiv', data, layout);
+            Plotly.newPlot('myDiv', data_plot, layout);
           }
           //設定按鈕按下去經過10毫秒將右邊的歷程自動拉到最下方（確保顯示最新的建模記錄）
           setTimeout(function() {

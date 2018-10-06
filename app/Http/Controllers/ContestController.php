@@ -106,7 +106,7 @@ class ContestController extends Controller {
         $data = array();
         $data['time'] = $request->input('time');
         $data['value'] = $request->input('value');
-
+        $data['data'] = $request->input('data');
         //宣告record儲存UploadData module的資料（UploadData在/app裡建立）
         $record = new UploadData;
         //record儲存學號、姓名、實驗、數據
@@ -122,7 +122,7 @@ class ContestController extends Controller {
         $request->session()->put('upload_data_id', $record->id);
         $request->session()->put('data_time', $data['time']);
         $request->session()->put('data_value', $data['value']);
-
+        $request->session()->put('data', $data['data']);
         //導向draw，如果要改變draw設定要在/app/Http/routes.php設定
         return redirect('draw');
     }
@@ -136,14 +136,17 @@ class ContestController extends Controller {
         $data = array();
         $data['time'] = array();
         $data['value'] = array();
+        
         $data['time'] = $request->session()->get('data_time');
         $data['value'] = $request->session()->get('data_value');
+        $data['data'] = $request->session()->get('data');
         //從資料庫取得實驗的單位
         $units = Experiment::where('experiment', $request->session()->get('experiment'))->first();
         $data['units'] = $units;
         //debug用
         Debugbar::info($data['time']);
         Debugbar::info($data['value']);
+        Debugbar::info($data['data']);
         Debugbar::info($units);
         //顯示contest.contest-draw.blade.php的頁面
         return view('contest.contest-draw', $data);

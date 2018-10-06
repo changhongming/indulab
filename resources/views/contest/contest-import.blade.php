@@ -21,6 +21,7 @@
 
 		<input type="hidden" id="time" name="time">
 		<input type="hidden" id="value" name="value">
+		<input type="hidden" id="data" name="data">
 		<div class="form-group">
 			<div class="col-md-offset-0 col-md-2 ">
 				<br> 
@@ -73,13 +74,31 @@
 
 		function printTable(file) {
 			var reader = new FileReader();
-			reader.readAsText(file);
+			reader.readAsText(file,'big5');
 			reader.onload = function(event){
 				var csv = event.target.result;
 				var data = $.csv.toArrays(csv);
-				var html = '';
+
 				var data_time = [];
 				var data_value = [];
+				
+				// 存放實驗數據資料
+				var data_arr = [];
+				// 目前預留前兩列為欄位名稱(分別為標題與單位)
+				row_offset = 2;
+
+				for(var col = 0; col < data[0].length; col++){
+					var obj = {};
+					obj['title'] = data[0][col];
+					obj['unit'] = data[1][col];
+					var tmpdata = [];
+					for(var row = row_offset; row < data.length; row++){
+						tmpdata.push(data[row][col]);
+					}
+					obj['data'] = tmpdata;
+					data_arr.push(obj);	
+				}
+				
 				for(var row in data) {
 					for(var item in data[row]) {
 						data_time[row] = data[row][0];
@@ -88,6 +107,8 @@
 				}
 				document.getElementById("time").value = data_time;
 				document.getElementById("value").value = data_value;
+				// 因為input無法輸入物件進去，故先將其轉為json字串
+				document.getElementById("data").value = JSON.stringify(data_arr);
 			};
 			reader.onerror = function(){ alert('Unable to read ' + file.fileName); };
 		}
