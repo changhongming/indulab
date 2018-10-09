@@ -5,31 +5,33 @@
 		<!--<img src="{{ asset('img/title.jpg') }}" class="img-responsive" alt="InduLab">-->
 		<div class="form-group">
 			<div class="col-sm-offset-1 col-sm-9">
-				<h3>請上傳你的實驗數據檔案</h3>
+				<h2>請上傳你的實驗數據檔案</h2>
 				注意事項：
 				<ul>
 					<li>檔名不能含有中文</li>
 					<li>副檔名要為csv</li>
 					<li>內容只能有實驗的數據資料，若有繪製圖表，請刪除後再上傳</li>
 				</ul>
-			</div>
-		</div>
-		{!! csrf_field() !!}
-		<div id="inputs" class="clearfix">
-		<input type="file" id="files" name="files[]" multiple />
-		</div>
+				<br>
+				{!! csrf_field() !!}
+				<div id="inputs" class="clearfix">
+					<input type="file" id="files" name="files[]" accept=".csv" multiple />
+				</div>
 
-		<input type="hidden" id="time" name="time">
-		<input type="hidden" id="value" name="value">
-		<input type="hidden" id="data" name="data">
-		<div class="form-group">
-			<div class="col-md-offset-0 col-md-2 ">
-				<br> 
-				<button type="submit" class="clearfix">
-					上傳檔案
-				</button>
+				<input type="hidden" id="time" name="time">
+				<input type="hidden" id="value" name="value">
+				<input type="hidden" id="data" name="data">
+				<div class="form-group">
+					<div class="col-md-offset-0 col-md-2 ">
+						<br> 
+						<button type="submit" class="clearfix">上傳檔案</button>
+					</div>
+				</div>
+
+
 			</div>
 		</div>
+		
 	</form>
 	
 	<script>
@@ -45,7 +47,7 @@
 			const x = document.getElementById('time').value;
 		 	const y = document.getElementById('value').value;
 			if(x === '' || y === '') {
-				alert('沒有上傳資料，請先上傳在繼續');
+				alert('沒有上傳資料，請先上傳再繼續');
 				// 取消submit
 				event.preventDefault();
 			}
@@ -78,7 +80,6 @@
 			reader.onload = function(event){
 				var csv = event.target.result;
 				var data = $.csv.toArrays(csv);
-
 				var data_time = [];
 				var data_value = [];
 				
@@ -107,6 +108,7 @@
 				}
 				document.getElementById("time").value = data_time;
 				document.getElementById("value").value = data_value;
+				
 				// 因為input無法輸入物件進去，故先將其轉為json字串
 				document.getElementById("data").value = JSON.stringify(data_arr);
 			};
