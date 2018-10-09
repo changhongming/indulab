@@ -12,11 +12,8 @@
 		table tr:nth-child(even) {
 			background-color: #ffffff;
 		}
-		.row {
-			margin-bottom: 30px;
-		}
-
 		#deviation {
+			margin-top: 10px;
 			font-size: 22px;
 		}
 	</style>
@@ -38,38 +35,40 @@
 			<div ng-app="scopeExample">
 				<div ng-controller="MyController">
 					<div class="row">
-						<div class="col-xs-10">
-							<h1><b>@{{experiment_title}}</b></h1>
+						<div class="col-sm-12">
+							<h2><b>@{{experiment_title}}</b></h2>
 						</div>
 					</div>
 					<div class="row">
-						<div class="col-xs-10">
+						<div class="col-sm-12">
                             <!-- 輸入公式的欄位 -->
 							<div style="@{{ text_color }}">
-                                f(x) =
-							    <input type="text" size="50" placeholder="2x+sqrt(x)+pow(x,2)" ng-model="function">
-							    <button class="btn btn-default" style="@{{ draw_button }}" ng-click='sayHello()'>繪圖</button>
-                                <button type="submit" class="btn btn-default btn-lg" style="margin-left:25px" ng-click='final()'>
-                                    @{{ buttom_state }}
-                                </button>
+                                <form class="form-inline">
+									<label for="fun"><font size="3">f(x) =</font></label>
+									<input type="text" size="50" class="form-control mb-2 mr-sm-2" id="fun" placeholder="2x+sqrt(x)+pow(x,2)" ng-model="function">
+									<button class="btn btn-primary mb-2" style="@{{ draw_button }}" ng-click='sayHello()'>繪圖</button>
+									<button type="submit" class="btn btn-success btn-lg mb-2" style="margin-left:25px" ng-click='final()'>
+										@{{ buttom_state }}
+									</button>
+								</form>
                             </div>
 						</div>
 					</div>
 					<div class="row">
-						<div class="col-xs-3 col-xs-offset-6">
+						<div class="col-sm-offset-6">
 							<!-- 顯示誤差率 -->
                             <p id=deviation><b>@{{ deviation }}</b></p>
 						</div>
 					</div>
 					<div class="row">
-						<div class="col-xs-10">
+						<div class="col-sm-12">
                             <!-- 繪圖 -->
 							@{{ greeting }}
 
                             <!-- 顯示建模歷程 -->
-							<div id="myDiv" style="float:left; width: 600px; height: 500px;"></div>
-							<div style="float:left; padding-top: 105px;">
-								<div id="happyDIV" style="width:200px; height:350px; overflow-y:auto;">
+							<div id="myDiv" style="float:left; width: 700px; height: 400px;"></div>
+							<div style="float:left; padding-top: 20px;">
+								<div id="happyDIV" style="height:350px; overflow-y:auto;">
 									<table>
 										<tr ng-repeat="error in errors">
 											<td>@{{ error.formula }}</td>

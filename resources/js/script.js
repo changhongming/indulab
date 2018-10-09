@@ -101,6 +101,9 @@
             var layout = {
               //顯示實驗的名稱（從資料庫來的）
               //title: experiment.experiment,
+              margin: {
+                t: 20
+              },
               xaxis: {
                 //左下從0/0顯示
                 rangemode: 'tozero',

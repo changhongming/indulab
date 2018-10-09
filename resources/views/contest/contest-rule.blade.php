@@ -6,12 +6,7 @@
 		<!--<img src="{{ asset('img/title.jpg') }}" class="img-responsive" alt="InduLab">-->
 		<div class="form-group">
 			<div class="col-sm-offset-1 col-sm-9">
-				<h3>InduLab 數學建模系統</h3>
-				<!--說明：
-				<ul>
-					<li>。</li>
-					<li>。</li>
-				</ul>-->
+				<h2>InduLab 數學建模系統</h2>
 			</div>
 		</div>
 		{!! csrf_field() !!}
@@ -60,9 +55,7 @@
 		</div>
 		<div class="form-group">
 			<div class="col-sm-offset-2 col-sm-2">
-				<button type="submit" class="btn btn-default">
-					開始建模
-				</button>
+				<button type="submit" class="btn btn-primary">開始建模</button>
 			</div>
 		</div>
 	</form>
