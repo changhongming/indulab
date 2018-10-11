@@ -85,13 +85,14 @@
 				
 				// 存放實驗數據資料
 				var data_arr = [];
-				// 目前預留前兩列為欄位名稱(分別為標題與單位)
-				row_offset = 2;
+				// 目前預留前三列為欄位名稱(分別為標題與單位和變數代號)
+				row_offset = 3;
 
 				for(var col = 0; col < data[0].length; col++){
 					var obj = {};
 					obj['title'] = data[0][col];
 					obj['unit'] = data[1][col];
+					obj['symbol'] = data[2][col];
 					var tmpdata = [];
 					for(var row = row_offset; row < data.length; row++){
 						tmpdata.push(data[row][col]);

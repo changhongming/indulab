@@ -6,23 +6,101 @@
         $scope.function = '';
         //用來儲存建模過程的誤差
         $scope.errors = [{formula:"公式", value:"誤差率"}];
-
+        
         $scope.experiment_title = "實驗主題：" + experiment.experiment;        
         //讓最右邊的大按鈕顯示“完成建模“
         $scope.buttom_state = '完成建模';
         
+        $scope.xyChange = false;
+
+        // 進行初始化
+        $scope.init = function() {
+          $scope.renderMenu();
+          $scope.setVarSymbol(data[xIndex].symbol);
+          console.log("init compleate!");
+        }
+
+        $scope.setVarSymbol = function(symbol) {
+          $scope.var_symbol = "f(" + symbol + ") =";
+        }
+
+        // 更新x、y軸表單欄位跟事件
+        $scope.renderMenu = function() {
+          var xTab = [];
+          var yTab = [];
+          $.each(data, function(i,value){
+            var obj = {};
+            obj["name"] = value.title + " (" + value.unit + ")";
+            obj["id"] = i;
+            if(i != xIndex) {
+              xTab.push(obj);
+            }
+            if(i != yIndex) {
+              yTab.push(obj);
+            }
+          });
+          var xyTab = [];
+          var xyhtml = [];
+          
+          xyTab.push(xTab);
+          xyTab.push(yTab);
+          $.each(xyTab, function(i,tabValue) {
+            xyhtml[i] = '';
+            $.each(tabValue, function(j,value) {
+              xyhtml[i] += "<li><a _id=\""+ value.id + "\">" + value.name + "</a></li>";
+            });
+          });
+
+          // 更新下拉式表單
+          $("#menu-x").html(xyhtml[0]);
+          $("#menu-y").html(xyhtml[1]);
+
+          // 建立監聽事件
+          $("#menu-x li").click(function() {
+            // 保存切換前的位置
+            const tmpIndex = xIndex;
+            // 更新切換的位置
+            xIndex = $(this).children().attr("_id");
+            $scope.xyChange = true;
+            // 如果選擇到相同位置，則進行x、y軸交換
+            if(xIndex == yIndex) {
+              yIndex = tmpIndex;
+            }
+            // 更新x、y軸表單
+            $scope.renderMenu();
+            $scope.sayHello();
+            $scope.setVarSymbol(data[xIndex].symbol);
+          });
+          $("#menu-y li").click(function() {
+            // 保存切換前的位置
+            const tmpIndex = yIndex;
+            // 更新切換的位置
+            yIndex = $(this).children().attr("_id");
+            $scope.xyChange = true;
+            // 如果選擇到相同位置，則進行x、y軸交換
+            if(xIndex == yIndex) {
+              xIndex = tmpIndex;
+            }
+            // 更新x、y軸表單
+            $scope.renderMenu();
+            $scope.sayHello();
+          });
+        }
+
+
         //contest-draw.blade.php裡面的繪圖button，有使用ng-click讓它每按一次就觸發一次sayHello
         //sayHello用來將公式以及數據利用plotly繪出
         $scope.sayHello = function() {
           
           
-          //如果輸入的公式與上一次的公式不同才做繪圖
-          if ($scope.function != $scope.errors[$scope.errors.length - 1].formula) {
+          //如果輸入的公式與上一次的公式不同或xy軸有重選才做繪圖
+          if ($scope.function != $scope.errors[$scope.errors.length - 1].formula || $scope.xyChange) {
 
             //先將輸入的公式轉成math.eval可執行的f(x)=XXXX格式，並將裡面的t變數換成x
             //replace的說明可參考http://www.w3school.com.cn/jsref/jsref_replace.asp
             //轉換完之後給math.eval算出結果
-            var f = math.eval("f(x)=" + $scope.function);
+            var f = math.eval("f(" + data[xIndex].symbol + ")=" + $scope.function);
+
             var i;
             //預設顯示的圖，程式執行失敗才顯示
             var trace0 = {
@@ -48,8 +126,8 @@
               name: "實驗值"
             };
             //將數據放入trace1的x, y
-            trace1.x = data_time;
-            trace1.y = data_value;
+            trace1.x = data[xIndex].data;
+            trace1.y = data[yIndex].data;
 
             //trace0與trace1放入data_plot，之後顯示的Plotly.newPlot函式要用
             var data_plot = [trace1, trace0];
@@ -60,11 +138,17 @@
             var deviation_denominator = 0;
             var deviation_numerator =0;
             //將每個實驗的時間數據帶入到建模公式、f()前面math.eval那邊有宣告
-            for (i = 0; i < trace1.x.length; i++) {
-              trace0.y[i] = f(trace0.x[i]);
-              //計算誤差率的分子與分母
-              deviation_numerator = deviation_numerator + Math.abs(trace0.y[i] - trace1.y[i]);
-              deviation_denominator = deviation_denominator + Math.abs(trace0.y[i]);
+            try{
+              for (i = 0; i < trace1.x.length; i++) {
+                trace0.y[i] = f(trace0.x[i]);
+                //計算誤差率的分子與分母
+                deviation_numerator = deviation_numerator + Math.abs(trace0.y[i] - trace1.y[i]);
+                deviation_denominator = deviation_denominator + Math.abs(trace0.y[i]);
+              }
+            }
+            catch(err){
+              console.log(err)
+              return;
             }
             //算出誤差率並轉成百分比
             var error = deviation_numerator / deviation_denominator * 100;
@@ -76,7 +160,6 @@
             //公式與誤差從errors拿出來（要傳給資料庫用的）
             $scope.error_formula = $scope.errors[$scope.errors.length - 1].formula;
             $scope.error_value = $scope.errors[$scope.errors.length - 1].value;
-
             //傳送建模的過程給資料庫
             if ($scope.errors.length != 2) {
               //save_data儲存要傳給資料庫的資料
@@ -127,7 +210,7 @@
             var objDiv = document.getElementById("happyDIV");
             objDiv.scrollTop = objDiv.scrollHeight;
           }, 10);
-
+          $scope.xyChange = false;
         };
         //contest-draw.blade.php裡面的完成建模button，有使用ng-click讓它每按一次就觸發一次final
         //final用來將最後建模的公式以及誤差傳給資料庫
@@ -167,6 +250,7 @@
         };
         //剛進來頁面先進行一次繪圖，公式預設是f(t)=t
         //$scope.sayHello();
+        $scope.init();
       }]);
   }
 )(window.angular);
