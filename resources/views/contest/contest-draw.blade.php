@@ -44,7 +44,7 @@
                             <!-- 輸入公式的欄位 -->
 							<div style="@{{ text_color }}">
                                 <form class="form-inline">
-									<label for="fun"><font size="3">@{{var_symbol}}</font></label>
+									<label for="fun"><font size="3"><span ng-bind="var_symbol"></span></font></label>
 									<input type="text" size="50" class="form-control mb-2 mr-sm-2" id="fun" placeholder="2x+sqrt(x)+pow(x,2)" ng-model="function">
 									<button class="btn btn-primary mb-2" style="@{{ draw_button }}" ng-click='sayHello()'>繪圖</button>
 									<button type="submit" class="btn btn-success btn-lg mb-2" style="margin-left:25px" ng-click='final()'>
@@ -83,17 +83,17 @@
 					<div class="row">
 						<div class="col-sm-6">
 							<div class="dropdown">
-    							<button class="btn btn-primary dropdown-toggle" id="menu1" type="button" data-toggle="dropdown">X
+    							<button class="btn btn-primary dropdown-toggle" id="menu1" type="button" data-toggle="dropdown">縱軸
     							<span class="caret"></span></button>
-    							<ul id="menu-x" class="dropdown-menu" role="menu" aria-labelledby="menu1">
+    							<ul id="menu-y" class="dropdown-menu" role="menu" aria-labelledby="menu1">
     							</ul>
 							</div>
 						</div>
 						<div class="col-sm-6">
 							<div class="dropdown">
-    							<button class="btn btn-primary dropdown-toggle" id="menu1" type="button" data-toggle="dropdown">Y
+    							<button class="btn btn-primary dropdown-toggle" id="menu1" type="button" data-toggle="dropdown">橫軸
     							<span class="caret"></span></button>
-    							<ul id="menu-y" class="dropdown-menu" role="menu" aria-labelledby="menu1">
+    							<ul id="menu-x" class="dropdown-menu" role="menu" aria-labelledby="menu1">
     							</ul>
 							</div>
 						</div>

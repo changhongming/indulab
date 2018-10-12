@@ -13,15 +13,40 @@
         
         $scope.xyChange = false;
 
+        //設定圖表的參數
+        var layout = {
+          //顯示實驗的名稱（從資料庫來的）
+          //title: experiment.experiment,
+          margin: {
+            t: 20
+          },
+          xaxis: {
+            //左下從0/0顯示
+            rangemode: 'tozero',
+            autorange: true,
+            //x軸單位（從資料庫）
+            title: data[xIndex].title + '(' + data[xIndex].unit + ')'
+          },
+          yaxis: {
+            //左下從0/0顯示
+            rangemode: 'tozero',
+            autorange: true,
+            //y軸單位（從資料庫）
+            title: data[yIndex].title + '(' + data[yIndex].unit+ ')'
+          }
+        };
+
         // 進行初始化
         $scope.init = function() {
           $scope.renderMenu();
           $scope.setVarSymbol(data[xIndex].symbol);
+          $scope.drawExperimentData();
           console.log("init compleate!");
         }
 
         $scope.setVarSymbol = function(symbol) {
           $scope.var_symbol = "f(" + symbol + ") =";
+          console.log($scope.var_symbol);
         }
 
         // 更新x、y軸表單欄位跟事件
@@ -68,8 +93,8 @@
             }
             // 更新x、y軸表單
             $scope.renderMenu();
-            $scope.sayHello();
             $scope.setVarSymbol(data[xIndex].symbol);
+            $scope.drawExperimentData();
           });
           $("#menu-y li").click(function() {
             // 保存切換前的位置
@@ -83,10 +108,22 @@
             }
             // 更新x、y軸表單
             $scope.renderMenu();
-            $scope.sayHello();
+            $scope.setVarSymbol(data[xIndex].symbol);
+            $scope.drawExperimentData();
           });
         }
 
+        $scope.drawExperimentData = function() { 
+          var trace1 = {
+            x: data[xIndex].data,
+            y: data[yIndex].data,
+            mode: 'markers',
+            name: "實驗值"
+          };
+          layout.xaxis.title = data[xIndex].title + '(' + data[xIndex].unit + ')'
+          layout.yaxis.title = data[yIndex].title + '(' + data[yIndex].unit + ')'
+          Plotly.newPlot('myDiv', [trace1], layout);
+        }
 
         //contest-draw.blade.php裡面的繪圖button，有使用ng-click讓它每按一次就觸發一次sayHello
         //sayHello用來將公式以及數據利用plotly繪出
@@ -178,30 +215,9 @@
                     console.log(response.data_plot) ;
                   });
             }
+            layout.xaxis.title = data[xIndex].title + '(' + data[xIndex].unit + ')'
+            layout.yaxis.title = data[yIndex].title + '(' + data[yIndex].unit + ')'
 
-
-            //設定圖表的參數
-            var layout = {
-              //顯示實驗的名稱（從資料庫來的）
-              //title: experiment.experiment,
-              margin: {
-                t: 20
-              },
-              xaxis: {
-                //左下從0/0顯示
-                rangemode: 'tozero',
-                autorange: true,
-                //x軸單位（從資料庫）
-                title: data[xIndex].title + '(' + data[xIndex].unit + ')'// experiment.x_unit
-              },
-              yaxis: {
-                //左下從0/0顯示
-                rangemode: 'tozero',
-                autorange: true,
-                //y軸單位（從資料庫）
-                title: data[yIndex].title + '(' + data[yIndex].unit+ ')'//experiment.y_unit
-              }
-            };
             //繪圖
             Plotly.newPlot('myDiv', data_plot, layout);
           }
