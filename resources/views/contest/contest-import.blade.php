@@ -1,46 +1,63 @@
 @extends('layouts.layout')
 @section('content')
-<div class="starter-template">
-	<form id="import-form" class="form-horizontal" role="form" method="post" action="/import">
-		<!--<img src="{{ asset('img/title.jpg') }}" class="img-responsive" alt="InduLab">-->
-		<div class="form-group">
-			<div class="col-sm-offset-1 col-sm-9">
-				<h2>請上傳你的實驗數據檔案</h2>
-				注意事項：
-				<ul>
-					<li>檔名不能含有中文</li>
-					<li>副檔名要為csv</li>
-					<li>內容只能有實驗的數據資料，若有繪製圖表，請刪除後再上傳</li>
-				</ul>
-				<br>
-				{!! csrf_field() !!}
-				<div id="inputs" class="clearfix">
-					<input type="file" id="files" name="files[]" accept=".csv" multiple />
-				</div>
+<div class="introduce-bg2 introduce-mid">
+	<h2>請上傳你的實驗數據檔案</h2>
+	注意事項：
+	<ul>
+		<li>檔名不能含有中文</li>
+		<li>副檔名要為csv</li>
+		<li>內容只能有實驗的數據資料，若有繪製圖表，請刪除後再上傳</li>
+	</ul>
 
-				<input type="hidden" id="time" name="time">
-				<input type="hidden" id="value" name="value">
-				<input type="hidden" id="data" name="data">
-				<div class="form-group">
-					<div class="col-md-offset-0 col-md-2 ">
-						<br> 
-						<button type="submit" class="clearfix">上傳檔案</button>
-					</div>
-				</div>
-
-
+	<form class="mt-4" role="form" id="import-form" method="post" action="/import">
+		{!! csrf_field() !!}
+		<div class="form-group col-sm-7">
+			<div class="input-group input-file" name="Fichier1">
+				<input type="text" class="form-control" placeholder='Choose a file...' />			
+				<span class="input-group-btn">
+					<button class="btn btn-default btn-choose" type="button">選擇檔案</button>
+					<button type="submit" class="btn btn-primary">上傳檔案</button>
+				</span>
 			</div>
 		</div>
-		
+
+		<input type="hidden" id="time" name="time">
+		<input type="hidden" id="value" name="value">
+		<input type="hidden" id="data" name="data">
 	</form>
-	
+
+
 	<script>
 		//這邊的code參考https://github.com/evanplaice/jquery-csv裡面的Client-Side File Handling
         $(document).ready(function() {
+			bs_input_file();
 			if(isAPIAvailable()) {
 				$('#files').bind('change', handleFileSelect);
 			}
 		});
+
+		function bs_input_file() {
+			$(".input-file").before(
+				function() {
+					if ( ! $(this).prev().hasClass('input-ghost') ) {
+						var element = $("<input type='file' class='input-ghost' id='files' name='files[]'' accept='.csv' style='visibility:hidden; height:0'>");
+						element.attr("name",$(this).attr("name"));
+						element.change(function(){
+							element.next(element).find('input').val((element.val()).split('\\').pop());
+						});
+						$(this).find("button.btn-choose").click(function(){
+							element.click();
+						});
+						$(this).find('input').css("cursor","pointer");
+						$(this).find('input').mousedown(function() {
+							$(this).parents('.input-file').prev().click();
+							return false;
+						});
+						return element;
+					}
+				}
+			);
+		}
 		
 
 		$('#import-form').submit(function(event) {

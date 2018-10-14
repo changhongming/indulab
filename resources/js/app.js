@@ -10,5 +10,6 @@ require('./jquery.csv.min.js');
 window.$ = window.jQuery = require('jquery');
 window.math = require('mathjs');
 window.Plotly = require('./plotly-latest.min.js');
-require('./bootstrap.min.js');
+require('bootstrap');
+require('popper.js');
 require('./script.js');

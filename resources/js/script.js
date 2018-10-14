@@ -35,7 +35,7 @@
             title: data[yIndex].title + '(' + data[yIndex].unit+ ')'
           }
         };
-
+        console.log(data);
         // 進行初始化
         $scope.init = function() {
           $scope.renderMenu();
@@ -46,7 +46,6 @@
 
         $scope.setVarSymbol = function(symbol) {
           $scope.var_symbol = "f(" + symbol + ") =";
-          console.log($scope.var_symbol);
         }
 
         // 更新x、y軸表單欄位跟事件
@@ -72,20 +71,21 @@
           $.each(xyTab, function(i,tabValue) {
             xyhtml[i] = '';
             $.each(tabValue, function(j,value) {
-              xyhtml[i] += "<li><a _id=\""+ value.id + "\">" + value.name + "</a></li>";
+              xyhtml[i] += "<button type=\"button\" class=\"dropdown-item\" _id=\""+ value.id + "\">" + value.name + "</button>";
             });
           });
 
           // 更新下拉式表單
           $("#menu-x").html(xyhtml[0]);
           $("#menu-y").html(xyhtml[1]);
-
+          
           // 建立監聽事件
-          $("#menu-x li").click(function() {
+          $("#menu-x button").click(function() {
+            
             // 保存切換前的位置
             const tmpIndex = xIndex;
             // 更新切換的位置
-            xIndex = $(this).children().attr("_id");
+            xIndex = $(this).attr("_id");
             $scope.xyChange = true;
             // 如果選擇到相同位置，則進行x、y軸交換
             if(xIndex == yIndex) {
@@ -96,11 +96,11 @@
             $scope.setVarSymbol(data[xIndex].symbol);
             $scope.drawExperimentData();
           });
-          $("#menu-y li").click(function() {
+          $("#menu-y button").click(function() {
             // 保存切換前的位置
             const tmpIndex = yIndex;
             // 更新切換的位置
-            yIndex = $(this).children().attr("_id");
+            yIndex = $(this).attr("_id");
             $scope.xyChange = true;
             // 如果選擇到相同位置，則進行x、y軸交換
             if(xIndex == yIndex) {
@@ -122,14 +122,12 @@
           };
           layout.xaxis.title = data[xIndex].title + '(' + data[xIndex].unit + ')'
           layout.yaxis.title = data[yIndex].title + '(' + data[yIndex].unit + ')'
-          Plotly.newPlot('myDiv', [trace1], layout);
+          Plotly.newPlot('myDiv', [trace1], layout, {displaylogo: false});
         }
 
         //contest-draw.blade.php裡面的繪圖button，有使用ng-click讓它每按一次就觸發一次sayHello
         //sayHello用來將公式以及數據利用plotly繪出
         $scope.sayHello = function() {
-          
-          
           //如果輸入的公式與上一次的公式不同或xy軸有重選才做繪圖
           if ($scope.function != $scope.errors[$scope.errors.length - 1].formula || $scope.xyChange) {
 
@@ -219,7 +217,7 @@
             layout.yaxis.title = data[yIndex].title + '(' + data[yIndex].unit + ')'
 
             //繪圖
-            Plotly.newPlot('myDiv', data_plot, layout);
+            Plotly.newPlot('myDiv', data_plot, layout, {displaylogo: false});
           }
           //設定按鈕按下去經過10毫秒將右邊的歷程自動拉到最下方（確保顯示最新的建模記錄）
           setTimeout(function() {
