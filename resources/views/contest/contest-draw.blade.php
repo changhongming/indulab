@@ -24,83 +24,83 @@
 
 		//從session拿出數據跟單位
 		var data = <?php echo htmlspecialchars_decode($data) ?>;
-        var data_time = data[xIndex].data;
-		var data_value = data[yIndex].data;
 	
         var experiment = {!! json_encode($units) !!};
 	</script>
 <!-- @大括號*2的內容跟script.js裡面的scopt.XXX綁定（ex. script.js裡的scopt.greeting改變，這裡的greeting也會跟著變） -->
-<div class="starter-template">
-		<div class="form-group">
-			<div ng-app="scopeExample">
-				<div ng-controller="MyController">
-					<div class="row">
-						<div class="col-sm-12">
-							<h2><b>@{{experiment_title}}</b></h2>
-						</div>
-					</div>
-					<div class="row">
-						<div class="col-sm-12">
-                            <!-- 輸入公式的欄位 -->
-							<div style="@{{ text_color }}">
-                                <form class="form-inline">
-									<label for="fun"><font size="3"><span ng-bind="var_symbol"></span></font></label>
-									<input type="text" size="50" class="form-control mb-2 mr-sm-2" id="fun" placeholder="2x+sqrt(x)+pow(x,2)" ng-model="function">
-									<button class="btn btn-primary mb-2" style="@{{ draw_button }}" ng-click='sayHello()'>繪圖</button>
-									<button type="submit" class="btn btn-success btn-lg mb-2" style="margin-left:25px" ng-click='final()'>
-										@{{ buttom_state }}
-									</button>
-								</form>
-                            </div>
-						</div>
-					</div>
-					<div class="row">
-						<div class="col-sm-offset-6">
-							<!-- 顯示誤差率 -->
-                            <p id=deviation><b>@{{ deviation }}</b></p>
-						</div>
-					</div>
-					<div class="row">
-						<div class="col-sm-12">
-                            <!-- 繪圖 -->
-							@{{ greeting }}
-
-                            <!-- 顯示建模歷程 -->
-							<div id="myDiv" style="float:left; width: 700px; height: 400px;"></div>
-							<div style="float:left; padding-top: 20px;">
-								<div id="happyDIV" style="height:350px; overflow-y:auto;">
-									<table>
-										<tr ng-repeat="error in errors">
-											<td>@{{ error.formula }}</td>
-											<td>@{{ error.value }}</td>
-										</tr>
-									</table>
+<div class="introduce-bg2 introduce-mid">
+	<div ng-app="scopeExample">
+		<div ng-controller="MyController">
+			<h2><b>@{{experiment_title}}</b></h2>
+			<div class="row">
+				<div class="col-sm-12">
+					<!-- 輸入公式的欄位 -->
+					<div style="@{{ text_color }}">
+						<form class="ml-3">
+							<div class="form-group row" style="margin: 0;">
+								<label for="fun"><font size="4">@{{var_symbol}}</font></label>
+								<div class="col-sm-5 mb-2">
+									<input type="text" class="form-control" id="fun" placeholder="2x+sqrt(x)+pow(x,2)" ng-model="function">
 								</div>
-
+								<button class="btn btn-primary mb-2" style="@{{ draw_button }}" ng-click='sayHello()'>繪圖</button>
+								<button type="submit" class="btn btn-success btn-lg mb-2" style="margin-left:25px" ng-click='final()'>
+									@{{ buttom_state }}
+								</button>
 							</div>
-						</div>
-					</div>
-					<div class="row">
-						<div class="col-sm-6">
-							<div class="dropdown">
-    							<button class="btn btn-primary dropdown-toggle" id="menu1" type="button" data-toggle="dropdown">縱軸
-    							<span class="caret"></span></button>
-    							<ul id="menu-y" class="dropdown-menu" role="menu" aria-labelledby="menu1">
-    							</ul>
-							</div>
-						</div>
-						<div class="col-sm-6">
-							<div class="dropdown">
-    							<button class="btn btn-primary dropdown-toggle" id="menu1" type="button" data-toggle="dropdown">橫軸
-    							<span class="caret"></span></button>
-    							<ul id="menu-x" class="dropdown-menu" role="menu" aria-labelledby="menu1">
-    							</ul>
-							</div>
-						</div>
+						</form>
 					</div>
 				</div>
 			</div>
+			<div class="row">
+				<div class="offset-sm-6">
+					<!-- 顯示誤差率 -->
+					<p id=deviation style="margin: 0;"><b>@{{ deviation }}</b></p>
+				</div>
+			</div>
+
+			<div class="row">
+				<div class="col-sm-12">
+					<!-- 繪圖 -->
+					@{{ greeting }}
+
+					<!-- 顯示建模歷程 -->
+					<div id="myDiv" style="float:left; width:700px; height:400px; background-color:#f8fafc;"></div>
+					<div style="float:left; padding-top: 20px;">
+						<div id="happyDIV" style="display:none; height:350px; overflow-y:auto;">
+							<table>
+								<tr ng-repeat="error in errors">
+									<td>@{{ error.formula }}</td>
+									<td>@{{ error.value }}</td>
+								</tr>
+							</table>
+						</div>
+
+					</div>
+				</div>
+			</div>
+			
+			<div id="dropdown-xy" class="row">
+                <div class="col-sm-6">
+					<div class="dropdown">
+						<button class="btn btn-primary dropdown-toggle" type="button" id="menu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+							X
+						</button>
+						<div id="menu-x" class="dropdown-menu" aria-labelledby="menu1"></div>
+					</div>
+                </div>
+                <div class="col-sm-6">
+					<div class="dropdown">
+						<button class="btn btn-primary dropdown-toggle" type="button" id="menu2" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+							Y
+						</button>
+						<div id="menu-y" class="dropdown-menu" aria-labelledby="menu2"></div>
+					</div>
+				</div>
+			</div>
+
+			<br>
 		</div>
+	</div>
 
 </div>
 @stop
