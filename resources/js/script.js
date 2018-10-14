@@ -2,43 +2,76 @@
     'use strict';
     angular.module('scopeExample', [])
       .controller('MyController', ['$scope', '$log', '$http', function($scope, $log, $http) {
-        //預設公式為t
+        // 預設公式為t
         $scope.function = '';
-        //用來儲存建模過程的誤差
+        // 用來儲存建模過程的誤差
         $scope.errors = [{formula:"公式", value:"誤差率"}];
-        
+        // 顯示標題(實驗主題名稱)
         $scope.experiment_title = "實驗主題：" + experiment.experiment;        
-        //讓最右邊的大按鈕顯示“完成建模“
+        // 讓最右邊的大按鈕顯示“完成建模“
         $scope.buttom_state = '完成建模';
         
         $scope.xyChange = false;
+        
+        // 圖表註解
+        var annotation_x = {
+          xref: 'paper',
+          yref: 'paper',
+          xanchor: 'left',
+          yanchor: 'top',
+          x: 0.9,
+          y: -0.05,
+          text: 'X axis label',
+          showarrow: false,
+          font: {
+            family: '微軟正黑體, Arial, Courier New, Times New Roman',
+            size: 16,
+          }
+        };
+        var annotation_y = {
+          xref: 'paper',
+          yref: 'paper',
+          xanchor: 'left',
+          yanchor: 'bottom',
+          x: -0.1,
+          y: 1,
+          text: 'Y axis label',
+          showarrow: false,
+          //textangle: -90,
+          font: {
+            family: '微軟正黑體, Arial, Courier New, Times New Roman',
+            size: 16,
+          }
+        };
 
-        //設定圖表的參數
+        // 設定圖表的參數
         var layout = {
-          //顯示實驗的名稱（從資料庫來的）
+          // 顯示實驗的名稱（從資料庫來的）
           //title: experiment.experiment,
           margin: {
             t: 20
           },
           xaxis: {
-            //左下從0/0顯示
+            // 左下從0/0顯示
             rangemode: 'tozero',
             autorange: true,
-            //x軸單位（從資料庫）
-            title: data[xIndex].title + '(' + data[xIndex].unit + ')'
+            // x軸單位（從資料庫）
+            //title: data[xIndex].title + '(' + data[xIndex].unit + ')'
           },
           yaxis: {
-            //左下從0/0顯示
+            // 左下從0/0顯示
             rangemode: 'tozero',
             autorange: true,
-            //y軸單位（從資料庫）
-            title: data[yIndex].title + '(' + data[yIndex].unit+ ')'
+            // y軸單位（從資料庫）
+            //title: data[yIndex].title + '(' + data[yIndex].unit+ ')'
           },
+          // 圖表註解:取代xy軸title，因為title無法改變位置
+          annotations: [annotation_x, annotation_y],
           // 將plotly的背景改為透明
           paper_bgcolor: 'rgba(0,0,0,0)',
           plot_bgcolor: 'rgba(0,0,0,0)'
-          
         };
+
         console.log(data);
         // 進行初始化
         $scope.init = function() {
@@ -86,7 +119,6 @@
           
           // 建立監聽事件
           $("#menu-x button").click(function() {
-            
             // 保存切換前的位置
             const tmpIndex = xIndex;
             // 更新切換的位置
@@ -125,9 +157,9 @@
             mode: 'markers',
             name: "實驗值"
           };
-          layout.xaxis.title = data[xIndex].title + " " + data[xIndex].symbol + ' (' + data[xIndex].unit + ')'
-          layout.yaxis.title = data[yIndex].title + " " + data[yIndex].symbol + ' (' + data[yIndex].unit + ')'
-          Plotly.newPlot('myDiv', [trace1], layout, {displaylogo: false});
+          annotation_x.text = data[xIndex].title + " " + data[xIndex].symbol + ' (' + data[xIndex].unit + ')';
+          annotation_y.text = data[yIndex].title + " " + data[yIndex].symbol + ' (' + data[yIndex].unit + ')';
+          layout.annotations = [annotation_x,annotation_y];          Plotly.newPlot('myDiv', [trace1], layout, {displaylogo: false});
         }
 
         //contest-draw.blade.php裡面的繪圖button，有使用ng-click讓它每按一次就觸發一次sayHello
@@ -176,7 +208,7 @@
             trace0.x = trace1.x;
             //宣告誤差率的分母、分母
             var deviation_denominator = 0;
-            var deviation_numerator =0;
+            var deviation_numerator = 0;
             //將每個實驗的時間數據帶入到建模公式、f()前面math.eval那邊有宣告
             try{
               for (i = 0; i < trace1.x.length; i++) {
@@ -218,9 +250,10 @@
                     console.log(response.data_plot) ;
                   });
             }
-            layout.xaxis.title = data[xIndex].title + '(' + data[xIndex].unit + ')'
-            layout.yaxis.title = data[yIndex].title + '(' + data[yIndex].unit + ')'
 
+          annotation_x.text = data[xIndex].title + " " + data[xIndex].symbol + ' (' + data[xIndex].unit + ')';
+          annotation_y.text = data[yIndex].title + " " + data[yIndex].symbol + ' (' + data[yIndex].unit + ')';
+            layout.annotations = [annotation_x,annotation_y];
             //繪圖
             Plotly.newPlot('myDiv', data_plot, layout, {displaylogo: false});
           }
@@ -231,6 +264,7 @@
           }, 10);
           $scope.xyChange = false;
         };
+        
         //contest-draw.blade.php裡面的完成建模button，有使用ng-click讓它每按一次就觸發一次final
         //final用來將最後建模的公式以及誤差傳給資料庫
         $scope.final = function() {
