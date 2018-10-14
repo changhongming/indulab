@@ -33,7 +33,11 @@
             autorange: true,
             //y軸單位（從資料庫）
             title: data[yIndex].title + '(' + data[yIndex].unit+ ')'
-          }
+          },
+          // 將plotly的背景改為透明
+          paper_bgcolor: 'rgba(0,0,0,0)',
+          plot_bgcolor: 'rgba(0,0,0,0)'
+          
         };
         console.log(data);
         // 進行初始化
