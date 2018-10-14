@@ -1,9 +1,10 @@
-# 請自行安裝npm的套件管理器，並使用npm install 來安裝js套件
+﻿# 請自行安裝npm的套件管理器，並使用npm install 來安裝js套件
 /node_modules
 /public/hot
 /public/storage
-# js檔打包請自行使用laravel-mix打包 使用 npm run dev 指令可進行打包
+# js檔css檔與打包請自行使用laravel-mix打包 使用 npm run dev 指令可進行打包
 /public/js
+/public/css
 /storage/*.key
 /vendor
 /.idea
@@ -13,6 +14,6 @@ Homestead.json
 Homestead.yaml
 npm-debug.log
 yarn-error.log
-# .env檔請自行從 .env.example修改並重新命名.env
+# .env檔請自行從 .env.example修改並重新命名.env 如果開啟網頁後出現error 500，請使用 php artisan key:generate
 .env
 .phpunit.result.cache
