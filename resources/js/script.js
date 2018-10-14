@@ -49,7 +49,8 @@
         }
 
         $scope.setVarSymbol = function(symbol) {
-          $scope.var_symbol = "f(" + symbol + ") =";
+          $("#symbol_val").html("f(" + symbol + ") =");
+          console.log($("#symbol_val").html);
         }
 
         // 更新x、y軸表單欄位跟事件
@@ -124,8 +125,8 @@
             mode: 'markers',
             name: "實驗值"
           };
-          layout.xaxis.title = data[xIndex].title + '(' + data[xIndex].unit + ')'
-          layout.yaxis.title = data[yIndex].title + '(' + data[yIndex].unit + ')'
+          layout.xaxis.title = data[xIndex].title + " " + data[xIndex].symbol + ' (' + data[xIndex].unit + ')'
+          layout.yaxis.title = data[yIndex].title + " " + data[yIndex].symbol + ' (' + data[yIndex].unit + ')'
           Plotly.newPlot('myDiv', [trace1], layout, {displaylogo: false});
         }
 

@@ -38,7 +38,7 @@
 					<div style="@{{ text_color }}">
 						<form class="ml-3">
 							<div class="form-group row" style="margin: 0;">
-								<label for="fun"><font size="4">@{{var_symbol}}</font></label>
+								<label for="fun"><font size="4" id="symbol_val"></font></label>
 								<div class="col-sm-5 mb-2">
 									<input type="text" class="form-control" id="fun" placeholder="2x+sqrt(x)+pow(x,2)" ng-model="function">
 								</div>
@@ -66,7 +66,7 @@
 					<!-- 顯示建模歷程 -->
 					<div id="myDiv" style="float:left; width:700px; height:400px; background-color:#f8fafc;"></div>
 					<div style="float:left; padding-top: 20px;">
-						<div id="happyDIV" style="display:none; height:350px; overflow-y:auto;">
+						<div id="happyDIV" style="height:350px; overflow-y:auto;">
 							<table>
 								<tr ng-repeat="error in errors">
 									<td>@{{ error.formula }}</td>
