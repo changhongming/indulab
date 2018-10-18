@@ -52,7 +52,7 @@
 				</div>
 			</div>
 			<div class="row">
-				<div class="offset-sm-6">
+				<div class="offset-sm-8">
 					<!-- 顯示誤差率 -->
 					<p id=deviation style="margin: 0;"><b>@{{ deviation }}</b></p>
 				</div>
@@ -80,22 +80,22 @@
 			</div>
 			
 			<div id="dropdown-xy" class="row">
-                <div class="col-sm-6">
-					<div class="dropdown">
-						<button class="btn btn-primary dropdown-toggle" type="button" id="menu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-							X
-						</button>
-						<div id="menu-x" class="dropdown-menu" aria-labelledby="menu1"></div>
-					</div>
-                </div>
-                <div class="col-sm-6">
+				<div class="col-sm-6">
 					<div class="dropdown">
 						<button class="btn btn-primary dropdown-toggle" type="button" id="menu2" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-							Y
+							縱軸
 						</button>
 						<div id="menu-y" class="dropdown-menu" aria-labelledby="menu2"></div>
 					</div>
 				</div>
+                <div class="col-sm-6">
+					<div class="dropdown">
+						<button class="btn btn-primary dropdown-toggle" type="button" id="menu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+							橫軸
+						</button>
+						<div id="menu-x" class="dropdown-menu" aria-labelledby="menu1"></div>
+					</div>
+                </div>
 			</div>
 
 			<br>

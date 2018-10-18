@@ -159,7 +159,8 @@
           };
           annotation_x.text = data[xIndex].title + " " + data[xIndex].symbol + ' (' + data[xIndex].unit + ')';
           annotation_y.text = data[yIndex].title + " " + data[yIndex].symbol + ' (' + data[yIndex].unit + ')';
-          layout.annotations = [annotation_x,annotation_y];          Plotly.newPlot('myDiv', [trace1], layout, {displaylogo: false});
+          layout.annotations = [annotation_x,annotation_y];         
+          Plotly.newPlot('myDiv', [trace1], layout, {displaylogo: false});
         }
 
         //contest-draw.blade.php裡面的繪圖button，有使用ng-click讓它每按一次就觸發一次sayHello
