@@ -26,6 +26,10 @@ class CreateModeling extends Migration
             $table->string('error',10)->default('');
             $table->string('final_formula',100)->default('');
             $table->string('final_error',10)->default('');
+            $table->string('xLabel',10)->default('NULL');
+            $table->string('xUnit',10)->default('NULL');
+            $table->string('yLabel',10)->default('NULL');
+            $table->string('yUnit',10)->default('NULL');
             $table->timestamp('created_at')->useCurrent();
             $table->timestamp('updated_at')->default(DB::raw('CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP'));
         });

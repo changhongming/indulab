@@ -234,11 +234,15 @@
             $scope.error_formula = $scope.errors[$scope.errors.length - 1].formula;
             $scope.error_value = $scope.errors[$scope.errors.length - 1].value;
             //傳送建模的過程給資料庫
-            if ($scope.errors.length != 2) {
+            if ($scope.errors.length != 1) {
               //save_data儲存要傳給資料庫的資料
               var save_data = {};
               save_data.formula = $scope.error_formula;
               save_data.error = $scope.error_value;
+              save_data.xLabel = data[xIndex].title;
+              save_data.xUnit = data[xIndex].unit;
+              save_data.yLabel = data[yIndex].title;
+              save_data.yUnit = data[yIndex].unit;
               console.log(save_data);
               //點繪圖按鈕傳資料給資料庫
               $http.post('/draw', save_data)

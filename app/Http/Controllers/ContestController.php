@@ -166,6 +166,10 @@ class ContestController extends Controller {
         $record->student_number = $request->session()->get('student_number');
         $record->name = $request->session()->get('name');
         $record->experiment = $request->session()->get('experiment');
+        $record->xLabel = $request->input('xLabel');
+        $record->xUnit = $request->input('xUnit');
+        $record->yLabel = $request->input('yLabel');
+        $record->yUnit = $request->input('yUnit');
         //如果提交時final = 1，結果儲存到final_formula and error
         if ($request->input('final') == 1) {
             $record->final_formula = $request->input('formula');
@@ -178,7 +182,7 @@ class ContestController extends Controller {
             $record->formula = $request->input('formula');
             $record->error = $request->input('error');
             $record->save();
-            Debugbar::info($request->all());
+            Debugbar::info($request);
             return 'success';
         }
 
