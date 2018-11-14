@@ -279,6 +279,10 @@
             var save_data = {};
             save_data.formula = $scope.error_formula;
             save_data.error = $scope.error_value;
+            save_data.xLabel = data[xIndex].title;
+            save_data.xUnit = data[xIndex].unit;
+            save_data.yLabel = data[yIndex].title;
+            save_data.yUnit = data[yIndex].unit;
             //設定save_data.final為1，後台才知道這筆資料是最後的結果
             save_data.final = 1;
             //點提交模型按鈕傳資料給資料庫
