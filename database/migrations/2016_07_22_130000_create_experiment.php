@@ -44,6 +44,6 @@ class CreateExperiment extends Migration
      */
     public function down()
     {
-        Schema::drop('experiments');//
+        Schema::drop('experiments');
     }
 }

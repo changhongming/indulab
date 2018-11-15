@@ -5,6 +5,7 @@ use App\Student;
 use App\UploadData;
 use App\Modeling;
 use App\Experiment;
+use App\ModelingLabel;
 use Illuminate\Http\Request;
 use Illuminate\Database\Eloquent;
 use Debugbar;
@@ -185,6 +186,23 @@ class ContestController extends Controller {
             Debugbar::info($request);
             return 'success';
         }
+    }
 
+    // 提交切換XY軸內容
+    public function postLabel(Request $request) {
+        $request->session()->reflash();
+        //宣告record儲存Modeling module的資料（Modeling在/app裡建立）
+        $record = new ModelingLabel;
+        //record儲存id、學號、姓名、實驗，id用來比對上傳的資料跟建模歷程
+        $record->student_id = $request->session()->get('student_id');
+        $record->upload_data_id = $request->session()->get('upload_data_id');
+        $record->student_number = $request->session()->get('student_number');
+        $record->name = $request->session()->get('name');
+        $record->experiment = $request->session()->get('experiment');
+        $record->xLabel = $request->input('xLabel');
+        $record->xUnit = $request->input('xUnit');
+        $record->yLabel = $request->input('yLabel');
+        $record->yUnit = $request->input('yUnit');
+        $record->save();
     }
 }

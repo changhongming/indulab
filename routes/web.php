@@ -19,3 +19,4 @@ Route::get('import', 'ContestController@getImport');
 Route::post('import', 'ContestController@postImport');
 Route::get('draw', 'ContestController@getDraw');
 Route::post('draw', 'ContestController@postDraw');
+Route::post('label', 'ContestController@postLabel');

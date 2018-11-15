@@ -72,7 +72,7 @@
           plot_bgcolor: 'rgba(0,0,0,0)'
         };
 
-        console.log(data);
+
         // 進行初始化
         $scope.init = function() {
           $scope.renderMenu();
@@ -132,6 +132,7 @@
             $scope.renderMenu();
             $scope.setVarSymbol(data[xIndex].symbol);
             $scope.drawExperimentData();
+            $scope.uploadLabelSQL();
           });
           $("#menu-y button").click(function() {
             // 保存切換前的位置
@@ -147,7 +148,27 @@
             $scope.renderMenu();
             $scope.setVarSymbol(data[xIndex].symbol);
             $scope.drawExperimentData();
+            $scope.uploadLabelSQL();
           });
+        }
+
+        $scope.uploadLabelSQL = function() {
+          console.log('test');
+          var save_data = {};
+          save_data.xLabel = data[xIndex].title;
+          save_data.xUnit = data[xIndex].unit;
+          save_data.yLabel = data[yIndex].title;
+          save_data.yUnit = data[yIndex].unit;
+          //點提交模型按鈕傳資料給資料庫
+          $http.post('/label', save_data)
+            .then(function success(response)
+              {
+                $log.log(response.data) ;
+              }
+              ,function error(response)
+              {
+                console.log(response.data) ;
+              });
         }
 
         $scope.drawExperimentData = function() { 
