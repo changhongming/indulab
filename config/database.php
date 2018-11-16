@@ -52,6 +52,16 @@ return [
             'prefix' => '',
             'strict' => true,
             'engine' => null,
+            'dump' => [
+                // Microsoft Windows dump執行檔路徑
+                'setDumpBinaryPath' => env('DB_DUMP_COMMAND_PATH', 'C:/xampp/mysql/bin/'),
+                // Unix Linux dump執行檔路徑
+                'dump_command_path' => env('DB_DUMP_COMMAND_PATH', '/usr/bin/mysqldump'), // only the path, so without 'mysqldump' or 'pg_dump'
+                'dump_command_timeout' => env('DB_DUMP_TIMEOUT', 60 * 5), // 5 minute timeout
+                'dump_using_single_transaction' => true, // perform dump using a single transaction
+                //'exclude_tables' => ['table1', 'table2'],
+                //'add_extra_option' => '--optionname=optionvalue', 
+             ]
         ],
 
         'pgsql' => [
