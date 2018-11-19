@@ -6,8 +6,11 @@ use App\UploadData;
 use App\Modeling;
 use App\Experiment;
 use App\ModelingLabel;
+use App\CsvUpload;
 use Illuminate\Http\Request;
 use Illuminate\Database\Eloquent;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Database\Schema\Blueprint;
 use Debugbar;
 
 class ContestController extends Controller {
@@ -104,25 +107,36 @@ class ContestController extends Controller {
         }
 
         //建立data儲存上傳檔案裡面的資料，上傳功能的程式碼在contest-import.blade.php
-        $data = array();
-        $data['time'] = $request->input('time');
-        $data['value'] = $request->input('value');
         $data['data'] = $request->input('data');
-        //宣告record儲存UploadData module的資料（UploadData在/app裡建立）
-        $record = new UploadData;
-        //record儲存學號、姓名、實驗、數據
+
+        $csv_obj = json_decode($request->input('data'), true);
+       
+        $record = new CsvUpload;
+        // 如果資料庫沒有此欄位，則產生欄位並將值初始為0
+        Schema::table($record->getTable() , function (Blueprint $table) use ($csv_obj, $record) {
+            // 取得資料庫現有欄位名稱
+            $table_col = Schema::getColumnListing($record->getTable());
+            foreach($csv_obj as $col) {
+                $tmp = $col['title'].'('.$col['unit'].')';
+                if(!in_array($tmp, $table_col)) {
+                    $table->boolean($tmp)->default(0);
+                }
+            }
+        });
+        // 如果CSV檔內有此欄位則將值設定為1
+        foreach($csv_obj as $col) {
+            $tmp = $col['title'].'('.$col['unit'].')';
+            $record->$tmp = 1;
+        }
         $record->student_id = $request->session()->get('student_id');
         $record->student_number = $request->session()->get('student_number');
         $record->name = $request->session()->get('name');
         $record->experiment = $request->session()->get('experiment');
-        $record->time_data = $data['time'];
-        $record->value_data = $data['value'];
-        //將record的內容儲存到資料庫裡
+        $record->raw_data = $request->input('data');
         $record->save();
+
         //將數據儲存到session、這樣重新整理數據才不會消失
         $request->session()->put('upload_data_id', $record->id);
-        $request->session()->put('data_time', $data['time']);
-        $request->session()->put('data_value', $data['value']);
         $request->session()->put('data', $data['data']);
         //導向draw，如果要改變draw設定要在/app/Http/routes.php設定
         return redirect('draw');
@@ -144,11 +158,6 @@ class ContestController extends Controller {
         //從資料庫取得實驗的單位
         $units = Experiment::where('experiment', $request->session()->get('experiment'))->first();
         $data['units'] = $units;
-        //debug用
-        Debugbar::info($data['time']);
-        Debugbar::info($data['value']);
-        Debugbar::info($data['data']);
-        Debugbar::info($units);
         //顯示contest.contest-draw.blade.php的頁面
         return view('contest.contest-draw', $data);
     }

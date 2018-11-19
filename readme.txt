@@ -1,3 +1,3 @@
-1. ªì¦¸°õ¦æ½Ğ¥ı°õ¦æ "npm install"¦w¸Ë«eºİ©Ò»İªº®M«Ø ; php artisan migrate «ü¥O¨Ó«Ø¥ß¸ê®Æªí ; composer install «ü¥O¨Ó¦w¸Ëlaravel®M¥ó
-2. ¦pªG¨Ï¥Înpm run [command] ¥X²{ cross-env¿ù»~¡A ½Ğ¦w¸Ëcross-env®M¥ó¨ì¹q¸£Àô¹ÒÅÜ¼Æ "npm install cross-env -g"
-3. ¦pªG»İ­n³Æ¥÷APP¸ê®Æ(¥]§t¸ê®Æ®w)½Ğ¨Ï¥Î "php artisan backup:run" ¸ô®|¦b "<base_path>\storage\app\Laravel" ¤U
+ï»¿1. åˆæ¬¡åŸ·è¡Œè«‹å…ˆåŸ·è¡Œ "npm install"å®‰è£å‰ç«¯æ‰€éœ€çš„å¥—å»º ; php artisan migrate æŒ‡ä»¤ä¾†å»ºç«‹è³‡æ–™è¡¨ ; composer install æŒ‡ä»¤ä¾†å®‰è£laravelå¥—ä»¶ ; php artisan key:generate æŒ‡ä»¤ä¾†ç”¢ç”Ÿapp key
+2. å¦‚æœä½¿ç”¨npm run [command] å‡ºç¾ cross-envéŒ¯èª¤ï¼Œ è«‹å®‰è£cross-envå¥—ä»¶åˆ°é›»è…¦ç’°å¢ƒè®Šæ•¸ "npm install cross-env -g"
+3. å¦‚æœéœ€è¦å‚™ä»½APPè³‡æ–™(åŒ…å«è³‡æ–™åº«)è«‹ä½¿ç”¨ "php artisan backup:run" è·¯å¾‘åœ¨ "<base_path>\storage\app\Laravel" ä¸‹
