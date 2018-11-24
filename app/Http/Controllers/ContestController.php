@@ -116,9 +116,10 @@ class ContestController extends Controller {
         Schema::table($record->getTable() , function (Blueprint $table) use ($csv_obj, $record) {
             // 取得資料庫現有欄位名稱
             $table_col = Schema::getColumnListing($record->getTable());
+            $table_col = array_flip($table_col);
             foreach($csv_obj as $col) {
                 $tmp = $col['title'].'('.$col['unit'].')';
-                if(!in_array($tmp, $table_col)) {
+                if(!isset($table_col[$tmp])) {
                     $table->boolean($tmp)->default(0);
                 }
             }
