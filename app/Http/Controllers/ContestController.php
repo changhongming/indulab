@@ -118,7 +118,7 @@ class ContestController extends Controller {
             $table_col = Schema::getColumnListing($record->getTable());
             $table_col = array_flip($table_col);
             foreach($csv_obj as $col) {
-                $tmp = $col['title'].'('.$col['unit'].')';
+                $tmp = strtolower($col['title'].'('.$col['unit'].')');
                 if(!isset($table_col[$tmp])) {
                     $table->boolean($tmp)->default(0);
                 }
