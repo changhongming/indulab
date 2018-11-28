@@ -31,6 +31,7 @@ class CreateExperiment extends Migration
             array('experiment'=>'斜坡運動實驗', 'x_unit'=> '時間 t (ms)', 'y_unit'=> '擺長 L (cm)'),
             array('experiment'=>'拋體運動實驗', 'x_unit'=> '時間 t (ms)', 'y_unit'=> '擺長 L (cm)'),
             array('experiment'=>'氣象球', 'x_unit'=> '高度 h (m)', 'y_unit'=> '時間 t (ms)'),
+			array('experiment'=>'火車行徑', 'x_unit'=> '加速度 a (m^2/s)', 'y_unit'=> '位置 p (m)'),
         );
         DB::table('experiments')->insert($data);
     }
