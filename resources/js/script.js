@@ -132,7 +132,7 @@
             $scope.renderMenu();
             $scope.setVarSymbol(data[xIndex].symbol);
             $scope.drawExperimentData();
-            $scope.uploadLabelSQL();
+            $scope.uploadLabelSQL('x');
           });
           $("#menu-y button").click(function() {
             // 保存切換前的位置
@@ -148,17 +148,17 @@
             $scope.renderMenu();
             $scope.setVarSymbol(data[xIndex].symbol);
             $scope.drawExperimentData();
-            $scope.uploadLabelSQL();
+            $scope.uploadLabelSQL('y');
           });
         }
 
-        $scope.uploadLabelSQL = function() {
-          console.log('test');
+        $scope.uploadLabelSQL = function(changeAxis) {
           var save_data = {};
           save_data.xLabel = data[xIndex].title;
           save_data.xUnit = data[xIndex].unit;
           save_data.yLabel = data[yIndex].title;
           save_data.yUnit = data[yIndex].unit;
+          save_data.changeAxis = changeAxis;
           //點提交模型按鈕傳資料給資料庫
           $http.post('/label', save_data)
             .then(function success(response)

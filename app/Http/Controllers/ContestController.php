@@ -213,6 +213,7 @@ class ContestController extends Controller {
         $record->xUnit = $request->input('xUnit');
         $record->yLabel = $request->input('yLabel');
         $record->yUnit = $request->input('yUnit');
+        $record->changeAxis = $request->input('changeAxis');
         $record->save();
     }
 }
