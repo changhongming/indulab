@@ -5,12 +5,12 @@
         // 預設公式為t
         $scope.function = '';
         // 用來儲存建模過程的誤差
-        $scope.errors = [{formula:"公式", value:"誤差率"}];
+        $scope.errors = [{formula:"公式", value:"誤差率", xinfo:"橫軸", yinfo:"縱軸"}];
         // 顯示標題(實驗主題名稱)
-        $scope.experiment_title = "實驗主題：" + experiment.experiment;        
+        $scope.experiment_title = "實驗主題：" + experiment.experiment;
         // 讓最右邊的大按鈕顯示“完成建模“
         $scope.buttom_state = '完成建模';
-        
+        // 確認xy軸是否有改變
         $scope.xyChange = false;
         
         // 圖表註解
@@ -83,7 +83,6 @@
 
         $scope.setVarSymbol = function(symbol) {
           $("#symbol_val").html("f(" + symbol + ") =");
-          console.log($("#symbol_val").html);
         }
 
         // 更新x、y軸表單欄位跟事件
@@ -194,12 +193,12 @@
             //replace的說明可參考http://www.w3school.com.cn/jsref/jsref_replace.asp
             //轉換完之後給math.eval算出結果
             var f = math.eval("f(" + data[xIndex].symbol + ")=" + $scope.function);
-
+            
             var i;
             //預設顯示的圖，程式執行失敗才顯示
             var trace0 = {
-              x: [1, 2, 3],
-              y: [4, 3, 2],
+              x: [],
+              y: [],
               //設定圖表的樣式
               //圖表或標示等相關設定參考https://plot.ly/javascript/裡面的Layout Options或範例code
               mode: 'markers',
@@ -214,8 +213,8 @@
 
             //預設顯示的圖，程式執行失敗才顯示
             var trace1 = {
-              x: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-              y: [0, 1, 4, 9, 16, 25, 36, 49, 64, 81, 100],
+              x: [],
+              y: [],
               mode: 'markers',
               name: "實驗值"
             };
@@ -232,7 +231,7 @@
             var deviation_denominator = 0;
             var deviation_numerator = 0;
             //將每個實驗的時間數據帶入到建模公式、f()前面math.eval那邊有宣告
-            try{
+            try {
               for (i = 0; i < trace1.x.length; i++) {
                 trace0.y[i] = f(trace0.x[i]);
                 //計算誤差率的分子與分母
@@ -248,9 +247,11 @@
             var error = deviation_numerator / deviation_denominator * 100;
             //結果丟到contest.draw.blade.php裡的@{{ deviation }}顯示
             $scope.deviation = "誤差率 = "  + error.toFixed(2) + "%";
-
+            // 紀錄xy軸欄位訊息
+            const xinfo = data[xIndex].title + '(' + data[xIndex].unit + ')';
+            const yinfo = data[yIndex].title + '(' + data[yIndex].unit + ')';
             //errors存放建模過程的公式與誤差率
-            $scope.errors[$scope.errors.length] = {formula:$scope.function, value:error.toFixed(2)};
+            $scope.errors[$scope.errors.length] = {formula:$scope.function, value:error.toFixed(2), xinfo:xinfo, yinfo:yinfo };
             //公式與誤差從errors拿出來（要傳給資料庫用的）
             $scope.error_formula = $scope.errors[$scope.errors.length - 1].formula;
             $scope.error_value = $scope.errors[$scope.errors.length - 1].value;
@@ -264,7 +265,6 @@
               save_data.xUnit = data[xIndex].unit;
               save_data.yLabel = data[yIndex].title;
               save_data.yUnit = data[yIndex].unit;
-              console.log(save_data);
               //點繪圖按鈕傳資料給資料庫
               $http.post('/draw', save_data)
                 .then(function success(response)

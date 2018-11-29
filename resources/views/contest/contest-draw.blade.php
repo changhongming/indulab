@@ -65,12 +65,14 @@
 
 					<!-- 顯示建模歷程 -->
 					<div id="myDiv" style="float:left; width:700px; height:400px; background-color:#f8fafc;"></div>
-					<div style="float:left; padding-top: 20px;">
+					<div style="padding-top: 20px;">
 						<div id="happyDIV" style="height:350px; overflow-y:auto;">
 							<table>
 								<tr ng-repeat="error in errors">
 									<td>@{{ error.formula }}</td>
 									<td>@{{ error.value }}</td>
+									<td>@{{ error.xinfo }}</td>
+									<td>@{{ error.yinfo }}</td>
 								</tr>
 							</table>
 						</div>
