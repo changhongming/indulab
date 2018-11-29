@@ -40,7 +40,7 @@
 							<div class="form-group row" style="margin: 0;">
 								<label for="fun"><font size="4" id="symbol_val"></font></label>
 								<div class="col-sm-5 mb-2">
-									<input type="text" class="form-control" id="fun" placeholder="2x+sqrt(x)+pow(x,2)" ng-model="function">
+									<input type="text" class="form-control" id="fun" placeholder="2x+sqrt(x)+pow(x,2)" autocomplete="off" ng-model="function">
 								</div>
 								<button class="btn btn-primary mb-2" style="@{{ draw_button }}" ng-click='sayHello()'>繪圖</button>
 								<button type="submit" class="btn btn-success btn-lg mb-2" style="margin-left:25px" ng-click='final()'>
