@@ -7,6 +7,7 @@
 
 require('./angular.min.js');
 require('./jquery.csv.min.js');
+window.moment = require('moment');
 window.$ = window.jQuery = require('jquery');
 window.math = require('mathjs');
 window.Plotly = require('./plotly-latest.min.js');
