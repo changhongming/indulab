@@ -131,7 +131,6 @@
         // 定期檢查plotly的log有沒有新資料是沒有上傳的
         setInterval(() => {
           if (typeof plotly_log !== 'undefined' && plotly_log.length > 0) {
-            console.log(plotly_log);
             $http.post('/chartlog', plotly_log)
               .then(function success(response) {
                 $log.log(response.data);
