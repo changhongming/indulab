@@ -7,6 +7,7 @@ use App\Modeling;
 use App\Experiment;
 use App\ModelingLabel;
 use App\CsvUpload;
+use App\ChartLog;
 use Illuminate\Http\Request;
 use Illuminate\Database\Eloquent;
 use Illuminate\Support\Facades\Schema;
@@ -215,5 +216,32 @@ class ContestController extends Controller {
         $record->yUnit = $request->input('yUnit');
         $record->changeAxis = $request->input('changeAxis');
         $record->save();
+    }
+
+    // 提交圖表的操作歷程
+    public function postChartLog(Request $request) {
+        $request->session()->reflash();
+        $record = new ChartLog;
+        
+        // 相同資料的欄位設定
+        $base = [
+            'student_id' => $request->session()->get('student_id'),
+            'upload_data_id' => $request->session()->get('upload_data_id'),
+            'student_number' => $request->session()->get('student_number'),
+            'name' => $request->session()->get('name'),
+            'experiment' => $request->session()->get('experiment'),
+        ];
+        // 取得請求內容
+        $data = $request->input();
+        // 新增的ORM物件
+        $insert_data = [];
+        
+        // 將陣列合併
+        foreach($data as $ele) {
+            $insert_data[] = array_merge($ele , $base);
+        }
+
+        // 開始批次新增
+        $record->insert($insert_data);
     }
 }
