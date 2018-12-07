@@ -30,8 +30,9 @@ class CreateExperiment extends Migration
             array('experiment'=>'RC直流暫態實驗', 'x_unit'=> '時間 t (ms)', 'y_unit'=> '電壓 V (V)'),
             array('experiment'=>'斜坡運動實驗', 'x_unit'=> '時間 t (ms)', 'y_unit'=> '擺長 L (cm)'),
             array('experiment'=>'拋體運動實驗', 'x_unit'=> '時間 t (ms)', 'y_unit'=> '擺長 L (cm)'),
-            array('experiment'=>'氣象球', 'x_unit'=> '高度 h (m)', 'y_unit'=> '時間 t (ms)'),
-			array('experiment'=>'火車行進', 'x_unit'=> '加速度 a (m^2/s)', 'y_unit'=> '位置 p (m)'),
+            array('experiment'=>'飛上天空觀測氣象', 'x_unit'=> '高度 h (m)', 'y_unit'=> '時間 t (ms)'),
+            array('experiment'=>'火車的行進', 'x_unit'=> '加速度 a (m^2/s)', 'y_unit'=> '位置 p (m)'),
+            array('experiment'=>'從鷹架掉落的磚頭', 'x_unit'=> '加速度 a (m^2/s)', 'y_unit'=> '位置 p (m)'),
         );
         DB::table('experiments')->insert($data);
     }
