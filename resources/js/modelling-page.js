@@ -1,3 +1,6 @@
+require('angular');
+var math = require('mathjs');
+var Plotly = require('./custom-plotly');
 (function (angular) {
   'use strict';
   angular.module('scopeExample', [])
@@ -138,13 +141,13 @@
           if (typeof plotly_log !== 'undefined' && plotly_log.length > 0) {
             $http.post('/chartlog', plotly_log)
               .then(function success(response) {
+
                 $log.log(response.data);
               }
                 , function error(response) {
                   console.log(response.data);
-                });
-            plotly_log = [];
-          }
+              });
+              plotly_log = [];          }
         }, chart_log_interval);
 
         console.log("init compleate!");

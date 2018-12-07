@@ -17,6 +17,7 @@
 			font-size: 22px;
 		}
 	</style>
+	<script src="{{ mix('/js/modelling-page.js') }}"></script>
 	<script>
 		// x軸與y軸取出的物件位置
 		var xIndex = 0;

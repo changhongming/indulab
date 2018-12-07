@@ -5,12 +5,18 @@
  * building robust, powerful web applications using Vue and Laravel.
  */
 
-require('./angular.min.js');
+
 require('./jquery.csv.min.js');
-window.moment = require('moment');
+
+// dayjs為momentjs的輕量版
+window.moment = require('dayjs');
+
 window.$ = window.jQuery = require('jquery');
-window.math = require('mathjs');
-window.Plotly = require('./plotly-latest.min.js');
+
+// 載入Plotly特定模組
+//window.Plotly = require('./custom-plotly');
+
+// 如bootstrap功能異常，請將引入pooper.js
+//require('popper.js');
+
 require('bootstrap');
-require('popper.js');
-require('./script.js');
