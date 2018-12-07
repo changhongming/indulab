@@ -96,10 +96,15 @@
           // 將資料放入歷史紀錄中
           plotly_log.push({
             "event": e.type.replace("plotly_", ""),
-            "x_pre": data.points[0].x,
-            "y_pre": data.points[0].y,
-            "x_exp": isDefined(data.points[1]) ? data.points[1].x : null,
-            "y_exp": isDefined(data.points[1]) ? data.points[1].y : null,
+            "x_exp": data.points[0].x,
+            "y_exp": data.points[0].y,
+            "x_pre": isDefined(data.points[1]) ? data.points[1].x : null,
+            "y_pre": isDefined(data.points[1]) ? data.points[1].y : null,
+            // 取得Plotly欄位資訊全域變數
+            "x_label": window.data[xIndex].title,
+            "x_unit": window.data[xIndex].unit,
+            "y_label": window.data[yIndex].title,
+            "y_unit": window.data[yIndex].unit,
             "record_at": now,
           });
         });

@@ -26,6 +26,12 @@ class CreateChartLogTable extends Migration
             $table->decimal('y_pre',8,4)->nullable();
             $table->decimal('x_exp',8,4)->nullable();
             $table->decimal('y_exp',8,4)->nullable();
+
+            $table->string('x_label',10)->nullable();
+            $table->string('x_unit',10)->nullable();
+            $table->string('y_label',10)->nullable();
+            $table->string('y_unit',10)->nullable();
+            
             $table->string('event',10)->nullable();
             $table->timestamp('record_at')->nullable();
             $table->timestamp('created_at')->useCurrent();
