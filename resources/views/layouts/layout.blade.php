@@ -8,11 +8,9 @@
         <meta name="author" content="">
         <link rel="icon" href="/image/favicon.png">
         <title>InduLab</title>
-        
-        <link href="{{ asset('css/site.css') }}" rel="stylesheet">
-		<script src="/js/manifest.js"></script>
-		<script src="/js/vendor.js"></script>
-		<script src="/js/app.js"></script>
+
+        <link href="{{ mix('css/site.css') }}" rel="stylesheet">
+
     </head>
 
     <body>
@@ -28,13 +26,18 @@
                         <a class="nav-link" href="/">開始實驗</a>
                     </li>
                 </ul>
-            </div>    
-            
+            </div>
+
         </nav>
 
 
         <div class="container">
             @yield('content')
         </div>
+
+        <script src="{{ mix('/js/manifest.js') }}"></script>
+        <script src="{{ mix('/js/vendor.js') }}"></script>
+        <script src="{{ mix('/js/app.js') }}"></script>
+        @yield('script')
     </body>
 </html>
