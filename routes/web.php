@@ -21,3 +21,4 @@ Route::get('draw', 'ContestController@getDraw');
 Route::post('draw', 'ContestController@postDraw');
 Route::post('label', 'ContestController@postLabel');
 Route::post('chartlog', 'ContestController@postChartLog');
+Route::get('slope', 'ContestController@getSlope');

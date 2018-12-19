@@ -111,7 +111,7 @@ class ContestController extends Controller {
         $data['data'] = $request->input('data');
 
         $csv_obj = json_decode($request->input('data'), true);
-       
+
         $record = new CsvUpload;
         // 如果資料庫沒有此欄位，則產生欄位並將值初始為0
         Schema::table($record->getTable() , function (Blueprint $table) use ($csv_obj, $record) {
@@ -153,7 +153,7 @@ class ContestController extends Controller {
         $data = array();
         $data['time'] = array();
         $data['value'] = array();
-        
+
         $data['time'] = $request->session()->get('data_time');
         $data['value'] = $request->session()->get('data_value');
         $data['data'] = $request->session()->get('data');
@@ -222,7 +222,7 @@ class ContestController extends Controller {
     public function postChartLog(Request $request) {
         $request->session()->reflash();
         $record = new ChartLog;
-        
+
         // 相同資料的欄位設定
         $base = [
             'student_id' => $request->session()->get('student_id'),
@@ -235,7 +235,7 @@ class ContestController extends Controller {
         $data = $request->input();
         // 新增的ORM物件
         $insert_data = [];
-        
+
         // 將陣列合併
         foreach($data as $ele) {
             $insert_data[] = array_merge($ele , $base);
@@ -243,5 +243,10 @@ class ContestController extends Controller {
 
         // 開始批次新增
         $record->insert($insert_data);
+    }
+    // 斜坡模擬測驗頁面
+    public function getSlope()
+    {
+        return view('contest.contest-slope');
     }
 }

@@ -25,6 +25,9 @@
                     <li class="nav-item active">
                         <a class="nav-link" href="/">開始實驗</a>
                     </li>
+                    <li class="nav-item active">
+                            <a class="nav-link" href="/slope">斜坡運動</a>
+                    </li>
                 </ul>
             </div>
 
