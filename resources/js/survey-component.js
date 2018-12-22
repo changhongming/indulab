@@ -5,6 +5,14 @@ import * as showdown from "showdown";
 // 組合html函式庫
 import * as md from "./md-combine";
 
+import VueKonva from 'vue-konva';
+
+Vue.use(VueKonva);
+
+import mycanvas from './comproments/myCanvas';
+import test from './comproments/test';
+import simslope from './comproments/simslope'
+
 // surveyjs使用bootstrap風格
 Survey
     .StylesManager
@@ -125,3 +133,9 @@ var app = new Vue({
         survey: survey
     }
 });
+new Vue({
+    el: '#app',
+    components:{
+        simslope
+    }
+})

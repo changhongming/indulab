@@ -5,6 +5,9 @@
 <div class="introduce-bg2 introduce-mid">
 	<div class="row">
         <div id="col-lg-8 col-md-8 col-sm-8 col-xs-8">
+            <div id="app">
+                <simslope></simslope>
+            </div>
             <div id="surveyElement">
                 <survey :survey='survey'/>
             </div>
