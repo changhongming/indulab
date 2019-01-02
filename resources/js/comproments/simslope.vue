@@ -2,14 +2,18 @@
   <div>
     <v-stage ref="stage" :config="configKonva" @click="test">
       <v-layer ref="layer">
-        <v-circle
+        <!-- <v-circle
           ref="hexagon"
           :config="{
-          x: 30,
-          y: 0,
+          x: 40,
+          y: 40 - 20,
           radius: 20,
           fill: 'red',
         }"
+        /> -->
+        <v-rect
+          ref="mrect"
+          :config="configRect"
         />
         <v-shape ref="base" :config="baseConfig"/>
       </v-layer>
@@ -21,7 +25,6 @@
     <button @click="start_ani_btn">start</button>
     <button @click="stop_ani_btn">stop</button>
     <button @click="reset_ani_btn">reset</button>
-    <button @click="offset">-1</button>
   </div>
 </template>
 <script>
@@ -36,14 +39,22 @@ export default {
         width: 2000,
         height: 1000
       },
+      configRect: {
+               x: 40,
+               y: 40,
+               width: 100,
+               height: 50,
+               fill: 'green',
+               rotation: 45
+           },
       is_ani_start: false,
       g: 9.8,
       angle: 45,
       ratio: 200,
       slope_len: 1000,
       ratio: 200,
-      offsetX: 40,
-      offsetY: 40,
+      offsetX: 0,
+      offsetY: 100,
       baseConfig: {
         sceneFunc: function(context, shape) {
           context.beginPath();
@@ -72,7 +83,15 @@ export default {
         width: this.slope_len * Math.cos(deg2rad(val)) + this.offsetX + 40,
         height: this.slope_len * Math.sin(deg2rad(val)) + this.offsetY
       };
-      console.log(this.configKonva);
+      this.configRect = {
+                x: this.offsetX + 50 * Math.cos(deg2rad(val)) * Math.tan(deg2rad(val)),
+                y: this.offsetY - 50 * Math.sin(deg2rad(val)) / Math.tan(deg2rad(val)),
+                rotation: Number(val),
+                width: 100,
+               height: 50,
+               fill: 'green',
+            }
+      console.log(this.configRect);
     }
   },
   methods: {
@@ -92,7 +111,6 @@ export default {
       this.$data.is_ani_start = true;
       _anim.stop();
       var vm = this;
-      console.log("===========");
       const anim = new Konva.Animation(function(frame) {
         const t = frame.time / vm.$data.ratio;
 
@@ -113,22 +131,22 @@ export default {
             Math.sin(deg2rad(vm.$data.angle)),
           frame: frame
         };
-
-        vm.$refs.hexagon.getStage().setX(vm.$data.offsetX + d.x);
-        // BUG 需要確認補正數值 避免除零 可能X跟Y都需要修正
-        var circleOffset = Math.cos(deg2rad(vm.$data.angle)) <= 0.1 ? 1 : Math.cos(deg2rad(vm.$data.angle));
-        vm.$refs.hexagon
-          .getStage()
-          .setY(
-            vm.$data.offsetY - 20 / circleOffset + d.y
-          );
-        console.log("x:",vm.$refs.hexagon.getStage().getX(),",Y:",vm.$refs.hexagon.getStage().getY()," = ", Math.cos(deg2rad(vm.$data.angle)));
+        vm.$refs.mrect.rotate = deg2rad(vm.$data.angle);
+      vm.$refs.mrect.getStage().setX(vm.$data.offsetX +  50 * Math.cos(deg2rad(vm.$data.angle)) * Math.tan(deg2rad(vm.$data.angle)) + d.x);
+      vm.$refs.mrect
+        .getStage()
+        .setY(vm.$data.offsetY - 50 * Math.sin(deg2rad(vm.$data.angle)) / Math.tan(deg2rad(vm.$data.angle)) + d.y);
+        console.log(
+          "x:",
+          vm.$refs.mrect.getStage().getX(),
+          ",Y:",
+          vm.$refs.mrect.getStage().getY(),
+          " = ",
+          Math.cos(deg2rad(vm.$data.angle))
+        );
       }, vm.$refs.layer.getStage());
       _anim = anim;
       _anim.start();
-    },
-    offset() {
-      console.log(this.$data.configKonva);
     }
   },
   mounted() {
@@ -187,11 +205,22 @@ export default {
           Math.sin(deg2rad(vm.$data.angle)),
         frame: frame
       };
-
-      vm.$refs.hexagon.getStage().setX(vm.$data.offsetX + d.x);
-      vm.$refs.hexagon
+      // 動態新增圓形
+      /*
+      vm.$refs.layer.getStage().add(new Konva.Circle({
+        x: Math.random() * 1000,
+        y: Math.random() * 1000,
+        radius: Math.random() * 100,
+        fill: "#fff",
+        stroke: 'red',
+        strokeWidth: Math.random() * 10 + 1
+      }));
+      */
+      vm.$refs.mrect.getStage().setX(vm.$data.offsetX +  50 * Math.cos(deg2rad(vm.$data.angle)) * Math.tan(deg2rad(vm.$data.angle)) + d.x);
+      vm.$refs.mrect
         .getStage()
-        .setY(vm.$data.offsetY - 20 / Math.cos(deg2rad(vm.$data.angle)) + d.y);
+        .setY(vm.$data.offsetY - 50 * Math.sin(deg2rad(vm.$data.angle)) / Math.tan(deg2rad(vm.$data.angle)) + d.y);
+        console.log(frame);
     }, vm.$refs.layer.getStage());
     _anim = anim;
     anim.start();
