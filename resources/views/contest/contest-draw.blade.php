@@ -28,11 +28,13 @@
 					<!-- 輸入公式的欄位 -->
 					<div style="@{{ text_color }}">
 						<form class="ml-3">
-							<div class="form-group row" style="margin: 0;">
-								<label for="fun"><font size="4" id="symbol_val"></font></label>
+							<div class="form-group row autosized" style="margin: 0;">
+                                <label for="fun" class="col-sm-auto label text-justify">
+                                    <span class="symbol_val"></span>
+                                </label>
 								<div class="col-sm-5 mb-2">
-									<input type="text" class="form-control" id="fun" placeholder="2x+sqrt(x)+pow(x,2)" autocomplete="off" ng-model="function">
-								</div>
+									<input type="text" class="form-control" id="fun" placeholder="@{{ fucntion_placehold }}" autocomplete="off" ng-model="function" ng-change="functionChange()">
+                                </div>
 								<button class="btn btn-primary mb-2" style="@{{ draw_button }}" ng-click='sayHello()'>繪圖</button>
 								<button type="submit" class="btn btn-success btn-lg mb-2" style="margin-left:25px" ng-click='final()'>
 									@{{ buttom_state }}
@@ -42,13 +44,16 @@
 					</div>
 				</div>
 			</div>
-			<div class="row">
-				<div class="offset-sm-8">
+			<div class="row autosized ml-3">
+                <span class="col-sm-auto label invisible symbol_val">f(t) =</span>
+                <div class="col-sm-5">
+                    <div math-jax-bind="pretty_function"></div>
+                </div>
+				<div class="col-sm-4 offset-xl-2">
 					<!-- 顯示誤差率 -->
-					<p id=deviation style="margin: 0;"><b>@{{ deviation }}</b></p>
-				</div>
+					<p id=deviation class="align-middle"><b>@{{ deviation }}</b></p>
+                </div>
 			</div>
-
 			<div class="row">
 				<div class="col-sm-12">
 					<!-- 繪圖 -->
@@ -73,7 +78,7 @@
 			</div>
 
 			<div id="dropdown-xy" class="row">
-				<div class="col-sm-6">
+				<div class="col-6">
 					<div class="dropdown">
 						<button class="btn btn-primary dropdown-toggle" type="button" id="menu2" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
 							縱軸
@@ -81,7 +86,7 @@
 						<div id="menu-y" class="dropdown-menu" aria-labelledby="menu2"></div>
 					</div>
 				</div>
-                <div class="col-sm-6">
+                <div class="col-6">
 					<div class="dropdown">
 						<button class="btn btn-primary dropdown-toggle" type="button" id="menu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
 							橫軸
@@ -97,6 +102,9 @@
 
 </div>
 @section('script')
+    <!-- TODO mathjax 如果需要離線打包需要在研究所需的設定，當前先採用cdn方式 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.3/MathJax.js?config=TeX-AMS-MML_HTMLorMML.js"></script>
+
     <script src="{{ mix('/js/modelling-page.js') }}"></script>
     <script>
         // x軸與y軸取出的物件位置

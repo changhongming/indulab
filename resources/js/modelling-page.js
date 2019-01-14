@@ -1,10 +1,51 @@
 require('angular');
 var math = require('mathjs');
 var Plotly = require('./custom-plotly');
+
 (function (angular) {
     'use strict';
+    // 預設方程式(placehold)
+    const default_function = "2x+sqrt(x)+pow(x,2)";
+    // 預設lex方程式字串
+    const default_function_lex = "$$" + math.parse(default_function).toTex({ parenthesis: 'keep', implicit: 'hide' }) + "$$";
+
     angular.module('scopeExample', [])
+        .directive('mathJaxBind', function () {
+            var refresh = function (element) {
+                MathJax.Hub.Queue(["Typeset", MathJax.Hub, element]);
+            };
+            return {
+                link: function (scope, element, attrs) {
+                    // 當變更時回調函式取出目前待更新的值及當前的值(數學直式)
+                    scope.$watch(attrs.mathJaxBind, function (newValue, oldValue) {
+                        element.text(newValue);
+                        refresh(element[0]);
+                    });
+                }
+            };
+        })
         .controller('MyController', ['$scope', '$log', '$http', function ($scope, $log, $http) {
+            $scope.functionChange = function () {
+                let node = null;
+                // 如果輸入框沒東西，返回預設LeX
+                if ($scope.function == "") {
+                    $scope.pretty_function = default_function_lex;
+                    return;
+                }
+                try {
+                    // 解析表達式
+                    node = math.parse($scope.function);
+                }
+                catch (err) { }
+                try {
+                    // 轉換LeX表達式
+                    $scope.pretty_function = node ? '$$' + node.toTex({ parenthesis: 'keep', implicit: 'hide' }) + '$$' : '$$ $$';
+                    //$log.log('LaTeX expression:', $scope.pretty_function);
+                }
+                catch (err) { }
+            };
+            $scope.fucntion_placehold = default_function;
+            $scope.pretty_function = default_function_lex;
             // 預設公式為t
             $scope.function = '';
             // 用來儲存建模過程的誤差
@@ -155,7 +196,7 @@ var Plotly = require('./custom-plotly');
             }
 
             $scope.setVarSymbol = function (symbol) {
-                $("#symbol_val").html("f(" + symbol + ") =");
+                $(".symbol_val").html("f(" + symbol + ") =");
             }
 
             // 更新x、y軸表單欄位跟事件
@@ -255,7 +296,6 @@ var Plotly = require('./custom-plotly');
 
                 /*Plotly.newPlot('myDiv', [trace1], layout, { displaylogo: false }).then((gd) => {
                   $(gd).unbind( "plotly_click" );
-
                   //gd.removeEventListener('plotly_click',handler);
                   if(test_flag)
                     gd.on('plotly_click',plotly_click_handler);
