@@ -1,60 +1,151 @@
 <template>
-  <div>
-    <v-stage ref="stage" :config="configKonva" @click="test">
-      <v-layer ref="layer">
-        <!-- <v-circle
+  <b-container>
+    <form>
+      <b-row>
+        <b-col>
+          <b-form-group label="g force" label-for="input_g">
+            <b-form-input
+              id="input_g"
+              :value="g"
+              @change.native="g = $event.target.value"
+              :disabled="is_ani_start"
+            ></b-form-input>
+          </b-form-group>
+        </b-col>
+        <b-col>
+          <b-form-group label="angle" label-for="input_angle">
+            <b-form-input
+              id="input_angle"
+              type="number"
+              min="1"
+              max="90"
+              :value="angle"
+              @change.native="angle = $event.target.value"
+              :disabled="is_ani_start"
+            ></b-form-input>
+          </b-form-group>
+        </b-col>
+        <b-col>
+          <p>time:{{tickTime}} 秒</p>
+          <p>accl:{{accel}} 公分^2/秒</p>
+          <p>vol:{{vol}} 公分/秒</p>
+          <p>disp:{{disp}} 公分</p>
+        </b-col>
+      </b-row>
+    </form>
+    <b-row>
+      <b-col>
+        <input v-model.lazy="ratioTime" :disabled="is_ani_start">
+        <input v-model.lazy="slope_len" :disabled="is_ani_start">
+        <b-check v-model="isShowGridLines"><span>{{isShowGridLines ? "隱藏" : "顯示"}}</span>網格線(1cm)</b-check>
+        <template v-if="is_ani_start">
+          <button @click="stop_ani_btn" :disabled="!is_ani_start">pause</button>
+        </template>
+        <template v-else>
+          <button @click="start_ani_btn" :disabled="is_ani_start">start</button>
+        </template>
+        <button @click="reset_ani_btn">reset</button>
+      </b-col>
+    </b-row>
+
+    <b-row>
+      <b-col>
+        <!-- v-bind:class="{ grid1cm : isActive}" -->
+        <v-stage ref="stage" :config="configKonva" @click="test" >
+          <v-layer ref="layer">
+            <!-- <v-circle
           ref="hexagon"
           :config="{
           x: 40,
           y: 40 - 20,
           radius: 20,
           fill: 'red',
-        }"
-        /> -->
-        <v-rect
-          ref="mrect"
-          :config="configRect"
-        />
-        <v-shape ref="base" :config="baseConfig"/>
-      </v-layer>
-    </v-stage>
-    <input v-model.lazy="g" :disabled="is_ani_start">
-    <input v-model.lazy="angle" :disabled="is_ani_start">
-    <input v-model.lazy="ratio" :disabled="is_ani_start">
-    <input v-model.lazy="slope_len" :disabled="is_ani_start">
-    <button @click="start_ani_btn">start</button>
-    <button @click="stop_ani_btn">stop</button>
-    <button @click="reset_ani_btn">reset</button>
-  </div>
+          }"
+            />-->
+            <v-rect ref="mrect" :config="configRect"/>
+            <v-shape ref="base" :config="baseConfig"/>
+          </v-layer>
+          <v-layer ref="gridLayer"></v-layer>
+        </v-stage>
+      </b-col>
+    </b-row>
+  </b-container>
 </template>
-<script>
-var _anim = null;
-function deg2rad(deg) {
-  return (Math.PI * deg) / 180;
+<style scoped>
+.grid1cm {
+  position: relative;
+  /* overflow: hidden; */
 }
+
+.grid1cm::before {
+  content: "";
+  position: absolute;
+  width: 150%;
+  height: 150%;
+  top: 50%;
+  left: 50%;
+  z-index: 1;
+  background-size: 1cm 1cm;
+  background-image: linear-gradient(to right, grey 1px, transparent 1px),
+    linear-gradient(to bottom, grey 1px, transparent 1px);
+}
+</style>
+
+<script>
+"use strict";
+let _anim;
+let _gridLinesGroup;
+let _gridLinesLayer;
+function deg2rad(deg) {
+  return Math.PI * deg / 180;
+}
+
+function getDPI() {
+  var div = document.createElement("div");
+  div.style.height = "1in";
+  div.style.width = "1in";
+  div.style.top = "-100%";
+  div.style.left = "-100%";
+  div.style.position = "absolute";
+
+  document.body.appendChild(div);
+
+  var result = div.offsetHeight;
+
+  document.body.removeChild(div);
+  //console.log(result);
+  return result;
+}
+
 export default {
   data() {
     return {
+      isShowGridLines: true,
       configKonva: {
         width: 2000,
         height: 1000
       },
       configRect: {
-               x: 40,
-               y: 40,
-               width: 100,
-               height: 50,
-               fill: 'green',
-               rotation: 45
-           },
+        x: 50,
+        y: 50,
+        width: 50,
+        height: 50,
+        radius: 50,
+        fill: "green",
+        rotation: 45
+      },
       is_ani_start: false,
+      tickTime: 0,
       g: 9.8,
+      vol: 0,
+      accel: 0,
+      disp: 0,
       angle: 45,
-      ratio: 200,
+      ratioTime: 1,
       slope_len: 1000,
-      ratio: 200,
       offsetX: 0,
-      offsetY: 100,
+      offsetY: 37.8 * 2,
+      ratio2cm: 37.8,
       baseConfig: {
         sceneFunc: function(context, shape) {
           context.beginPath();
@@ -70,91 +161,299 @@ export default {
       }
     };
   },
+
+  // 請不要在這邊調用箭頭函式，否則無法有效地指到vue的this
   watch: {
+    g: function(val) {
+      this.accel = val * Math.sin(deg2rad(this.angle)).toFixed(2);
+    },
     slope_len: function(val) {
       this.configKonva = {
-        width: val * Math.cos(deg2rad(this.angle)) + this.offsetX + 40,
+        width:
+          val * Math.cos(deg2rad(this.angle)) +
+          this.offsetX +
+          this.configRect.height * 2,
         height: val * Math.sin(deg2rad(this.angle)) + this.offsetY
       };
-      console.log(this.configKonva);
+      this.configRect = {
+        x:
+          this.offsetX +
+          50 * Math.cos(deg2rad(this.angle)) * Math.tan(deg2rad(this.angle)),
+        y:
+          this.offsetY -
+          50 * Math.sin(deg2rad(this.angle)) / Math.tan(deg2rad(this.angle)),
+        rotation: Number(this.angle),
+        width: 50,
+        height: 50,
+        fill: "green"
+      };
+      if (_anim !== undefined) _anim = undefined;
+      //console.log(this.configKonva);
     },
-    angle: function(val) {
+    angle: function(val, oldVal) {
+      // 計算加速度
+      this.accel = (this.g * Math.sin(deg2rad(val))).toFixed(2);
+      this.vaildAngle(val, oldVal);
       this.configKonva = {
-        width: this.slope_len * Math.cos(deg2rad(val)) + this.offsetX + 40,
+        width:
+          this.slope_len * Math.cos(deg2rad(val)) +
+          this.offsetX +
+          this.configRect.height * 2,
         height: this.slope_len * Math.sin(deg2rad(val)) + this.offsetY
       };
       this.configRect = {
-                x: this.offsetX + 50 * Math.cos(deg2rad(val)) * Math.tan(deg2rad(val)),
-                y: this.offsetY - 50 * Math.sin(deg2rad(val)) / Math.tan(deg2rad(val)),
-                rotation: Number(val),
-                width: 100,
-               height: 50,
-               fill: 'green',
-            }
-      console.log(this.configRect);
+        x: this.offsetX + 50 * Math.cos(deg2rad(val)) * Math.tan(deg2rad(val)),
+        y: this.offsetY - 50 * Math.sin(deg2rad(val)) / Math.tan(deg2rad(val)),
+        rotation: Number(val),
+        width: 50,
+        height: 50,
+        fill: "green"
+      };
+      // 動態改變網格線偽元素的繪製角度(與斜坡平行與垂直)
+
+      //document.styleSheets[0].addRule('.grid1cm::before', `transform-origin:20% 0%`)
+      //document.styleSheets[0].addRule('.grid1cm::before', `transform-origin:20% 0%`)  width: 100% !important; high:100% !important ; transform-origin:50% 50%
+      document.styleSheets[0].addRule(
+        ".grid1cm::before",
+        `transform: rotate(${val}deg);`
+      );
+
+      // 如果動畫還在則清除
+      if (_anim !== undefined) _anim = undefined;
+    },
+    isShowGridLines: function(val) {
+      this.isShowGridLinesMethod(val);
+    },
+    configKonva: {
+      handler(val, oldVal) {
+        this.updateGridLines();
+      }
     }
   },
+
   methods: {
     test(vueComponent) {
       const mousePos = this.$refs.stage.getStage().getPointerPosition();
       console.log(vueComponent.target, mousePos);
     },
-    start_ani_btn() {
-      this.$data.is_ani_start = true;
-      _anim.start();
+    isShowGridLinesMethod(show) {
+      let stage = this.$refs.stage.getStage();
+      show ? _gridLinesGroup.show() : _gridLinesGroup.hide();
+      stage.draw();
     },
-    stop_ani_btn() {
-      this.$data.is_ani_start = false;
-      _anim.stop();
+    updateGridLines() {
+      const vm = this;
+      console.log(_gridLinesLayer);
+      if (_gridLinesLayer !== undefined) {
+        console.log("des");
+        _gridLinesLayer.destroyChildren();
+      }
+      let layer = new Konva.Layer();
+      let stage = vm.$refs.stage.getStage();
+      let group = new Konva.Group();
+      let width = 2000; //stage.getWidth();
+      let height = 2000; //stage.getHeight();
+      //console.log(stage.getWidth(), stage.getHeight())
+      const cos = Math.cos(deg2rad(this.angle));
+      const sin = Math.sin(deg2rad(this.angle));
+      const cellLength = this.ratio2cm;
+      const xOffset = 400;
+      const yOfsset = -400;
+      for (let i = 0; i < width / cellLength; i++) {
+        let x11 = 0;
+        let x21 = width;
+        let y11 = Math.round(i * cellLength);
+        let y21 = Math.round(i * cellLength);
+        let x12 = x11 * cos - y11 * sin + xOffset; //+ width / 2
+        let x22 = x21 * cos - y21 * sin + xOffset; //+ width / 2
+        let y12 = x11 * sin + y11 * cos + yOfsset; //- width / 2
+        let y22 = x21 * sin + y21 * cos + yOfsset; //- width / 2
+        console.log(x12, x22, y12, y22);
+        group.add(
+          new Konva.Line({
+            points: [x12, y12, x22, y22],
+            stroke: "#ddd",
+            strokeWidth: 1
+          })
+        );
+      }
+      console.log(group);
+      for (let i = 0; i < height / cellLength; i++) {
+        let x11 = Math.round(i * cellLength);
+        let x21 = Math.round(i * cellLength);
+        let y11 = 0;
+        let y21 = height;
+        let x12 = x11 * cos - y11 * sin + xOffset;
+        let x22 = x21 * cos - y21 * sin + xOffset;
+        let y12 = x11 * sin + y11 * cos + yOfsset;
+        let y22 = x21 * sin + y21 * cos + yOfsset;
+        group.add(
+          new Konva.Line({
+            points: [x12, y12, x22, y22],
+            stroke: "#ddd",
+            strokeWidth: 1
+          })
+        );
+      }
+      layer.add(group);
+      if (!this.isShowGridLines) group.hide();
+      stage.add(layer);
+      stage.draw();
+      _gridLinesLayer = layer;
+      _gridLinesGroup = group;
     },
-    reset_ani_btn() {
-      this.$data.is_ani_start = true;
-      _anim.stop();
-      var vm = this;
+    vaildAngle(angle, oldAngle) {
+      if (angle > 90 || angle <= 0) {
+        this.angle = oldAngle;
+      }
+    },
+    initAnim() {
+      console.log("init anim");
+      const vm = this;
+      // 滑到底部公式為 其中 L：斜波長度 θ：斜面與平面夾角 g：為重力加速度
+      //                __________
+      //               /   2 * L
+      //              / ———————————
+      //             √  g * sin(θ)
+      const lastTime = Math.sqrt(
+        2 * vm.slope_len / vm.ratio2cm / (vm.g * Math.sin(deg2rad(vm.angle)))
+      );
+      this.accel = (this.g * Math.sin(deg2rad(this.angle))).toFixed(2);
+      console.log(this.accel, this.g, Math.sin(deg2rad(this.angle)));
       const anim = new Konva.Animation(function(frame) {
-        const t = frame.time / vm.$data.ratio;
-
+        const t = frame.time / 1000 * vm.ratioTime;
+        const sin = Math.sin(deg2rad(vm.$data.angle));
+        const cos = Math.cos(deg2rad(vm.$data.angle));
+        //console.log(frame);
+        // 滑動位移計算使用
         const d = {
           x:
             0.5 *
             vm.$data.g *
-            Math.sin(deg2rad(vm.$data.angle)) *
+            sin *
             t *
             t *
-            Math.cos(deg2rad(vm.$data.angle)),
+            cos,
           y:
             0.5 *
             vm.$data.g *
-            Math.sin(deg2rad(vm.$data.angle)) *
+            sin *
             t *
             t *
-            Math.sin(deg2rad(vm.$data.angle)),
+            sin,
           frame: frame
         };
-        vm.$refs.mrect.rotate = deg2rad(vm.$data.angle);
-      vm.$refs.mrect.getStage().setX(vm.$data.offsetX +  50 * Math.cos(deg2rad(vm.$data.angle)) * Math.tan(deg2rad(vm.$data.angle)) + d.x);
-      vm.$refs.mrect
-        .getStage()
-        .setY(vm.$data.offsetY - 50 * Math.sin(deg2rad(vm.$data.angle)) / Math.tan(deg2rad(vm.$data.angle)) + d.y);
-        console.log(
-          "x:",
-          vm.$refs.mrect.getStage().getX(),
-          ",Y:",
-          vm.$refs.mrect.getStage().getY(),
-          " = ",
-          Math.cos(deg2rad(vm.$data.angle))
-        );
+
+        if (frame.time / 1000 * vm.ratioTime <= lastTime) {
+          vm.disp = Math.sqrt(d.x * d.x + d.y * d.y);
+          vm.tickTime = (frame.time / 1000 * vm.ratioTime).toFixed(2);
+          vm.vol = (vm.accel * vm.tickTime).toFixed(2);
+          //console.log(d.frame.time / 1000);
+          vm.$refs.mrect.rotate = deg2rad(vm.$data.angle);
+          vm.$refs.mrect
+            .getStage()
+            .setX(
+              vm.$data.offsetX +
+                50 *
+                  cos *
+                  Math.tan(deg2rad(vm.$data.angle)) +
+                d.x * vm.$data.ratio2cm
+            );
+          vm.$refs.mrect
+            .getStage()
+            .setY(
+              vm.$data.offsetY -
+                50 *
+                  sin /
+                  Math.tan(deg2rad(vm.$data.angle)) +
+                d.y * vm.$data.ratio2cm
+            );
+        } else {
+          vm.tickTime = lastTime.toFixed(2);
+          vm.vol = (vm.accel * lastTime).toFixed(2);
+          const d = {
+            x:
+              0.5 *
+              vm.$data.g *
+              sin *
+              lastTime *
+              lastTime *
+              cos,
+            y:
+              0.5 *
+              vm.$data.g *
+              sin *
+              lastTime *
+              lastTime *
+              sin,
+            frame: frame
+          };
+          vm.disp = Math.sqrt(d.x * d.x + d.y * d.y);
+          console.log(lastTime);
+          vm.$refs.mrect
+            .getStage()
+            .setX(
+              vm.$data.offsetX +
+                50 *
+                  cos *
+                  Math.tan(deg2rad(vm.$data.angle)) +
+                d.x * vm.$data.ratio2cm
+            );
+          vm.$refs.mrect
+            .getStage()
+            .setY(
+              vm.$data.offsetY -
+                50 *
+                  sin /
+                  Math.tan(deg2rad(vm.$data.angle)) +
+                d.y * vm.$data.ratio2cm
+            );
+          // 斜坡運結束 停下動畫
+          _anim.stop();
+          _anim = undefined;
+          vm.is_ani_start = false;
+        }
       }, vm.$refs.layer.getStage());
       _anim = anim;
+    },
+
+    start_ani_btn() {
+      console.log(_anim, _anim === undefined);
+      if (_anim === undefined) this.initAnim();
+      this.$data.is_ani_start = true;
       _anim.start();
+    },
+    stop_ani_btn() {
+      if (_anim !== undefined) {
+        if ("stop" in _anim) {
+          this.$data.is_ani_start = false;
+          _anim.stop();
+        }
+      }
+    },
+    reset_ani_btn() {
+      this.is_ani_start = true;
+      if (_anim !== undefined) {
+        if ("stop" in _anim) {
+          _anim.stop();
+          this.initAnim();
+          _anim.start();
+        }
+      } else {
+        this.initAnim();
+        _anim.start();
+      }
     }
   },
+
   mounted() {
+    console.log(window.devicePixelRatio);
     const vm = this;
 
-    // in ms
-    const centerX = vm.$refs.stage.getStage().getWidth() / 2;
-
+    this.ratio2cm = (getDPI() / 2.54).toFixed(2);
+    console.log(
+      `This Computer DPI is ${getDPI()} , to The CM is ${this.ratio2cm}`
+    );
     this.baseConfig = {
       sceneFunc: function(context, shape) {
         context.beginPath();
@@ -180,50 +479,52 @@ export default {
       },
       fill: "#00D2FF"
     };
-    vm.$data.configKonva = {
-      width: vm.slope_len * Math.cos(deg2rad(vm.$data.angle)),
-      height: vm.slope_len * Math.sin(deg2rad(vm.$data.angle))
+    vm.configKonva = {
+      width:
+        vm.slope_len * Math.cos(deg2rad(this.angle)) +
+        this.offsetX +
+        this.configRect.height * 2,
+      height: vm.slope_len * Math.sin(deg2rad(this.angle)) + this.offsetY
     };
+    vm.configRect = {
+      x:
+        vm.offsetX +
+        50 *
+          Math.cos(deg2rad(vm.$data.angle)) *
+          Math.tan(deg2rad(vm.$data.angle)),
+      y:
+        vm.offsetY -
+        50 *
+          Math.sin(deg2rad(vm.$data.angle)) /
+          Math.tan(deg2rad(vm.$data.angle)),
+      rotation: vm.angle,
+      width: 50,
+      height: 50,
+      fill: "green"
+    };
+    this.updateGridLines();
+    // 取得使用者電腦的DPI(pixel/inch)，用於計算實際長度
+    //getDPI();
+    if (this.is_ani_start) {
+      this.initAnim();
+      _anim.start();
+    }
+  },
 
-    const anim = new Konva.Animation(function(frame) {
-      const t = frame.time / vm.$data.ratio;
+  // 當此離開此元件路由
+  beforeRouteLeave(to, from, next) {
+    // 確認動畫事件是否有建構
+    if (_anim !== undefined) {
+      if ("stop" in _anim) {
+        // 停下當前動畫
+        _anim.stop();
+        _anim = undefined;
+        this.is_ani_start = false;
+      }
+    }
 
-      const d = {
-        x:
-          0.5 *
-          vm.$data.g *
-          Math.sin(deg2rad(vm.$data.angle)) *
-          t *
-          t *
-          Math.cos(deg2rad(vm.$data.angle)),
-        y:
-          0.5 *
-          vm.$data.g *
-          Math.sin(deg2rad(vm.$data.angle)) *
-          t *
-          t *
-          Math.sin(deg2rad(vm.$data.angle)),
-        frame: frame
-      };
-      // 動態新增圓形
-      /*
-      vm.$refs.layer.getStage().add(new Konva.Circle({
-        x: Math.random() * 1000,
-        y: Math.random() * 1000,
-        radius: Math.random() * 100,
-        fill: "#fff",
-        stroke: 'red',
-        strokeWidth: Math.random() * 10 + 1
-      }));
-      */
-      vm.$refs.mrect.getStage().setX(vm.$data.offsetX +  50 * Math.cos(deg2rad(vm.$data.angle)) * Math.tan(deg2rad(vm.$data.angle)) + d.x);
-      vm.$refs.mrect
-        .getStage()
-        .setY(vm.$data.offsetY - 50 * Math.sin(deg2rad(vm.$data.angle)) / Math.tan(deg2rad(vm.$data.angle)) + d.y);
-        console.log(frame);
-    }, vm.$refs.layer.getStage());
-    _anim = anim;
-    anim.start();
+    // 轉交所有權給下一個路由事件
+    next();
   }
 };
 </script>
