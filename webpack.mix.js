@@ -20,6 +20,7 @@ const mix = require('laravel-mix');
 
  .js('resources/js/survey-component.js', 'public/js')
 
+ .js('resources/js/drawData-page.js', 'public/js')
  // 將js庫進行抽取(vendor.js)，以利於不常變更的js庫不用重新下載
  .extract([
 	'jquery',

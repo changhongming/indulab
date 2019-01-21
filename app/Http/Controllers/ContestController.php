@@ -249,4 +249,10 @@ class ContestController extends Controller {
     {
         return view('contest.contest-slope');
     }
+
+    // 輸入繪製圖形頁面
+    public function getDrawData()
+    {
+        return view('contest.contest-draw-data');
+    }
 }
