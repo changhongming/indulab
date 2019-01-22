@@ -6,17 +6,26 @@ import BootstrapVue from 'bootstrap-vue'
 
 import VueRouter from 'vue-router';
 
+import SimpleVueValidation  from 'simple-vue-validator';
+
+
 Vue.use(VueRouter);
 
 Vue.use(BootstrapVue);
 
 Vue.use(VueKonva);
 
+Vue.use(SimpleVueValidation);
+
 import 'bootstrap/scss/bootstrap.scss'
 import 'bootstrap'
 
+
+
 import simslope from './comproments/simslope'
 import surveyslope from './comproments/survey'
+import test from './comproments/test'
+
 // import 'ruler-guides/demo/index.css'
 // const Event =  require('ruler-guides/Event');
 // const Dragdrop =  require('ruler-guides/Dragdrop');
@@ -32,7 +41,8 @@ import surveyslope from './comproments/survey'
 
 const routes = [
   { path: '/simslope', component: simslope },
-  { path: '/expslope', component: surveyslope }
+  { path: '/expslope', component: surveyslope },
+  {path: '/test',component: test}
 ]
 
 
