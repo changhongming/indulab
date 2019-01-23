@@ -16,7 +16,8 @@ const clearButton = document.getElementById('clearButton');
 window.onload = function () {
     Plotly.newPlot('plotDiv', [], layout, { displaylogo: false });
     // 清除loading畫面
-    document.querySelector(".loading").remove();
+    const loadDom = document.querySelector(".loading");
+    typeof loadDom.remove === 'function' ? loadDom.remove() : loadDom.parentNode.removeChild(loadDom);
 }
 
 // 清除按鈕事件
