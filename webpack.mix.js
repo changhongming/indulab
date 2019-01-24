@@ -33,7 +33,9 @@ const mix = require('laravel-mix');
     jquery: ['$', 'window.jQuery', 'jQuery', 'jquery'],
     vue: ['Vue','window.Vue']
  })
-
+ .browserSync({
+    proxy: '127.0.0.1:8000'
+ })
  // 打包css
  .sass('resources/sass/app.scss','public/css/site.css')
  // devtool: "inline-source-map" 可以將打包的程式碼還原(source map)，以便看到打包前的程式碼

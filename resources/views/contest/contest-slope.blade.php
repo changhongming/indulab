@@ -1,19 +1,15 @@
 @extends('layouts.layout')
 
-@section('content')
+@section('full-content')
 
-<div class="introduce-bg2 introduce-mid">
-	<div class="row">
-        <div id="col-lg-8 col-md-8 col-sm-8 col-xs-8">
-            <div id="app">
-                <p>
-                    <router-link to="/simslope">直線運動模擬</router-link>
-                    <router-link to="/expslope">直線運動題目</router-link>
-                  </p>
-                <router-view></router-view>
-            </div>
-        </div>
-	</div>
+
+<div id="app">
+    <p>
+      <router-link to="/simslope">直線運動模擬</router-link>
+      <router-link to="/expslope">直線運動題目</router-link>
+    </p>
+  <router-view>
+  </router-view>
 </div>
 @section('script')
     <style>

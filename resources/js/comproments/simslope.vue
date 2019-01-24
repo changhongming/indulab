@@ -1,158 +1,215 @@
 <template>
-  <b-container>
+  <b-container fluid ref="container">
     <!-- 說明dialog -->
     <b-btn v-b-modal.tutorial>使用教學</b-btn>
     <b-modal id="tutorial" title="教學手冊" ok-only centered>Hello From My Modal!</b-modal>
-
-    <form>
-      <b-row>
-        <b-col>
-          <b-form-group label="G Force" label-for="input_g">
-            <b-form-input
-              id="input_g"
-              type="number"
-              min="1"
-              max="90"
-              step="0.1"
-              :value="g"
-              @change.native="g = $event.target.value"
-              :disabled="is_ani_start"
-            ></b-form-input>
-          </b-form-group>
-        </b-col>
-        <b-col>
-          <b-form-group label="Angle" label-for="input_angle">
-            <b-form-input
-              id="input_angle"
-              type="number"
-              min="1"
-              max="90"
-              :value="angle"
-              @change.native="angle = $event.target.value"
-              :disabled="is_ani_start"
-            ></b-form-input>
-          </b-form-group>
-        </b-col>
-        <b-col>
-          <b-form-group label="Time of Ratio" label-for="input_ratioTime">
-            <b-form-input
-              id="input_ratioTime"
-              type="number"
-              min="0.1"
-              max="20"
-              step="0.1"
-              v-model.lazy="ratioTime"
-              :disabled="is_ani_start"
-            ></b-form-input>
-          </b-form-group>
-        </b-col>
-        <b-col>
-          <b-form-group label="Slope Length" label-for="input_slopeLen">
-            <b-form-input
-              id="input_slopeLen"
-              type="number"
-              min="100"
-              max="1500"
-              step="1"
-              :value="slope_len"
-              @change.native="slope_len = $event.target.value"
-              :disabled="is_ani_start"
-            ></b-form-input>
-          </b-form-group>
-        </b-col>
-        <b-col>
-          <b-form-group label="Mass" label-for="input_mass">
-            <b-form-input id="input_mass" v-model.lazy="mass" :disabled="is_ani_start"></b-form-input>
-          </b-form-group>
-        </b-col>
-        <b-col>
-          <!-- <p>time:{{tickTime}} 秒</p>
-          <p>accl:{{accel}} 公分/秒^2</p>
-          <p>vol:{{vol}} 公分/秒</p>
-          <p>disp:{{disp}} 公分</p> -->
-        </b-col>
-      </b-row>
-    </form>
-    <b-row>
-      <template v-if="show">
-        <button @click="hideandshow" class="btn btn-outline-secondary">
-          <i class="fas fa-chevron-up"></i> 歷史紀錄
-        </button>
-      </template>
-      <template v-else>
-        <label @click="hideandshow" class="btn btn-outline-secondary">
-          <i class="fas fa-chevron-down"></i> 歷史紀錄
-        </label>
-      </template>
-      <transition name="fade">
-        <table class="table table-striped" v-if="show">
-          <thead>
-            <tr>
-              <th scope="col" v-for="(item, index) in columns" :key="`th-${index}`">{{item.content}}</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr scope="row" v-for="(item, index) in dataLog" :key="`th-${index}`">
-              <td v-for="(key, index) in columns" :key="`td-${index}`">{{item[key.key]}}</td>
-            </tr>
-          </tbody>
-        </table>
-      </transition>
-    </b-row>
-    <b-row>
-      <b-col>
-        <b-check v-model="isShowGridLines">
-          <span>{{isShowGridLines ? "顯示" : "隱藏"}}</span>網格線(1cm)
-        </b-check>
-        <b-check v-model="gridLineStyle">
-          <span>{{gridLineStyle ? "一般" : "平行斜坡"}}</span>網格線(1cm)
-        </b-check>
-        <template v-if="is_ani_start">
-          <button class="btn btn-primary" @click="stop_ani_btn" :disabled="!is_ani_start">
-            <i class="fas fa-stop"></i> pause
-          </button>
+    <div v-draggable="dragRealTime" class="dragable-item">
+      <div ref="realTimeCard">
+        <template v-if="showInfoCard">
+          <b-card
+            @click="hideInfoCard"
+            draggable="true"
+            bg-variant="info"
+            text-variant="white"
+            header-bg-variant="info"
+            class="text-left"
+          >
+            <h6 slot="header">
+              <i class="fas fa-compress-arrows-alt"></i> 即時數據
+            </h6>
+            <table>
+              <tr>
+                <td>time:</td>
+                <td>{{tickTime}}</td>
+                <td>秒</td>
+              </tr>
+              <tr>
+                <td>accl:</td>
+                <td>{{accel}}</td>
+                <td>公分/秒^2</td>
+              </tr>
+              <tr>
+                <td>vol:</td>
+                <td>{{vol}}</td>
+                <td>公分/秒</td>
+              </tr>
+              <tr>
+                <td>disp:</td>
+                <td>{{disp}}</td>
+                <td>公分</td>
+              </tr>
+            </table>
+          </b-card>
         </template>
         <template v-else>
-          <button class="btn btn-primary" @click="start_ani_btn" :disabled="is_ani_start">
-            <i class="fas fa-play"></i> start
-          </button>
+          <h4>
+            <b-badge @click="hideInfoCard" href="#" variant="info">
+              <i class="fas fa-list"></i> 即時數據
+            </b-badge>
+          </h4>
         </template>
-        <button class="btn btn-danger" @click="reset_ani_btn">
-          <i class="fas fa-undo"></i> reset
-        </button>
+      </div>
+    </div>
+    <b-row>
+      <b-col xs="6">
+        <!-- 參數輸入框 -->
+        <b-row>
+          <b-col>
+            <b-form-group label="G Force" label-for="input_g">
+              <b-form-input
+                id="input_g"
+                type="number"
+                min="1"
+                max="90"
+                step="0.1"
+                :value="g"
+                @change.native="g = $event.target.value"
+                :disabled="is_ani_start"
+              ></b-form-input>
+            </b-form-group>
+          </b-col>
+          <b-col>
+            <b-form-group label="Angle" label-for="input_angle">
+              <b-form-input
+                id="input_angle"
+                type="number"
+                min="1"
+                max="90"
+                :value="angle"
+                @change.native="angle = $event.target.value"
+                :disabled="is_ani_start"
+              ></b-form-input>
+            </b-form-group>
+          </b-col>
+          <b-col>
+            <b-form-group label="Time of Ratio" label-for="input_ratioTime">
+              <b-form-input
+                id="input_ratioTime"
+                type="number"
+                min="0.1"
+                max="20"
+                step="0.1"
+                v-model.lazy="ratioTime"
+                :disabled="is_ani_start"
+              ></b-form-input>
+            </b-form-group>
+          </b-col>
+          <b-col>
+            <b-form-group label="Slope Length" label-for="input_slopeLen">
+              <b-form-input
+                id="input_slopeLen"
+                type="number"
+                min="100"
+                max="1500"
+                step="1"
+                :value="slope_len"
+                @change.native="slope_len = $event.target.value"
+                :disabled="is_ani_start"
+              ></b-form-input>
+            </b-form-group>
+          </b-col>
+          <b-col>
+            <b-form-group label="Mass" label-for="input_mass">
+              <b-form-input
+                id="input_mass"
+                type="number"
+                v-model.lazy="mass"
+                :disabled="is_ani_start"
+              ></b-form-input>
+            </b-form-group>
+          </b-col>
+        </b-row>
+        <!-- 輔助線選單 -->
+        <b-row>
+          <b-col>
+            <b-check v-model="isShowGridLines">
+              <span>{{isShowGridLines ? "顯示" : "隱藏"}}</span>網格線(1cm)
+            </b-check>
+            <b-check v-model="gridLineStyle">
+              <span>{{gridLineStyle ? "一般" : "平行斜坡"}}</span>網格線(1cm)
+            </b-check>
+            <template v-if="is_ani_start">
+              <button
+                class="btn btn-outline-danger"
+                @click="stop_ani_btn"
+                :disabled="!is_ani_start"
+              >
+                <i class="fas fa-stop"></i> pause
+              </button>
+            </template>
+            <template v-else>
+              <button class="btn btn-success" @click="start_ani_btn" :disabled="is_ani_start">
+                <i class="fas fa-play"></i> start
+              </button>
+            </template>
+            <button class="btn btn-outline-danger" @click="reset_ani_btn">
+              <i class="fas fa-undo"></i> reset
+            </button>
+            <button class="btn btn-success" @click="downloadInfoData">
+              <i class="fas fa-download" aria-hidden="true"></i> download
+            </button>
+          </b-col>
+        </b-row>
+        <!-- 模擬動畫區 -->
+        <b-row>
+          <b-col>
+            <v-stage ref="stage" :config="configKonva" @click="test">
+              <v-layer ref="layer">
+                <v-rect ref="mrect" :config="configRect"/>
+                <v-shape ref="base" :config="baseConfig"/>
+              </v-layer>
+              <v-layer ref="gridLayer"></v-layer>
+            </v-stage>
+          </b-col>
+        </b-row>
+      </b-col>
+
+      <!-- 右方區域 -->
+      <b-col xs="6">
+        <!-- 模擬歷程顯示 -->
+        <b-row>
+          <b-col>
+            <template v-if="show">
+              <button @click="hideandshow" class="btn btn-outline-secondary">
+                <i class="fas fa-chevron-up"></i> 歷史紀錄
+              </button>
+            </template>
+            <template v-else>
+              <label @click="hideandshow" class="btn btn-outline-secondary">
+                <i class="fas fa-chevron-down"></i> 歷史紀錄
+              </label>
+            </template>
+            <transition name="fade">
+              <table class="table table-striped" v-if="show">
+                <thead>
+                  <tr>
+                    <th
+                      scope="col"
+                      v-for="(item, index) in columns"
+                      :key="`th-${index}`"
+                    >{{item.content}}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr scope="row" v-for="(item, index) in dataLog" :key="`th-${index}`">
+                    <td v-for="(key, index) in columns" :key="`td-${index}`">{{item[key.key]}}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </transition>
+          </b-col>
+        </b-row>
+        <!-- 繪圖區 -->
+        <b-row>
+          <b-col>
+            <div class="chart-container">
+            <scatter-chart :data="chartData" :option="chartOption"></scatter-chart>
+            </div>
+          </b-col>
+        </b-row>
       </b-col>
     </b-row>
 
-    <b-row>
-      <b-col>
-        <!-- v-bind:class="{ grid1cm : isActive}" -->
-        <v-stage ref="stage" :config="configKonva" @click="test">
-          <v-layer ref="layer">
-            <!-- <v-circle
-          ref="hexagon"
-          :config="{
-          x: 40,
-          y: 40 - 20,
-          radius: 20,
-          fill: 'red',
-          }"
-            />-->
-            <v-rect ref="mrect" :config="configRect"/>
-            <v-shape ref="base" :config="baseConfig"/>
-          </v-layer>
-          <v-layer ref="gridLayer"></v-layer>
-        </v-stage>
-      </b-col>
-    </b-row>
-    <b-card draggable="true" bg-variant="primary"
-            text-variant="white"
-            header="Primary"
-            class="text-center">
-          <p>time:{{tickTime}} 秒</p>
-          <p>accl:{{accel}} 公分/秒^2</p>
-          <p>vol:{{vol}} 公分/秒</p>
-          <p>disp:{{disp}} 公分</p>
-    </b-card>
     <!-- 顯示動畫完成訊息 -->
     <b-alert
       :show="dismissCountDown"
@@ -163,9 +220,15 @@
       @dismissed="dismissCountDown=0"
       @dismiss-count-down="countDownChanged(dismissCountDown)"
     >模擬動畫結束</b-alert>
+    <input type="hidden" v-model="streamLog" ref="historyData">
   </b-container>
 </template>
 <style scoped>
+.chart-container {
+    width: 300px;
+    height:200px
+}
+
 .alert-fixed {
   position: fixed;
   bottom: 5px;
@@ -175,9 +238,17 @@
   border-radius: 4px;
 }
 
+.dragable-item {
+  position: fixed;
+  z-index: 9998;
+}
+
+.info-table-head {
+  text-align: right;
+}
+
 .grid1cm {
   position: relative;
-  /* overflow: hidden; */
 }
 
 .grid1cm::before {
@@ -204,9 +275,9 @@
 
 <script>
 "use strict";
-import SimpleVueValidation from "simple-vue-validator";
-const Validator = SimpleVueValidation.Validator;
-console.log(Validator);
+import { Draggable } from "draggable-vue-directive";
+
+let _data;
 let _anim;
 let _gridLinesGroup;
 let _gridLinesLayer;
@@ -214,6 +285,21 @@ function deg2rad(deg) {
   return (Math.PI * deg) / 180;
 }
 
+// 在客戶端產生下載連結並下載檔案
+const saveData = (function() {
+  const a = document.createElement("a");
+  document.body.appendChild(a);
+  a.style = "display: none";
+  return function(data, fileName, type = "text/csv;charset=big5") {
+    const json = data;
+    const blob = new Blob([json], { type }); //type: "octet/stream"
+    const url = window.URL.createObjectURL(blob);
+    a.href = url;
+    a.download = fileName;
+    a.click();
+    window.URL.revokeObjectURL(url);
+  };
+})();
 function getDPI() {
   const div = document.createElement("div");
   div.style.height = "1in";
@@ -232,26 +318,64 @@ function getDPI() {
 }
 
 export default {
+  directives: {
+    Draggable
+  },
   data() {
     return {
-      email: "ss",
+      chartOption: {
+responsive:true,
+maintainAspectRatio: false
+
+      },
+      chartData: {
+        labels: [
+          "January",
+          "February",
+          "March",
+          "April",
+          "May",
+          "June",
+          "July"
+        ],
+        datasets: [
+          {
+            label: "Data One",
+            backgroundColor: "#f87979",
+            data: [1, 39, 10, 40, 39, 80, 40]
+          }
+        ]
+      },
       // 歷史紀錄欄位轉換表
       columns: [
         { key: "id", content: "#" },
         { key: "g", content: "重力加速度" },
         { key: "angle", content: "傾斜角度" },
         { key: "slopeLen", content: "斜坡長度" },
+        { key: "mass", content: "質量" },
         { key: "vol", content: "結束瞬時速度" },
         { key: "disp", content: "結束位移" },
         { key: "time", content: "結束時間" }
       ],
+      streamLog: [],
+      log: [],
       // 歷史紀錄資料
       dataLog: [],
+      logKeyId: 0,
       // alert message 屬性
       dismissSecs: 5,
       dismissCountDown: 0,
       showDismissibleAlert: false,
-      logKeyId: 0,
+      dragRealTime: {
+        resetInitialPos: true,
+        initialPosition: { left: 200, top: 100 },
+        onPositionChange: this.onPosChanged,
+
+        boundingElement: this.$refs.container
+        //boundingRect: {top: 100,right:100,left:100,bottom:100}
+      },
+      showInfoCard: true,
+      isShowInfoDrag: false,
       show: true,
       mass: 1,
       isShowGridLines: true,
@@ -296,14 +420,6 @@ export default {
         fill: "#00D2FF"
       }
     };
-  },
-  validators: {
-    email: function(value) {
-      return Validator.value(value)
-        .required()
-        .digit()
-        .between(1, 90);
-    }
   },
   // 請不要在這邊調用箭頭函式，否則無法有效地指到vue的this
   watch: {
@@ -378,34 +494,91 @@ export default {
       }
     }
   },
-
+  // 請不要在這邊調用箭頭函式，否則無法有效地指到vue的this
   methods: {
+    json2csv: function(json = this.streamLog) {
+      // {"g":9.8,"angle":45,"slopeLen":1000,"mass":1,"stream":[{"d":"0.00","t":"0.01","v":"0.07"},{"d":"0.01","t"
+      let stream = json[0].stream;
+      let csv = "距離,時間,速度,加速度\n公分,秒,公分/秒,公分/秒^2\nd,t,v,a\n";
+      stream.forEach(obj => {
+        csv += `${obj.d},${obj.t},${obj.v},${json[0].g}\n`;
+      });
+      return csv;
+    },
+    onPosChanged: function(positionDiff, absolutePosition, event) {
+      this.isShowInfoDrag = true;
+    },
     test(vueComponent) {
+      this.chartData = {
+        datasets: [
+          {
+            label: "Test",
+            backgroundColor: "#f87979",
+            data: [
+              {
+                x: 0,
+                y: 5
+              },
+              {
+                x: 5,
+                y: 10
+              },
+              {
+                x: 8,
+                y: 5
+              },
+              {
+                x: 15,
+                y: 0
+              }
+            ]
+          }
+        ]
+      };
+      this.chartOption = {
+        showLine: true
+      };
+
       const mousePos = this.$refs.stage.getStage().getPointerPosition();
-      console.log(vueComponent.target, mousePos);
+    },
+    hideInfoCard() {
+      if (!this.isShowInfoDrag) this.showInfoCard = !this.showInfoCard;
+      this.isShowInfoDrag = false;
     },
     countDownChanged(dismissCountDown) {
       this.dismissCountDown = dismissCountDown;
     },
     hideandshow() {
       this.show = !this.show;
-      console.log(this.show);
     },
-    submit: function() {
-      this.$validate().then(function(success) {
-        if (success) {
-          alert("Validation succeeded!");
-        }
-      });
+    downloadInfoData() {
+      saveData(this.json2csv(), `${Date.now()}_slopeData.csv`);
     },
     isShowGridLinesMethod(show) {
       let stage = this.$refs.stage.getStage();
       show ? _gridLinesGroup.show() : _gridLinesGroup.hide();
       stage.draw();
     },
+    initSlopeBox() {
+      const slopeBox = this.$refs.mrect;
+      const stage = this.$refs.stage.getStage();
+      const angle = this.angle;
+      slopeBox
+        .getStage()
+        .setX(
+          this.offsetX +
+            50 * Math.cos(deg2rad(angle)) * Math.tan(deg2rad(angle))
+        );
+      slopeBox
+        .getStage()
+        .setY(
+          this.offsetY -
+            (50 * Math.sin(deg2rad(angle))) / Math.tan(deg2rad(angle))
+        );
+      stage.draw();
+    },
     updateGridLines() {
       const vm = this;
-      console.log(_gridLinesLayer);
       if (_gridLinesLayer !== undefined) {
         _gridLinesLayer.destroyChildren();
       }
@@ -469,7 +642,6 @@ export default {
           let x22 = x21 * cos - y21 * sin + xOffset; //+ width / 2
           let y12 = x11 * sin + y11 * cos + yOfsset; //- width / 2
           let y22 = x21 * sin + y21 * cos + yOfsset; //- width / 2
-          console.log(x12, x22, y12, y22);
           group.add(
             new Konva.Line({
               points: [x12, y12, x22, y22],
@@ -520,6 +692,17 @@ export default {
     initAnim() {
       console.log("init anim");
       const vm = this;
+      _data = [];
+      vm.chartData = {
+        datasets: [
+          {
+            label: "Test",
+            backgroundColor: "#f87979",
+            data: []
+          }
+        ]
+      };
+      vm.log = [];
       // 滑到底部公式為 其中 L：斜波長度 θ：斜面與平面夾角 g：為重力加速度
       //                __________
       //               /   2 * L
@@ -534,7 +717,6 @@ export default {
         const t = (frame.time / 1000) * vm.ratioTime;
         const sin = Math.sin(deg2rad(vm.$data.angle));
         const cos = Math.cos(deg2rad(vm.$data.angle));
-        //console.log(frame);
         // 滑動位移計算使用
         const d = {
           x: 0.5 * vm.$data.g * sin * t * t * cos,
@@ -546,7 +728,8 @@ export default {
           vm.disp = Math.sqrt(d.x * d.x + d.y * d.y).toFixed(2);
           vm.tickTime = ((frame.time / 1000) * vm.ratioTime).toFixed(2);
           vm.vol = (vm.accel * vm.tickTime).toFixed(2);
-          //console.log(d.frame.time / 1000);
+
+          vm.log.push({ d: vm.disp, t: vm.tickTime, v: vm.vol });
           vm.$refs.mrect.rotate = deg2rad(vm.$data.angle);
           vm.$refs.mrect
             .getStage()
@@ -562,6 +745,16 @@ export default {
                 (50 * sin) / Math.tan(deg2rad(vm.$data.angle)) +
                 d.y * vm.$data.ratio2cm
             );
+          _data.push({ x: (frame.time / 1000) * vm.ratioTime, y: vm.disp });
+          vm.chartData = {
+            datasets: [
+              {
+                label: "Test",
+                backgroundColor: "#f87979",
+                data: _data
+              }
+            ]
+          };
         } else {
           vm.tickTime = lastTime.toFixed(2);
           vm.vol = (vm.accel * lastTime).toFixed(2);
@@ -595,11 +788,20 @@ export default {
             slopeLen: vm.slope_len,
             disp: vm.disp,
             vol: vm.vol,
-            g: vm.g
+            g: vm.g,
+            mass: vm.mass
           };
           vm.dismissCountDown = vm.dismissSecs;
           vm.dataLog.push(record);
+          vm.streamLog.push({
+            g: vm.g,
+            angle: vm.angle,
+            slopeLen: vm.slope_len,
+            mass: vm.mass,
+            stream: vm.log
+          });
           vm.logKeyId++;
+
           // 斜坡運結束 停下動畫
           _anim.stop();
           _anim = undefined;
@@ -624,25 +826,33 @@ export default {
       }
     },
     reset_ani_btn() {
-      this.is_ani_start = true;
+      //this.is_ani_start = true;
+
       if (_anim !== undefined) {
         if ("stop" in _anim) {
+          this.is_ani_start = false;
           _anim.stop();
           this.initAnim();
-          _anim.start();
+          // 初始化座標點
+          this.initSlopeBox();
+          //_anim.start();
         }
-      } else {
+      }
+      // 停在動畫結束
+      else {
         this.initAnim();
-        _anim.start();
+        this.initSlopeBox();
+
+        //_anim.start();
       }
     }
   },
 
   mounted() {
+    this.dragRealTime.boundingElement = this.$refs.container;
     console.log(window.devicePixelRatio);
     const vm = this;
-
-    this.ratio2cm = 20; //(getDPI() / 2.54).toFixed(2);
+    this.ratio2cm = (getDPI() / 2.54).toFixed(2); //20;
     console.log(
       `This Computer DPI is ${getDPI()} , to The CM is ${this.ratio2cm}`
     );
@@ -700,6 +910,7 @@ export default {
       this.initAnim();
       _anim.start();
     }
+    this.dragRealTime.resetInitialPos = false;
   },
 
   // 當此離開此元件路由
