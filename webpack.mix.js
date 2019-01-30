@@ -34,7 +34,12 @@ const mix = require('laravel-mix');
     vue: ['Vue','window.Vue']
  })
  .browserSync({
-    proxy: '127.0.0.1:8000'
+    // 監聽的伺服器
+    proxy: 'localhost:8000',
+    // 打包完成不開啟網頁
+    open: false,
+    // 關閉對外連線
+    online: false
  })
  // 打包css
  .sass('resources/sass/app.scss','public/css/site.css')

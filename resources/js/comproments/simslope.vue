@@ -200,12 +200,17 @@
           </b-col>
         </b-row>
         <!-- 繪圖區 -->
-        <b-row>
+        <!-- <b-row>
           <b-col>
             <div class="chart-container">
             <scatter-chart :data="chartData" :option="chartOption"></scatter-chart>
             </div>
           </b-col>
+        </b-row> -->
+        <b-row>
+          <rangeInput :value="g" max="10" min="0" step="0.1" id="G force" v-bind:on-value-change.sync="g"></rangeInput>
+          <rangeInput :value="mass" max="100" min="1" step="0.1" id="Mass" v-bind:on-value-change.sync="mass"></rangeInput>
+          <rangeInput :value="angle" max="90" min="1" step="0.1" id="G force" v-bind:on-value-change.sync="angle"></rangeInput>
         </b-row>
       </b-col>
     </b-row>
@@ -276,6 +281,8 @@
 <script>
 "use strict";
 import { Draggable } from "draggable-vue-directive";
+//import stopWatch from './stopwatch.vue'
+import rangeInput from './range-input.vue'
 
 let _data;
 let _anim;
@@ -318,15 +325,18 @@ function getDPI() {
 }
 
 export default {
+  // 引入外部vue檔案
+  components: {
+   rangeInput
+  },
   directives: {
     Draggable
   },
   data() {
     return {
       chartOption: {
-responsive:true,
-maintainAspectRatio: false
-
+      responsive:true,
+      maintainAspectRatio: false
       },
       chartData: {
         labels: [
@@ -370,9 +380,8 @@ maintainAspectRatio: false
         resetInitialPos: true,
         initialPosition: { left: 200, top: 100 },
         onPositionChange: this.onPosChanged,
-
-        boundingElement: this.$refs.container
-        //boundingRect: {top: 100,right:100,left:100,bottom:100}
+        //boundingElement: this.$refs.container,
+        boundingRectMargin: {top: 0,right:0,left:0,bottom:0}
       },
       showInfoCard: true,
       isShowInfoDrag: false,
@@ -504,6 +513,10 @@ maintainAspectRatio: false
         csv += `${obj.d},${obj.t},${obj.v},${json[0].g}\n`;
       });
       return csv;
+    },
+    hello(val) {
+      console.log(val);
+      this.g = val;
     },
     onPosChanged: function(positionDiff, absolutePosition, event) {
       this.isShowInfoDrag = true;

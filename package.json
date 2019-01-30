@@ -23,17 +23,21 @@
         "handsontable": "^6.2.2",
         "jquery": "^3.2",
         "konva": "^2.6.0",
-        "laravel-mix": "^2.0",
+        "laravel-mix": "^4.0.14",
         "lodash": "^4.17.5",
         "mathjs": "^5.1.2",
-        "plotly.js": "^1.42.5",
+        "plotly.js": "^1.44.3",
         "popper.js": "^1.12",
+        "resolve-url-loader": "^2.3.1",
+        "sass": "^1.17.0",
+        "sass-loader": "^7.1.0",
         "showdown": "^1.9.0",
         "simple-vue-validator": "^0.16.0",
         "survey-vue": "^1.0.60",
-        "vue": "^2.5.7",
+        "vue": "^2.6.6",
         "vue-chartjs": "^3.4.0",
         "vue-konva": "^2.0.0",
-        "vue-router": "^3.0.2"
+        "vue-router": "^3.0.2",
+        "vue-template-compiler": "^2.6.6"
     }
 }
