@@ -6,7 +6,7 @@
  */
 
 
-require('./jquery.csv.min.js');
+//require('./jquery.csv.min.js');
 //const npmConfig = require('./npm-config');
 
 // dayjs為momentjs的輕量版
