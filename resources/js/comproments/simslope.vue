@@ -19,24 +19,24 @@
             </h6>
             <table>
               <tr>
-                <td>time:</td>
+                <td>時間</td>
                 <td>{{tickTime}}</td>
                 <td>秒</td>
               </tr>
               <tr>
-                <td>accl:</td>
+                <td>加速度 </td>
                 <td>{{accel}}</td>
-                <td>公分/秒^2</td>
+                <td>公尺/秒^2</td>
               </tr>
               <tr>
-                <td>vol:</td>
+                <td>速度</td>
                 <td>{{vol}}</td>
-                <td>公分/秒</td>
+                <td>公尺/秒</td>
               </tr>
               <tr>
-                <td>disp:</td>
+                <td>位移</td>
                 <td>{{disp}}</td>
-                <td>公分</td>
+                <td>公尺</td>
               </tr>
             </table>
           </b-card>
@@ -55,68 +55,13 @@
         <!-- 參數輸入框 -->
         <b-row>
           <b-col>
-            <b-form-group label="G Force" label-for="input_g">
-              <b-form-input
-                id="input_g"
-                type="number"
-                min="1"
-                max="90"
-                step="0.1"
-                :value="g"
-                @change.native="g = $event.target.value"
-                :disabled="is_ani_start"
-              ></b-form-input>
-            </b-form-group>
+            <rangeInput :value="g" :max="1000" :min="0" :step="0.1" id="重力加速度" unit="m/s^2" v-bind:on-value-change.sync="g"></rangeInput>
           </b-col>
           <b-col>
-            <b-form-group label="Angle" label-for="input_angle">
-              <b-form-input
-                id="input_angle"
-                type="number"
-                min="1"
-                max="90"
-                :value="angle"
-                @change.native="angle = $event.target.value"
-                :disabled="is_ani_start"
-              ></b-form-input>
-            </b-form-group>
+            <rangeInput :value="mass" :max="100" :min="1" :step="0.1" id="質量" unit="kg" v-bind:on-value-change.sync="mass"></rangeInput>
           </b-col>
           <b-col>
-            <b-form-group label="Time of Ratio" label-for="input_ratioTime">
-              <b-form-input
-                id="input_ratioTime"
-                type="number"
-                min="0.1"
-                max="20"
-                step="0.1"
-                v-model.lazy="ratioTime"
-                :disabled="is_ani_start"
-              ></b-form-input>
-            </b-form-group>
-          </b-col>
-          <b-col>
-            <b-form-group label="Slope Length" label-for="input_slopeLen">
-              <b-form-input
-                id="input_slopeLen"
-                type="number"
-                min="100"
-                max="1500"
-                step="1"
-                :value="slope_len"
-                @change.native="slope_len = $event.target.value"
-                :disabled="is_ani_start"
-              ></b-form-input>
-            </b-form-group>
-          </b-col>
-          <b-col>
-            <b-form-group label="Mass" label-for="input_mass">
-              <b-form-input
-                id="input_mass"
-                type="number"
-                v-model.lazy="mass"
-                :disabled="is_ani_start"
-              ></b-form-input>
-            </b-form-group>
+            <rangeInput :value="angle" :max="90" :min="1" :step="0.1" id="角度" unit="°" v-bind:on-value-change.sync="angle"></rangeInput>
           </b-col>
         </b-row>
         <!-- 輔助線選單 -->
@@ -208,9 +153,7 @@
           </b-col>
         </b-row> -->
         <b-row>
-          <rangeInput :value="g" max="10" min="0" step="0.1" id="G force" v-bind:on-value-change.sync="g"></rangeInput>
-          <rangeInput :value="mass" max="100" min="1" step="0.1" id="Mass" v-bind:on-value-change.sync="mass"></rangeInput>
-          <rangeInput :value="angle" max="90" min="1" step="0.1" id="G force" v-bind:on-value-change.sync="angle"></rangeInput>
+
         </b-row>
       </b-col>
     </b-row>
@@ -244,8 +187,8 @@
 }
 
 .dragable-item {
-  position: fixed;
-  z-index: 9998;
+  /* position: fixed; */
+  z-index: 999;
 }
 
 .info-table-head {
@@ -281,8 +224,7 @@
 <script>
 "use strict";
 import { Draggable } from "draggable-vue-directive";
-//import stopWatch from './stopwatch.vue'
-import rangeInput from './range-input.vue'
+import rangeInput from './range-input.vue';
 
 let _data;
 let _anim;
@@ -339,15 +281,6 @@ export default {
       maintainAspectRatio: false
       },
       chartData: {
-        labels: [
-          "January",
-          "February",
-          "March",
-          "April",
-          "May",
-          "June",
-          "July"
-        ],
         datasets: [
           {
             label: "Data One",
@@ -405,6 +338,7 @@ export default {
       },
       is_ani_start: false,
       tickTime: 0,
+      cubeLength: 40,
       g: 9.8,
       vol: 0,
       accel: 0,
@@ -414,7 +348,7 @@ export default {
       slope_len: 1000,
       offsetX: 0,
       offsetY: 37.8 * 2,
-      ratio2cm: 37.8,
+      ratio2cm: 40,
       baseConfig: {
         sceneFunc: function(context, shape) {
           context.beginPath();
@@ -447,13 +381,13 @@ export default {
       this.configRect = {
         x:
           this.offsetX +
-          50 * Math.cos(deg2rad(this.angle)) * Math.tan(deg2rad(this.angle)),
+          this.cubeLength * Math.cos(deg2rad(this.angle)) * Math.tan(deg2rad(this.angle)),
         y:
           this.offsetY -
-          (50 * Math.sin(deg2rad(this.angle))) / Math.tan(deg2rad(this.angle)),
+          (this.cubeLength * Math.sin(deg2rad(this.angle))) / Math.tan(deg2rad(this.angle)),
         rotation: Number(this.angle),
-        width: 50,
-        height: 50,
+        width: this.cubeLength,
+        height: this.cubeLength,
         fill: "green"
       };
       if (_anim !== undefined) _anim = undefined;
@@ -471,12 +405,12 @@ export default {
         height: this.slope_len * Math.sin(deg2rad(val)) + this.offsetY
       };
       this.configRect = {
-        x: this.offsetX + 50 * Math.cos(deg2rad(val)) * Math.tan(deg2rad(val)),
+        x: this.offsetX + this.cubeLength * Math.cos(deg2rad(val)) * Math.tan(deg2rad(val)),
         y:
-          this.offsetY - (50 * Math.sin(deg2rad(val))) / Math.tan(deg2rad(val)),
+          this.offsetY - (this.cubeLength * Math.sin(deg2rad(val))) / Math.tan(deg2rad(val)),
         rotation: Number(val),
-        width: 50,
-        height: 50,
+        width: this.cubeLength,
+        height: this.cubeLength,
         fill: "green"
       };
       // 動態改變網格線偽元素的繪製角度(與斜坡平行與垂直)
@@ -580,13 +514,13 @@ export default {
         .getStage()
         .setX(
           this.offsetX +
-            50 * Math.cos(deg2rad(angle)) * Math.tan(deg2rad(angle))
+            this.cubeLength * Math.cos(deg2rad(angle)) * Math.tan(deg2rad(angle))
         );
       slopeBox
         .getStage()
         .setY(
           this.offsetY -
-            (50 * Math.sin(deg2rad(angle))) / Math.tan(deg2rad(angle))
+            (this.cubeLength * Math.sin(deg2rad(angle))) / Math.tan(deg2rad(angle))
         );
       stage.draw();
     },
@@ -722,7 +656,7 @@ export default {
       //              / ———————————
       //             √  g * sin(θ)
       const lastTime = Math.sqrt(
-        (2 * vm.slope_len) / vm.ratio2cm / (vm.g * Math.sin(deg2rad(vm.angle)))
+        (2 * (vm.slope_len - vm.$data.cubeLength)) / vm.ratio2cm / (vm.g * Math.sin(deg2rad(vm.angle)))
       );
       this.accel = (this.g * Math.sin(deg2rad(this.angle))).toFixed(2);
       console.log(this.accel, this.g, Math.sin(deg2rad(this.angle)));
@@ -748,14 +682,14 @@ export default {
             .getStage()
             .setX(
               vm.$data.offsetX +
-                50 * cos * Math.tan(deg2rad(vm.$data.angle)) +
+                vm.$data.cubeLength * cos * Math.tan(deg2rad(vm.$data.angle)) +
                 d.x * vm.$data.ratio2cm
             );
           vm.$refs.mrect
             .getStage()
             .setY(
               vm.$data.offsetY -
-                (50 * sin) / Math.tan(deg2rad(vm.$data.angle)) +
+                (vm.$data.cubeLength * sin) / Math.tan(deg2rad(vm.$data.angle)) +
                 d.y * vm.$data.ratio2cm
             );
           _data.push({ x: (frame.time / 1000) * vm.ratioTime, y: vm.disp });
@@ -782,14 +716,14 @@ export default {
             .getStage()
             .setX(
               vm.$data.offsetX +
-                50 * cos * Math.tan(deg2rad(vm.$data.angle)) +
+                vm.$data.cubeLength * cos * Math.tan(deg2rad(vm.$data.angle)) +
                 d.x * vm.$data.ratio2cm
             );
           vm.$refs.mrect
             .getStage()
             .setY(
               vm.$data.offsetY -
-                (50 * sin) / Math.tan(deg2rad(vm.$data.angle)) +
+                (vm.$data.cubeLength * sin) / Math.tan(deg2rad(vm.$data.angle)) +
                 d.y * vm.$data.ratio2cm
             );
           // 紀錄最終結果(提供歷史紀錄表格使用)
@@ -865,7 +799,7 @@ export default {
     this.dragRealTime.boundingElement = this.$refs.container;
     console.log(window.devicePixelRatio);
     const vm = this;
-    this.ratio2cm = (getDPI() / 2.54).toFixed(2); //20;
+    //this.ratio2cm = (getDPI() / 2.54).toFixed(2); //20;
     console.log(
       `This Computer DPI is ${getDPI()} , to The CM is ${this.ratio2cm}`
     );
@@ -904,16 +838,16 @@ export default {
     vm.configRect = {
       x:
         vm.offsetX +
-        50 *
+        vm.$data.cubeLength *
           Math.cos(deg2rad(vm.$data.angle)) *
           Math.tan(deg2rad(vm.$data.angle)),
       y:
         vm.offsetY -
-        (50 * Math.sin(deg2rad(vm.$data.angle))) /
+        (vm.$data.cubeLength * Math.sin(deg2rad(vm.$data.angle))) /
           Math.tan(deg2rad(vm.$data.angle)),
       rotation: vm.angle,
-      width: 50,
-      height: 50,
+      width: vm.$data.cubeLength,
+      height: vm.$data.cubeLength,
       fill: "green"
     };
     this.updateGridLines();
