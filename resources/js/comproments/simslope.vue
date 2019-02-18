@@ -58,7 +58,7 @@
             <rangeInput :value="g" :max="1000" :min="0" :step="0.1" id="重力加速度" unit="m/s^2" v-bind:on-value-change.sync="g"></rangeInput>
           </b-col>
           <b-col>
-            <rangeInput :value="mass" :max="100" :min="1" :step="0.1" id="質量" unit="kg" v-bind:on-value-change.sync="mass"></rangeInput>
+            <rangeInput ref="massInput" :value="mass" :max="20" :min="1" :step="0.1" id="質量" unit="kg" v-bind:on-value-change.sync="mass"></rangeInput>
           </b-col>
           <b-col>
             <rangeInput :value="angle" :max="90" :min="1" :step="0.1" id="角度" unit="°" v-bind:on-value-change.sync="angle"></rangeInput>
@@ -390,6 +390,7 @@ export default {
         height: this.cubeLength,
         fill: "green"
       };
+      vm.onMassChange(vm.$refs.massInput.value);
       if (_anim !== undefined) _anim = undefined;
       //console.log(this.configKonva);
     },
@@ -413,6 +414,7 @@ export default {
         height: this.cubeLength,
         fill: "green"
       };
+      vm.onMassChange(vm.$refs.massInput.value);
       // 動態改變網格線偽元素的繪製角度(與斜坡平行與垂直)
 
       //document.styleSheets[0].addRule('.grid1cm::before', `transform-origin:20% 0%`)
@@ -435,6 +437,9 @@ export default {
       handler(val, oldVal) {
         this.updateGridLines();
       }
+    },
+    mass(val) {
+      this.onMassChange(val);
     }
   },
   // 請不要在這邊調用箭頭函式，否則無法有效地指到vue的this
@@ -448,9 +453,16 @@ export default {
       });
       return csv;
     },
-    hello(val) {
-      console.log(val);
-      this.g = val;
+    onMassChange(val) {
+      const max = this.$refs.massInput.max;
+      const min = this.$refs.massInput.min;
+      const maxPer = 50;
+      const minPer = 20;
+      let ligh =  Math.round((maxPer - minPer) - (val - min) / (max - min) * (maxPer - minPer) + minPer);
+      let stage = this.$refs.stage.getStage();
+      this.$refs.mrect.getStage().setFill(`hsl(100,100%,${ligh}%)`);
+      stage.draw();
+      return `hsl(100,100%,${ligh}%)`;
     },
     onPosChanged: function(positionDiff, absolutePosition, event) {
       this.isShowInfoDrag = true;
@@ -848,8 +860,9 @@ export default {
       rotation: vm.angle,
       width: vm.$data.cubeLength,
       height: vm.$data.cubeLength,
-      fill: "green"
+      fill: vm.onMassChange(vm.$refs.massInput.value)
     };
+    //vm.onMassChange(vm.$refs.massInput.value);
     this.updateGridLines();
     // 取得使用者電腦的DPI(pixel/inch)，用於計算實際長度
     //getDPI();
