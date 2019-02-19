@@ -25,6 +25,7 @@
         "konva": "^2.6.0",
         "laravel-mix": "^4.0.14",
         "lodash": "^4.17.5",
+        "lodash.debounce": "^4.0.8",
         "mathjs": "^5.1.2",
         "plotly.js": "^1.44.3",
         "popper.js": "^1.12",

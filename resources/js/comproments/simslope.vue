@@ -57,9 +57,10 @@
           <b-col>
             <rangeInput
               :value="g"
-              :max="1000"
+              :max="100"
               :min="0"
               :step="0.1"
+              :disable="is_ani_start"
               id="重力加速度"
               unit="m/s^2"
               v-bind:on-value-change.sync="g"
@@ -72,6 +73,7 @@
               :max="20"
               :min="1"
               :step="0.1"
+              :disable="is_ani_start"
               id="質量"
               unit="kg"
               v-bind:on-value-change.sync="mass"
@@ -83,6 +85,7 @@
               :max="90"
               :min="1"
               :step="1"
+              :disable="is_ani_start"
               id="角度"
               unit="°"
               v-bind:on-value-change.sync="angle"
@@ -399,7 +402,7 @@ export default {
   // 請不要在這邊調用箭頭函式，否則無法有效地指到vue的this
   watch: {
     g: function(val) {
-      this.accel = val * Math.sin(deg2rad(this.angle)).toFixed(2);
+      this.accel = (val * Math.sin(deg2rad(this.angle))).toFixed(2);
     },
     slope_len: function(val, oldVal) {
       this.vaildSlopeLen(val, oldVal);
@@ -433,7 +436,7 @@ export default {
       const vm = this;
       // 計算加速度
       this.accel = (this.g * Math.sin(deg2rad(val))).toFixed(2);
-      //this.vaildAngle(val, oldVal);
+
       this.configKonva = {
         width:
           this.slope_len * Math.cos(deg2rad(val)) +
@@ -441,23 +444,19 @@ export default {
           this.configRect.height * 2,
         height: this.slope_len * Math.sin(deg2rad(val)) + this.offsetY
       };
-      this.configRect = {
-        x:
-          this.offsetX +
-          this.cubeLength * Math.cos(deg2rad(val)) * Math.tan(deg2rad(val)),
-        y:
-          this.offsetY -
-          (this.cubeLength * Math.sin(deg2rad(val))) / Math.tan(deg2rad(val)),
-        rotation: Number(val),
-        width: this.cubeLength,
-        height: this.cubeLength,
-        fill: "green"
-      };
+      // 設定斜坡方塊屬性
+      this.configRect.x = this.offsetX + this.cubeLength * Math.cos(deg2rad(Number(val))) * Math.tan(deg2rad(Number(val)));
+      this.configRect.y = this.offsetY - (this.cubeLength * Math.sin(deg2rad(Number(val)))) / Math.tan(deg2rad(Number(val)));
+      this.configRect.rotation = Number(val);
+      this.width = this.cubeLength;
+      this.height = this.cubeLength;
+
+      // 印出新的角度值，並放到適當的位置
       let xLen = vm.$data.slope_len * Math.cos(deg2rad(val));
       let yLen = vm.$data.slope_len * Math.sin(deg2rad(val));
       this.configAngleText.x = vm.$data.offsetX + xLen - (xLen / yLen * 40) - 50;
       this.configAngleText.y = vm.$data.offsetY + yLen - 35;
-      this.configAngleText.text = val;
+      this.configAngleText.text = val + "°";
       // 動態改變網格線偽元素的繪製角度(與斜坡平行與垂直)
 
       //document.styleSheets[0].addRule('.grid1cm::before', `transform-origin:20% 0%`)
@@ -849,6 +848,9 @@ export default {
           this.initAnim();
           // 初始化座標點
           this.initSlopeBox();
+          this.tickTime = 0;
+          this.vol = 0;
+          this.disp = 0;
           //_anim.start();
         }
       }
@@ -921,7 +923,7 @@ export default {
       let yLen = vm.$data.slope_len * Math.sin(deg2rad(vm.angle));
       this.configAngleText.x = vm.$data.offsetX + xLen - (xLen / yLen * 40) - 50;
       this.configAngleText.y = vm.$data.offsetY + yLen - 35;
-      this.configAngleText.text = vm.angle;
+      this.configAngleText.text = vm.angle + "°";
     //vm.onMassChange(vm.$refs.massInput.value);
     this.updateGridLines();
     // 取得使用者電腦的DPI(pixel/inch)，用於計算實際長度
