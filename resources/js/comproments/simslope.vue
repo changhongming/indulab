@@ -60,7 +60,7 @@
               :max="100"
               :min="0"
               :step="0.1"
-              :disable="is_ani_start"
+              :disable="isSimBegin"
               id="重力加速度"
               unit="m/s^2"
               v-bind:on-value-change.sync="g"
@@ -73,7 +73,7 @@
               :max="20"
               :min="1"
               :step="0.1"
-              :disable="is_ani_start"
+              :disable="isSimBegin"
               id="質量"
               unit="kg"
               v-bind:on-value-change.sync="mass"
@@ -85,7 +85,7 @@
               :max="90"
               :min="1"
               :step="1"
-              :disable="is_ani_start"
+              :disable="isSimBegin"
               id="角度"
               unit="°"
               v-bind:on-value-change.sync="angle"
@@ -102,20 +102,16 @@
               <span>{{gridLineStyle ? "一般" : "平行斜坡"}}</span>網格線(1cm)
             </b-check>
             <template v-if="is_ani_start">
-              <button
-                class="btn btn-outline-danger"
-                @click="stop_ani_btn"
-                :disabled="!is_ani_start"
-              >
+              <button class="btn btn-outline-danger" @click="pauseAniBtn">
                 <i class="fas fa-stop"></i> pause
               </button>
             </template>
             <template v-else>
-              <button class="btn btn-success" @click="start_ani_btn" :disabled="is_ani_start">
+              <button class="btn btn-success" @click="startAniBtn" :disabled="is_ani_start">
                 <i class="fas fa-play"></i> start
               </button>
             </template>
-            <button class="btn btn-outline-danger" @click="reset_ani_btn">
+            <button class="btn btn-outline-danger" @click="resetAniBtn">
               <i class="fas fa-undo"></i> reset
             </button>
             <button class="btn btn-success" @click="downloadInfoData">
@@ -131,6 +127,7 @@
                 <v-rect ref="mrect" :config="configRect"/>
                 <v-shape ref="base" :config="baseConfig"/>
                 <v-text ref="angleText" :config="configAngleText"/>
+                <v-arc :config="configAngleArc"/>
               </v-layer>
               <v-layer ref="gridLayer"></v-layer>
             </v-stage>
@@ -154,22 +151,9 @@
               </label>
             </template>
             <transition name="fade">
-              <table class="table table-striped" v-if="show">
-                <thead>
-                  <tr>
-                    <th
-                      scope="col"
-                      v-for="(item, index) in columns"
-                      :key="`th-${index}`"
-                    >{{item.content}}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr scope="row" v-for="(item, index) in dataLog" :key="`th-${index}`">
-                    <td v-for="(key, index) in columns" :key="`td-${index}`">{{item[key.key]}}</td>
-                  </tr>
-                </tbody>
-              </table>
+              <div v-if="show">
+                <logTable :per-page=10 :items="dataLog" :fields="fields"></logTable>
+              </div>
             </transition>
           </b-col>
         </b-row>
@@ -252,7 +236,7 @@
 "use strict";
 import { Draggable } from "draggable-vue-directive";
 import rangeInput from "./range-input.vue";
-
+import logTable from "./log-table.vue";
 let _data;
 let _anim;
 let _gridLinesGroup;
@@ -296,7 +280,8 @@ function getDPI() {
 export default {
   // 引入外部vue檔案
   components: {
-    rangeInput
+    rangeInput,
+    logTable
   },
   directives: {
     Draggable
@@ -319,13 +304,21 @@ export default {
       // 歷史紀錄欄位轉換表
       columns: [
         { key: "id", content: "#" },
-        { key: "g", content: "重力加速度" },
+        { key: "g", content: "重力加速度"},
         { key: "angle", content: "傾斜角度" },
-        { key: "slopeLen", content: "斜坡長度" },
         { key: "mass", content: "質量" },
         { key: "vol", content: "結束瞬時速度" },
         { key: "disp", content: "結束位移" },
         { key: "time", content: "結束時間" }
+      ],
+      fields: [
+        { key: "id", label: "#", sortable: true },
+        { key: "g", label: "重力加速度", sortable: true },
+        { key: "angle", label: "傾斜角度", sortable: true },
+        { key: "mass", label: "質量", sortable: true },
+        { key: "vol", label: "結束瞬時速度", sortable: true },
+        { key: "disp", label: "結束位移", sortable: true },
+        { key: "time", label: "結束時間", sortable: true }
       ],
       streamLog: [],
       log: [],
@@ -371,6 +364,15 @@ export default {
         fontFamily: "Calibri",
         fill: "green"
       },
+      configAngleArc: {
+        x: 50,
+        y: 50,
+        innerRadius: 48,
+        outerRadius: 50,
+        rotation: 180,
+        fill: "green"
+      },
+      isSimBegin: false,
       is_ani_start: false,
       tickTime: 0,
       cubeLength: 40,
@@ -445,8 +447,15 @@ export default {
         height: this.slope_len * Math.sin(deg2rad(val)) + this.offsetY
       };
       // 設定斜坡方塊屬性
-      this.configRect.x = this.offsetX + this.cubeLength * Math.cos(deg2rad(Number(val))) * Math.tan(deg2rad(Number(val)));
-      this.configRect.y = this.offsetY - (this.cubeLength * Math.sin(deg2rad(Number(val)))) / Math.tan(deg2rad(Number(val)));
+      this.configRect.x =
+        this.offsetX +
+        this.cubeLength *
+          Math.cos(deg2rad(Number(val))) *
+          Math.tan(deg2rad(Number(val)));
+      this.configRect.y =
+        this.offsetY -
+        (this.cubeLength * Math.sin(deg2rad(Number(val)))) /
+          Math.tan(deg2rad(Number(val)));
       this.configRect.rotation = Number(val);
       this.width = this.cubeLength;
       this.height = this.cubeLength;
@@ -454,9 +463,18 @@ export default {
       // 印出新的角度值，並放到適當的位置
       let xLen = vm.$data.slope_len * Math.cos(deg2rad(val));
       let yLen = vm.$data.slope_len * Math.sin(deg2rad(val));
-      this.configAngleText.x = vm.$data.offsetX + xLen - (xLen / yLen * 40) - 50;
-      this.configAngleText.y = vm.$data.offsetY + yLen - 35;
+
+      this.configAngleText.fontsize = 10;
+      this.configAngleText.x =
+        vm.$data.offsetX + xLen - this.configAngleArc.outerRadius - 60;
+      this.configAngleText.y = vm.$data.offsetY + yLen - 25; //25;
       this.configAngleText.text = val + "°";
+
+      //console.log(this.$refs.angleText.getStage().getWidth());
+      //fontSize
+      this.configAngleArc.x = vm.$data.offsetX + xLen;
+      this.configAngleArc.y = vm.$data.offsetY + yLen;
+      this.configAngleArc.angle = val;
       // 動態改變網格線偽元素的繪製角度(與斜坡平行與垂直)
 
       //document.styleSheets[0].addRule('.grid1cm::before', `transform-origin:20% 0%`)
@@ -489,7 +507,7 @@ export default {
     json2csv: function(json = this.streamLog) {
       // {"g":9.8,"angle":45,"slopeLen":1000,"mass":1,"stream":[{"d":"0.00","t":"0.01","v":"0.07"},{"d":"0.01","t"
       let stream = json[0].stream;
-      let csv = "距離,時間,速度,加速度\n公分,秒,公分/秒,公分/秒^2\nd,t,v,a\n";
+      let csv = "距離,時間,速度,加速度\n公尺,秒,公尺/秒,公尺/秒^2\nd,t,v,a\n";
       stream.forEach(obj => {
         csv += `${obj.d},${obj.t},${obj.v},${json[0].g}\n`;
       });
@@ -701,6 +719,7 @@ export default {
     initAnim() {
       console.log("init anim");
       const vm = this;
+      vm.isSimBegin = false;
       _data = [];
       vm.chartData = {
         datasets: [
@@ -819,18 +838,21 @@ export default {
           _anim.stop();
           _anim = undefined;
           vm.is_ani_start = false;
+          vm.isSimBegin = false;
         }
       }, vm.$refs.layer.getStage());
       _anim = anim;
     },
 
-    start_ani_btn() {
-      console.log(_anim, _anim === undefined);
+    startAniBtn() {
+      //console.log(_anim, _anim === undefined);
+
       if (_anim === undefined) this.initAnim();
       this.$data.is_ani_start = true;
+      this.$data.isSimBegin = true;
       _anim.start();
     },
-    stop_ani_btn() {
+    pauseAniBtn() {
       if (_anim !== undefined) {
         if ("stop" in _anim) {
           this.$data.is_ani_start = false;
@@ -838,12 +860,13 @@ export default {
         }
       }
     },
-    reset_ani_btn() {
+    resetAniBtn() {
       //this.is_ani_start = true;
 
       if (_anim !== undefined) {
         if ("stop" in _anim) {
           this.is_ani_start = false;
+
           _anim.stop();
           this.initAnim();
           // 初始化座標點
@@ -919,11 +942,15 @@ export default {
       height: vm.$data.cubeLength,
       fill: vm.onMassChange(vm.$refs.massInput.value)
     };
-      let xLen = vm.$data.slope_len * Math.cos(deg2rad(vm.angle));
-      let yLen = vm.$data.slope_len * Math.sin(deg2rad(vm.angle));
-      this.configAngleText.x = vm.$data.offsetX + xLen - (xLen / yLen * 40) - 50;
-      this.configAngleText.y = vm.$data.offsetY + yLen - 35;
-      this.configAngleText.text = vm.angle + "°";
+    let xLen = vm.$data.slope_len * Math.cos(deg2rad(vm.angle));
+    let yLen = vm.$data.slope_len * Math.sin(deg2rad(vm.angle));
+    this.configAngleText.x = vm.$data.offsetX + xLen - (xLen / yLen) * 40 - 50;
+    this.configAngleText.y = vm.$data.offsetY + yLen - 35;
+    this.configAngleText.text = vm.angle + "°";
+
+    this.configAngleArc.x = vm.offsetX + xLen;
+    this.configAngleArc.y = vm.offsetY + yLen;
+    this.configAngleArc.angle = vm.angle;
     //vm.onMassChange(vm.$refs.massInput.value);
     this.updateGridLines();
     // 取得使用者電腦的DPI(pixel/inch)，用於計算實際長度
