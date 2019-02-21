@@ -152,7 +152,7 @@
             </template>
             <transition name="fade">
               <div v-if="show">
-                <logTable :per-page=10 :items="dataLog" :fields="fields"></logTable>
+                <logTable :per-page="10" :items="dataLog" :fields="fields"></logTable>
               </div>
             </transition>
           </b-col>
@@ -304,7 +304,7 @@ export default {
       // 歷史紀錄欄位轉換表
       columns: [
         { key: "id", content: "#" },
-        { key: "g", content: "重力加速度"},
+        { key: "g", content: "重力加速度" },
         { key: "angle", content: "傾斜角度" },
         { key: "mass", content: "質量" },
         { key: "vol", content: "結束瞬時速度" },
@@ -361,7 +361,7 @@ export default {
         y: 0,
         text: "angle",
         fontSize: 30,
-        fontFamily: "Calibri",
+        fontFamily: "Consolas",
         fill: "green"
       },
       configAngleArc: {
@@ -446,6 +446,7 @@ export default {
           this.configRect.height * 2,
         height: this.slope_len * Math.sin(deg2rad(val)) + this.offsetY
       };
+
       // 設定斜坡方塊屬性
       this.configRect.x =
         this.offsetX +
@@ -459,22 +460,9 @@ export default {
       this.configRect.rotation = Number(val);
       this.width = this.cubeLength;
       this.height = this.cubeLength;
+      // 更新角度顯示
+      this.updateAngleDraw(val);
 
-      // 印出新的角度值，並放到適當的位置
-      let xLen = vm.$data.slope_len * Math.cos(deg2rad(val));
-      let yLen = vm.$data.slope_len * Math.sin(deg2rad(val));
-
-      this.configAngleText.fontsize = 10;
-      this.configAngleText.x =
-        vm.$data.offsetX + xLen - this.configAngleArc.outerRadius - 60;
-      this.configAngleText.y = vm.$data.offsetY + yLen - 25; //25;
-      this.configAngleText.text = val + "°";
-
-      //console.log(this.$refs.angleText.getStage().getWidth());
-      //fontSize
-      this.configAngleArc.x = vm.$data.offsetX + xLen;
-      this.configAngleArc.y = vm.$data.offsetY + yLen;
-      this.configAngleArc.angle = val;
       // 動態改變網格線偽元素的繪製角度(與斜坡平行與垂直)
 
       //document.styleSheets[0].addRule('.grid1cm::before', `transform-origin:20% 0%`)
@@ -532,38 +520,9 @@ export default {
     onPosChanged: function(positionDiff, absolutePosition, event) {
       this.isShowInfoDrag = true;
     },
-    test(vueComponent) {
-      this.chartData = {
-        datasets: [
-          {
-            label: "Test",
-            backgroundColor: "#f87979",
-            data: [
-              {
-                x: 0,
-                y: 5
-              },
-              {
-                x: 5,
-                y: 10
-              },
-              {
-                x: 8,
-                y: 5
-              },
-              {
-                x: 15,
-                y: 0
-              }
-            ]
-          }
-        ]
-      };
-      this.chartOption = {
-        showLine: true
-      };
-
+    test() {
       const mousePos = this.$refs.stage.getStage().getPointerPosition();
+      //console.log(mousePos);
     },
     hideInfoCard() {
       if (!this.isShowInfoDrag) this.showInfoCard = !this.showInfoCard;
@@ -715,6 +674,63 @@ export default {
       if (len >= 1500 || len < 100) {
         this.slope_len = oldLen;
       }
+    },
+    updateAngleDraw(angle) {
+      const vm = this;
+      let val = angle;
+      /*** 處理角度值顯示 ***/
+      // 印出新的角度值，並放到適當的位置
+      let xLen = vm.$data.slope_len * Math.cos(deg2rad(val));
+      let yLen = vm.$data.slope_len * Math.sin(deg2rad(val));
+
+      // 三角形斜邊斜率 tan(θ)
+      const slopeRate = Math.sin(deg2rad(val)) / Math.cos(deg2rad(val));
+      // 用斜率公式計算不超過三角型高度的值 => y = tan(θ) * x
+      const yPointHeight =
+        slopeRate *
+        (vm.$data.offsetX +
+          xLen -
+          this.configAngleArc.outerRadius * Math.cos(deg2rad(val / 2)));
+      // 計算可用高度
+      const yHeight =
+        yLen -
+        yPointHeight -
+        this.configAngleArc.outerRadius * Math.sin(deg2rad(val / 2));
+      // 字體大小對應實際像素高度大約1.666 => 倒數為0.6
+      let fontSize = yHeight / 0.6;
+
+      // 如果字體大小超過30則保持30
+      this.configAngleText.fontSize = fontSize < 30 ? fontSize : 30;
+      fontSize = this.configAngleText.fontSize;
+
+      let angleText = val + "°";
+
+      // 取出字體寬度
+      let fontWidth = fontSize * angleText.length * 0.65;
+
+      // 計算文字位置
+      this.configAngleText.x =
+        vm.$data.offsetX +
+        xLen -
+        this.configAngleArc.outerRadius * Math.cos(deg2rad(val / 2)) -
+        fontWidth;
+
+      // getStage().textHeight 目前是取回字體大小，而非像素高度，所以乘以0.6修正為像素大小。
+      this.configAngleText.y =
+        vm.$data.offsetY +
+        yLen -
+        this.configAngleArc.outerRadius * Math.sin(deg2rad(val / 2)) -
+        fontSize * 0.6;
+        console.log(this.$refs.angleText.getStage().textWidth, fontSize)
+      // 顯示角度字串內容
+      this.configAngleText.text = val + "°";
+
+      /*** 處理角度圓弧標記 ***/
+      // 保持圓心在三角形右下的頂點
+      this.configAngleArc.x = vm.$data.offsetX + xLen;
+      this.configAngleArc.y = vm.$data.offsetY + yLen;
+      // 與三角形夾角相同畫弧
+      this.configAngleArc.angle = val;
     },
     initAnim() {
       console.log("init anim");
@@ -871,9 +887,6 @@ export default {
           this.initAnim();
           // 初始化座標點
           this.initSlopeBox();
-          this.tickTime = 0;
-          this.vol = 0;
-          this.disp = 0;
           //_anim.start();
         }
       }
@@ -881,9 +894,11 @@ export default {
       else {
         this.initAnim();
         this.initSlopeBox();
-
         //_anim.start();
       }
+      this.tickTime = 0;
+      this.vol = 0;
+      this.disp = 0;
     }
   },
 
@@ -942,16 +957,10 @@ export default {
       height: vm.$data.cubeLength,
       fill: vm.onMassChange(vm.$refs.massInput.value)
     };
-    let xLen = vm.$data.slope_len * Math.cos(deg2rad(vm.angle));
-    let yLen = vm.$data.slope_len * Math.sin(deg2rad(vm.angle));
-    this.configAngleText.x = vm.$data.offsetX + xLen - (xLen / yLen) * 40 - 50;
-    this.configAngleText.y = vm.$data.offsetY + yLen - 35;
-    this.configAngleText.text = vm.angle + "°";
 
-    this.configAngleArc.x = vm.offsetX + xLen;
-    this.configAngleArc.y = vm.offsetY + yLen;
-    this.configAngleArc.angle = vm.angle;
-    //vm.onMassChange(vm.$refs.massInput.value);
+    // 更新角度值
+    this.updateAngleDraw(vm.angle);
+
     this.updateGridLines();
     // 取得使用者電腦的DPI(pixel/inch)，用於計算實際長度
     //getDPI();
