@@ -54,8 +54,8 @@ export default {
         // 當內部值改變發出改變的數值，給父元件進行更新(雙向綁定)
         this.$emit("update:on-value-change", val);
       }
-      //vm.value = val;
       this.state = val <= vm.max && val >= vm.min ? true : false;
+      this.isFocus = this.state;
     }, 100),
     onFocus(event) {
       const vm = this;
