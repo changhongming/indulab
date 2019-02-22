@@ -20,6 +20,7 @@ const mix = require('laravel-mix');
 
  .js('resources/js/survey-component.js', 'public/js')
 
+ .js('resources/js/drawData-page.js', 'public/js')
  // 將js庫進行抽取(vendor.js)，以利於不常變更的js庫不用重新下載
  .extract([
 	'jquery',
@@ -32,7 +33,14 @@ const mix = require('laravel-mix');
     jquery: ['$', 'window.jQuery', 'jQuery', 'jquery'],
     vue: ['Vue','window.Vue']
  })
-
+ .browserSync({
+    // 監聽的伺服器
+    proxy: 'localhost:8000',
+    // 打包完成不開啟網頁
+    open: false,
+    // 關閉對外連線
+    online: false
+ })
  // 打包css
  .sass('resources/sass/app.scss','public/css/site.css')
  // devtool: "inline-source-map" 可以將打包的程式碼還原(source map)，以便看到打包前的程式碼
