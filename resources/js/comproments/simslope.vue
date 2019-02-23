@@ -56,14 +56,14 @@
         <b-row>
           <b-col>
             <rangeInput
-              :value="g"
-              :max="100"
-              :min="0"
-              :step="0.1"
+              :value="inputSlopeLength"
+              :max="10"
+              :min="0.1"
+              :step="0.01"
               :disable="isSimBegin"
-              id="重力加速度"
-              unit="m/s^2"
-              v-bind:on-value-change.sync="g"
+              id="斜坡長度(方塊長寬皆為0.1公尺)"
+              unit="m"
+              v-bind:on-value-change.sync="inputSlopeLength"
             ></rangeInput>
           </b-col>
           <b-col>
@@ -375,6 +375,7 @@ export default {
       isSimBegin: false,
       is_ani_start: false,
       tickTime: 0,
+      inputSlopeLength: 1,
       cubeLength: 40,
       g: 9.8,
       vol: 0,
@@ -385,7 +386,8 @@ export default {
       slope_len: 1000,
       offsetX: 0,
       offsetY: 37.8 * 2,
-      ratio2cm: 40,
+      ratio2cm: 1000,
+      inputCubeLength: 0.1,
       baseConfig: {
         sceneFunc: function(context, shape) {
           context.beginPath();
@@ -406,8 +408,30 @@ export default {
     g: function(val) {
       this.accel = (val * Math.sin(deg2rad(this.angle))).toFixed(2);
     },
+    inputSlopeLength: function(val) {
+      this.ratio2cm = 1 / val * 1000;
+      this.cubeLength = this.inputCubeLength * this.ratio2cm;
+    },
+    cubeLength: function(val) {
+      console.log(val)
+      this.configRect.x =
+        this.offsetX +
+        val *
+          Math.cos(deg2rad(Number(this.angle))) *
+          Math.tan(deg2rad(Number(this.angle)));
+      this.configRect.y =
+        this.offsetY -
+        (val * Math.sin(deg2rad(Number(this.angle)))) /
+          Math.tan(deg2rad(Number(this.angle)));
+      this.configRect.rotation = Number(this.angle);
+      this.configRect.width = val;
+      this.configRect.height = val;
+    },
+    ratio2cm: function(val) {
+      this.updateGridLines();
+    },
     slope_len: function(val, oldVal) {
-      this.vaildSlopeLen(val, oldVal);
+      //this.vaildSlopeLen(val, oldVal);
       this.configKonva = {
         width:
           val * Math.cos(deg2rad(this.angle)) +
@@ -415,22 +439,19 @@ export default {
           this.configRect.height * 2,
         height: val * Math.sin(deg2rad(this.angle)) + this.offsetY
       };
-      this.configRect = {
-        x:
-          this.offsetX +
-          this.cubeLength *
-            Math.cos(deg2rad(this.angle)) *
-            Math.tan(deg2rad(this.angle)),
-        y:
-          this.offsetY -
-          (this.cubeLength * Math.sin(deg2rad(this.angle))) /
-            Math.tan(deg2rad(this.angle)),
-        rotation: Number(this.angle),
-        width: this.cubeLength,
-        height: this.cubeLength,
-        fill: "green"
-      };
-      vm.onMassChange(vm.$refs.massInput.value);
+      // 設定斜坡方塊屬性
+      this.configRect.x =
+        this.offsetX +
+        this.cubeLength *
+          Math.cos(deg2rad(Number(this.angle))) *
+          Math.tan(deg2rad(Number(this.angle)));
+      this.configRect.y =
+        this.offsetY -
+        (this.cubeLength * Math.sin(deg2rad(Number(this.angle)))) /
+          Math.tan(deg2rad(Number(this.angle)));
+      this.configRect.rotation = Number(this.angle);
+      this.configRect.width = this.cubeLength;
+      this.configRect.height = this.cubeLength;
       if (_anim !== undefined) _anim = undefined;
       //console.log(this.configKonva);
     },
@@ -458,8 +479,8 @@ export default {
         (this.cubeLength * Math.sin(deg2rad(Number(val)))) /
           Math.tan(deg2rad(Number(val)));
       this.configRect.rotation = Number(val);
-      this.width = this.cubeLength;
-      this.height = this.cubeLength;
+      // this.width = this.cubeLength;
+      // this.height = this.cubeLength;
       // 更新角度顯示
       this.updateAngleDraw(val);
 
@@ -576,7 +597,7 @@ export default {
       //console.log(stage.getWidth(), stage.getHeight())
       const cos = Math.cos(deg2rad(this.angle));
       const sin = Math.sin(deg2rad(this.angle));
-      const cellLength = this.ratio2cm;
+      const cellLength = this.ratio2cm / 10;
       // 如果使用一般網隔線
       if (vm.gridLineStyle) {
         for (let i = 0; i < width / cellLength; i++) {
@@ -792,16 +813,16 @@ export default {
                   Math.tan(deg2rad(vm.$data.angle)) +
                 d.y * vm.$data.ratio2cm
             );
-          _data.push({ x: (frame.time / 1000) * vm.ratioTime, y: vm.disp });
-          vm.chartData = {
-            datasets: [
-              {
-                label: "Test",
-                backgroundColor: "#f87979",
-                data: _data
-              }
-            ]
-          };
+          // _data.push({ x: (frame.time / 1000) * vm.ratioTime, y: vm.disp });
+          // vm.chartData = {
+          //   datasets: [
+          //     {
+          //       label: "Test",
+          //       backgroundColor: "#f87979",
+          //       data: _data
+          //     }
+          //   ]
+          // };
         } else {
           vm.tickTime = lastTime.toFixed(2);
           vm.vol = (vm.accel * lastTime).toFixed(2);
@@ -903,6 +924,7 @@ export default {
   },
 
   mounted() {
+    this.ratio2cm = 1 / this.inputSlopeLength * 1000;
     this.dragRealTime.boundingElement = this.$refs.container;
     console.log(window.devicePixelRatio);
     const vm = this;
@@ -942,6 +964,7 @@ export default {
         this.configRect.height * 2,
       height: vm.slope_len * Math.sin(deg2rad(this.angle)) + this.offsetY
     };
+    this.cubeLength = vm.inputCubeLength * vm.ratio2cm;
     vm.configRect = {
       x:
         vm.offsetX +
