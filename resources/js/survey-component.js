@@ -33,36 +33,39 @@ import { Scatter } from 'vue-chartjs'
 
 
 Vue.component('scatter-chart', {
-    extends: Scatter ,
+    extends: Scatter,
     props: ['data', 'options'],
-    mounted () {
-      this.renderChart(this.data, this.options)
+    mounted() {
+        this.renderChart(this.data, this.options)
     },
     watch: {
-      data: function () {
-        this.renderChart(this.data, this.options)
-      }
+        data: function () {
+            this.renderChart(this.data, this.options)
+        }
     }
-  });
+});
 
 // const gs   = new RulersGuides(Event, Dragdrop);
 
 // console.log(gs);
 
-
+import describeSlopeSim from "./comproments/picture-content.vue";
+import tutorData from "./json/slopeTurtor.json.js";
+console.log(tutorData)
 const routes = [
-  { path: '/simslope', component: simslope },
-  { path: '/expslope', component: surveyslope }
+    { path: '/simslope', component: simslope },
+    { path: '/expslope', component: surveyslope },
+    { path: '/micro', component: describeSlopeSim, props: { items: tutorData, href: "simslope" } }
 ];
 
 
 
 const router = new VueRouter({
-  routes
+    routes
 });
 
 const app = new Vue({
-  router
+    router
 }).$mount('#app');
 
 

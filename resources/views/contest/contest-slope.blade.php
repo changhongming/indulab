@@ -7,6 +7,7 @@
     <p>
       <router-link to="/simslope">直線運動模擬</router-link>
       <router-link to="/expslope">直線運動題目</router-link>
+      <router-link to="/micro">教學說明</router-link>
     </p>
   <router-view>
   </router-view>
