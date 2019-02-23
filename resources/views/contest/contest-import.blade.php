@@ -198,6 +198,10 @@
             // 將內容資料放入陣列
             arrData[ arrData.length - 1 ].push( strMatchedValue );
         }
+        // 判斷最後一列是否為長度為1的陣列，並且值為空字串
+        if(arrData[arrData.length - 1].length !== arrData[0].length && arrData[arrData.length - 1][0] === "") {
+          arrData.length -= 1;
+        }
         return( arrData );
     }
 
