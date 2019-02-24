@@ -438,9 +438,9 @@ export default {
       this.configRect.width = val;
       this.configRect.height = val;
     },
-    ratio2cm: function(val) {
-      this.updateGridLines();
-    },
+    // ratio2cm: function(val) {
+    //   this.updateGridLines();
+    // },
     slope_len: function(val, oldVal) {
       //this.vaildSlopeLen(val, oldVal);
       this.configKonva = {
@@ -597,7 +597,7 @@ export default {
     updateGridLines() {
       const vm = this;
       if (_gridLinesLayer !== undefined) {
-        _gridLinesLayer.destroyChildren();
+        _gridLinesLayer.destroy();
       }
       let layer = new Konva.Layer();
       let stage = vm.$refs.stage.getStage();
