@@ -1,8 +1,16 @@
 <template>
   <b-container fluid ref="container">
     <!-- 說明dialog -->
-    <b-btn v-b-modal.tutorial>使用教學</b-btn>
-    <b-modal id="tutorial" title="教學手冊" ok-only centered>Hello From My Modal!</b-modal>
+    <button type="button" class="btn btn-secondary" data-toggle="modal" data-target=".tutor-bd-modal-lg">使用教學</button>
+<div class="modal fade tutor-bd-modal-lg" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <pictureContent :items="tutorData"/>
+    </div>
+  </div>
+</div>
+
+
     <div v-draggable="dragRealTime" class="dragable-item">
       <div ref="realTimeCard">
         <template v-if="showInfoCard">
@@ -96,10 +104,10 @@
         <b-row>
           <b-col>
             <b-check v-model="isShowGridLines">
-              <span>{{isShowGridLines ? "顯示" : "隱藏"}}</span>網格線(1cm)
+              <span>{{isShowGridLines ? "顯示" : "隱藏"}}</span>網格線(10cm)
             </b-check>
             <b-check v-model="gridLineStyle">
-              <span>{{gridLineStyle ? "一般" : "平行斜坡"}}</span>網格線(1cm)
+              <span>{{gridLineStyle ? "一般" : "平行斜坡"}}</span>網格線(10cm)
             </b-check>
             <template v-if="is_ani_start">
               <button class="btn btn-outline-danger" @click="pauseAniBtn">
@@ -237,6 +245,8 @@
 import { Draggable } from "draggable-vue-directive";
 import rangeInput from "./range-input.vue";
 import logTable from "./log-table.vue";
+import pictureContent from "./picture-content.vue";
+import tutorData from "../json/simSlopeTurtor.json.js";
 let _data;
 let _anim;
 let _gridLinesGroup;
@@ -281,13 +291,15 @@ export default {
   // 引入外部vue檔案
   components: {
     rangeInput,
-    logTable
+    logTable,
+    pictureContent
   },
   directives: {
     Draggable
   },
   data() {
     return {
+      tutorData,
       chartOption: {
         responsive: true,
         maintainAspectRatio: false
@@ -413,7 +425,6 @@ export default {
       this.cubeLength = this.inputCubeLength * this.ratio2cm;
     },
     cubeLength: function(val) {
-      console.log(val)
       this.configRect.x =
         this.offsetX +
         val *
@@ -543,7 +554,6 @@ export default {
     },
     test() {
       const mousePos = this.$refs.stage.getStage().getPointerPosition();
-      //console.log(mousePos);
     },
     hideInfoCard() {
       if (!this.isShowInfoDrag) this.showInfoCard = !this.showInfoCard;
@@ -742,7 +752,7 @@ export default {
         yLen -
         this.configAngleArc.outerRadius * Math.sin(deg2rad(val / 2)) -
         fontSize * 0.6;
-        console.log(this.$refs.angleText.getStage().textWidth, fontSize)
+        //console.log(this.$refs.angleText.getStage().textWidth, fontSize)
       // 顯示角度字串內容
       this.configAngleText.text = val + "°";
 
@@ -779,7 +789,7 @@ export default {
           (vm.g * Math.sin(deg2rad(vm.angle)))
       );
       this.accel = (this.g * Math.sin(deg2rad(this.angle))).toFixed(2);
-      console.log(this.accel, this.g, Math.sin(deg2rad(this.angle)));
+      //console.log(this.accel, this.g, Math.sin(deg2rad(this.angle)));
       const anim = new Konva.Animation(function(frame) {
         const t = (frame.time / 1000) * vm.ratioTime;
         const sin = Math.sin(deg2rad(vm.$data.angle));
@@ -832,7 +842,7 @@ export default {
             frame: frame
           };
           vm.disp = Math.sqrt(d.x * d.x + d.y * d.y).toFixed(2);
-          console.log(lastTime);
+          //console.log(lastTime);
           vm.$refs.mrect
             .getStage()
             .setX(
@@ -926,12 +936,12 @@ export default {
   mounted() {
     this.ratio2cm = 1 / this.inputSlopeLength * 1000;
     this.dragRealTime.boundingElement = this.$refs.container;
-    console.log(window.devicePixelRatio);
+    //console.log(window.devicePixelRatio);
     const vm = this;
     //this.ratio2cm = (getDPI() / 2.54).toFixed(2); //20;
-    console.log(
-      `This Computer DPI is ${getDPI()} , to The CM is ${this.ratio2cm}`
-    );
+    // console.log(
+    //   `This Computer DPI is ${getDPI()} , to The CM is ${this.ratio2cm}`
+    // );
     this.baseConfig = {
       sceneFunc: function(context, shape) {
         context.beginPath();

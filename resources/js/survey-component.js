@@ -51,11 +51,11 @@ Vue.component('scatter-chart', {
 
 import describeSlopeSim from "./comproments/picture-content.vue";
 import tutorData from "./json/slopeTurtor.json.js";
-console.log(tutorData)
+
 const routes = [
     { path: '/simslope', component: simslope },
     { path: '/expslope', component: surveyslope },
-    { path: '/micro', component: describeSlopeSim, props: { items: tutorData, href: "simslope" } }
+    { path: '/', component: describeSlopeSim, props: { items: tutorData, href: "simslope" } }
 ];
 
 

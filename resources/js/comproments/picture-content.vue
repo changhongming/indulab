@@ -9,7 +9,9 @@
         style="max-width: 50rem;"
         class="mb-2"
       >
-        <h1><strong>{{title}}</strong></h1>
+        <h1>
+          <strong>{{title}}</strong>
+        </h1>
         <div v-html="getContent"></div>
         <b-row>
           <b-col>
@@ -18,23 +20,27 @@
             </b-progress>
           </b-col>
         </b-row>
-        <b-row align-h="between">
+        <b-row align-h="center">
+          <b-pagination
+            size="md"
+            :total-rows="totalPage"
+            v-model="currentPage"
+            :per-page="1"
+            :limit="8"
+          />
+        </b-row>
+        <b-row align-h="center">
+            <button v-show="isFnalPage && this.href" @click="done" class="btn btn-danger">進行模擬實驗</button>
+        </b-row>
+        <!-- <b-row align-h="between">
           <b-col cols="2">
             <button v-show="isPrvBtnShow" @click="prvPage" class="btn btn-primary">上一頁</button>
           </b-col>
           <b-col cols="2">
             <button v-show="isNextBtnShow" @click="nextPage" class="btn btn-primary">下一頁</button>
           </b-col>
-        </b-row>
+        </b-row>-->
       </b-card>
-    </b-row>
-    <b-row>
-      <a
-        :href="getHref"
-        v-show="isFnalPage && this.href"
-        @click="nextPage"
-        class="btn btn-primary"
-      >進行模擬實驗</a>
     </b-row>
   </b-container>
 </template>
@@ -46,24 +52,49 @@ p {
 </style>
 
 <script>
+// 解析markdown格示並轉換為html
 import * as showdown from "showdown";
+// showdown 公式解析套件(Latex Katex)
+import showdownKatex from "showdown-katex";
+// showdown 的 markdown格示文件class註冊(對tag)
 const classMap = {
   table: "table table-hover table-bordered table-striped",
   td: "align-middle",
-  thead: "thead-dark"
+  thead: "thead-dark",
+  blockquote:"blockquote1"
 };
+
+// 綁定classMap class到特定tag上
 const bindings = Object.keys(classMap).map(key => ({
   type: "output",
   regex: new RegExp(`<${key}(.*)>`, "g"),
   replace: `<${key} class="${classMap[key]}" $1>`
 }));
 
+// 建構一個markdown轉換html物件
 const converter = new showdown.Converter({
+  // 開啟md識別表格轉換html功能 ||| |--|--| |||
   tables: true,
+  // 開啟md識別引用轉換html功能 >
+  splitAdjacentBlockquotes: true,
+  // 開啟md識別圖片轉換html功能 ![]()
   parseImgDimensions: true,
-  extensions: [...bindings]
+  // 開啟md識別程式碼轉換html功能 ``` ```
+  ghCodeBlocks: true,
+  // 掛載延伸功能
+  extensions: [
+    ...bindings,
+    // 解析公式轉換功能Katex Latex
+    showdownKatex({
+      // maybe you want katex to throwOnError
+      throwOnError: true,
+      // disable displayMode
+      displayMode: false,
+      // change errorColor to blue
+      errorColor: "#1500ff"
+    })
+  ]
 });
-console.log(converter.getOption("tables"));
 export default {
   data() {
     return {
@@ -92,6 +123,11 @@ export default {
       type: String
     }
   },
+  watch: {
+    currentPage: function(val) {
+      this.updateCard();
+    }
+  },
   computed: {
     getHref() {
       return `#/${this.href}`;
@@ -107,6 +143,16 @@ export default {
     }
   },
   methods: {
+    done() {
+      if (confirm("按下「確定」離開此頁面進行模擬實驗")) {
+        const a = document.createElement("a");
+        document.body.appendChild(a);
+        a.style = "display: none";
+        a.href = this.getHref;
+        a.click();
+        document.body.removeChild(a);
+      }
+    },
     nextPage() {
       if (this.currentPage < this.totalPage) {
         this.currentPage++;
@@ -128,8 +174,10 @@ export default {
           .toString()
           .search(
             /(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/gi
-          ) == -1
-          ? this.items[index].src === "" ? "" : assertPath + this.items[index].src
+          ) === -1
+          ? this.items[index].src === ""
+            ? ""
+            : assertPath + this.items[index].src
           : this.items[index].src;
       this.src = src;
       this.title = this.items[index].title;
@@ -152,6 +200,7 @@ export default {
   },
   mounted() {
     this.totalPage = this.items.length;
+    console.log(this.totalPage);
     this.updateCard();
   }
 };
