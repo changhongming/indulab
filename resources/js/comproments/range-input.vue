@@ -8,7 +8,7 @@
     <b-input-group size="md" :append="unit">
       <b-form-input
         :id="componentID"
-        type="number"
+        :type="type"
         :min="min"
         :max="max"
         :step="step"
@@ -21,6 +21,7 @@
       ></b-form-input>
     </b-input-group>
     <b-form-text v-show="isFocus">數值範圍在{{min}}至{{max}}</b-form-text>
+    <div v-show="type === 'range'" class="mt-2">數值: {{ value }}</div>
   </b-form-group>
 </template>
 <script>
@@ -42,7 +43,8 @@ export default {
     max: Number,
     id: String,
     unit: String,
-    disable: Boolean
+    disable: Boolean,
+    type: { type:String, default: 'number'}
   },
   methods: {
     // 設定當100ms不改變

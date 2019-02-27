@@ -1,15 +1,25 @@
 <template>
   <b-container fluid ref="container">
     <!-- 說明dialog -->
-    <button type="button" class="btn btn-secondary" data-toggle="modal" data-target=".tutor-bd-modal-lg">使用教學</button>
-<div class="modal fade tutor-bd-modal-lg" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-lg">
-    <div class="modal-content">
-      <pictureContent :items="tutorData"/>
+    <button
+      type="button"
+      class="btn btn-secondary"
+      data-toggle="modal"
+      data-target=".tutor-bd-modal-lg"
+    >使用教學</button>
+    <div
+      class="modal fade tutor-bd-modal-lg"
+      tabindex="-1"
+      role="dialog"
+      aria-labelledby="myLargeModalLabel"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+          <pictureContent :items="tutorData"/>
+        </div>
+      </div>
     </div>
-  </div>
-</div>
-
 
     <div v-draggable="dragRealTime" class="dragable-item">
       <div ref="realTimeCard">
@@ -130,7 +140,7 @@
         <!-- 模擬動畫區 -->
         <b-row>
           <b-col>
-            <v-stage ref="stage" :config="configKonva" @click="test">
+            <v-stage ref="stage" :config="configKonva">
               <v-layer ref="layer">
                 <v-rect ref="mrect" :config="configRect"/>
                 <v-shape ref="base" :config="baseConfig"/>
@@ -138,6 +148,7 @@
                 <v-arc :config="configAngleArc"/>
               </v-layer>
               <v-layer ref="gridLayer"></v-layer>
+              <v-layer ref="breakPoinLyaer"></v-layer>
             </v-stage>
           </b-col>
         </b-row>
@@ -165,6 +176,17 @@
             </transition>
           </b-col>
         </b-row>
+        <rangeInput
+          :value="inputSlopeBreakPoint"
+          :max="getBreakPointMax"
+          :min="0"
+          :step="0.01"
+          :disable="isSimBegin"
+          id="斷點"
+          unit="m"
+          type="range"
+          v-bind:on-value-change.sync="inputSlopeBreakPoint"
+        ></rangeInput>
         <!-- 繪圖區 -->
         <!-- <b-row>
           <b-col>
@@ -247,10 +269,13 @@ import rangeInput from "./range-input.vue";
 import logTable from "./log-table.vue";
 import pictureContent from "./picture-content.vue";
 import tutorData from "../json/simSlopeTurtor.json.js";
+import sort from "fast-sort";
 let _data;
 let _anim;
 let _gridLinesGroup;
 let _gridLinesLayer;
+let _breakPointGroup = null;
+let _breakPointGone = null;
 function deg2rad(deg) {
   return (Math.PI * deg) / 180;
 }
@@ -336,7 +361,7 @@ export default {
       log: [],
       // 歷史紀錄資料
       dataLog: [],
-      logKeyId: 0,
+      logKeyId: 1,
       // alert message 屬性
       dismissSecs: 5,
       dismissCountDown: 0,
@@ -387,6 +412,10 @@ export default {
       isSimBegin: false,
       is_ani_start: false,
       tickTime: 0,
+      // 輸入框的中斷點數值
+      inputSlopeBreakPoint: null,
+      // 中斷點佇列
+      slopeBreakPoint: [],
       inputSlopeLength: 1,
       cubeLength: 40,
       g: 9.8,
@@ -415,13 +444,22 @@ export default {
       }
     };
   },
+  computed: {
+    // 取得中斷點最大值
+    getBreakPointMax: function() {
+      return this.inputSlopeLength - this.inputCubeLength;
+    }
+  },
   // 請不要在這邊調用箭頭函式，否則無法有效地指到vue的this
   watch: {
     g: function(val) {
       this.accel = (val * Math.sin(deg2rad(this.angle))).toFixed(2);
     },
+    inputSlopeBreakPoint: function(val) {
+      this.drawBreakPoint();
+    },
     inputSlopeLength: function(val) {
-      this.ratio2cm = 1 / val * 1000;
+      this.ratio2cm = (1 / val) * 1000;
       this.cubeLength = this.inputCubeLength * this.ratio2cm;
       this.updateGridLines();
     },
@@ -695,18 +733,6 @@ export default {
       _gridLinesLayer = layer;
       _gridLinesGroup = group;
     },
-    // 驗證角度是否在範圍內
-    vaildAngle(angle, oldAngle) {
-      if (angle > 90 || angle <= 0) {
-        this.angle = oldAngle;
-      }
-    },
-    // 驗證斜坡長度是否在範圍內
-    vaildSlopeLen(len, oldLen) {
-      if (len >= 1500 || len < 100) {
-        this.slope_len = oldLen;
-      }
-    },
     updateAngleDraw(angle) {
       const vm = this;
       let val = angle;
@@ -753,7 +779,7 @@ export default {
         yLen -
         this.configAngleArc.outerRadius * Math.sin(deg2rad(val / 2)) -
         fontSize * 0.6;
-        //console.log(this.$refs.angleText.getStage().textWidth, fontSize)
+      //console.log(this.$refs.angleText.getStage().textWidth, fontSize)
       // 顯示角度字串內容
       this.configAngleText.text = val + "°";
 
@@ -769,15 +795,6 @@ export default {
       const vm = this;
       vm.isSimBegin = false;
       _data = [];
-      vm.chartData = {
-        datasets: [
-          {
-            label: "Test",
-            backgroundColor: "#f87979",
-            data: []
-          }
-        ]
-      };
       vm.log = [];
       // 滑到底部公式為 其中 L：斜波長度 θ：斜面與平面夾角 g：為重力加速度
       //                __________
@@ -789,24 +806,43 @@ export default {
           vm.ratio2cm /
           (vm.g * Math.sin(deg2rad(vm.angle)))
       );
+      vm.disp = 0;
       this.accel = (this.g * Math.sin(deg2rad(this.angle))).toFixed(2);
-      //console.log(this.accel, this.g, Math.sin(deg2rad(this.angle)));
       const anim = new Konva.Animation(function(frame) {
         const t = (frame.time / 1000) * vm.ratioTime;
         const sin = Math.sin(deg2rad(vm.$data.angle));
         const cos = Math.cos(deg2rad(vm.$data.angle));
         // 滑動位移計算使用
-        const d = {
+        let d = {
           x: 0.5 * vm.$data.g * sin * t * t * cos,
           y: 0.5 * vm.$data.g * sin * t * t * sin,
           frame: frame
         };
 
         if ((frame.time / 1000) * vm.ratioTime <= lastTime) {
-          vm.disp = Math.sqrt(d.x * d.x + d.y * d.y).toFixed(2);
-          vm.tickTime = ((frame.time / 1000) * vm.ratioTime).toFixed(2);
-          vm.vol = (vm.accel * vm.tickTime).toFixed(2);
-
+          // 判斷是否有斷點及達到斷點
+          if (
+            vm.slopeBreakPoint.length !== 0 &&
+            vm.slopeBreakPoint[0].bp <= vm.disp
+          ) {
+            // 取出中斷位移目標並換算
+            d = {
+              x: vm.slopeBreakPoint[0].bp * cos,
+              y: vm.slopeBreakPoint[0].bp * sin,
+              frame
+            };
+            // 取出當的中斷點，等待下次動畫在開始時進行清除
+            _breakPointGone = _breakPointGroup.find(
+              `#${vm.slopeBreakPoint[0].id}`
+            );
+            // 清除當前的中斷點
+            vm.slopeBreakPoint.shift();
+            // 更新操作履歷
+            vm.pushSlopeLog();
+            // 暫停動畫
+            _anim.stop();
+            vm.is_ani_start = false;
+          }
           vm.log.push({ d: vm.disp, t: vm.tickTime, v: vm.vol });
           vm.$refs.mrect.rotate = deg2rad(vm.$data.angle);
           vm.$refs.mrect
@@ -824,16 +860,10 @@ export default {
                   Math.tan(deg2rad(vm.$data.angle)) +
                 d.y * vm.$data.ratio2cm
             );
-          // _data.push({ x: (frame.time / 1000) * vm.ratioTime, y: vm.disp });
-          // vm.chartData = {
-          //   datasets: [
-          //     {
-          //       label: "Test",
-          //       backgroundColor: "#f87979",
-          //       data: _data
-          //     }
-          //   ]
-          // };
+          // 更新碼表數值
+          vm.disp = Math.sqrt(d.x * d.x + d.y * d.y).toFixed(2);
+          vm.tickTime = ((frame.time / 1000) * vm.ratioTime).toFixed(2);
+          vm.vol = (vm.accel * vm.tickTime).toFixed(2);
         } else {
           vm.tickTime = lastTime.toFixed(2);
           vm.vol = (vm.accel * lastTime).toFixed(2);
@@ -859,20 +889,8 @@ export default {
                   Math.tan(deg2rad(vm.$data.angle)) +
                 d.y * vm.$data.ratio2cm
             );
-          // 紀錄最終結果(提供歷史紀錄表格使用)
-          const record = {
-            id: vm.logKeyId,
-            time: vm.tickTime,
-            accel: vm.accel,
-            angle: vm.angle,
-            slopeLen: vm.slope_len,
-            disp: vm.disp,
-            vol: vm.vol,
-            g: vm.g,
-            mass: vm.mass
-          };
+          vm.pushSlopeLog();
           vm.dismissCountDown = vm.dismissSecs;
-          vm.dataLog.push(record);
           vm.streamLog.push({
             g: vm.g,
             angle: vm.angle,
@@ -881,7 +899,12 @@ export default {
             stream: vm.log
           });
           vm.logKeyId++;
-
+          vm.slopeBreakPoint = [];
+          if (_breakPointGroup !== null && "destroy" in _breakPointGroup) {
+            _breakPointGroup.destroy();
+            _breakPointGroup = null;
+          }
+          vm.$refs.breakPoinLyaer.getStage().draw();
           // 斜坡運結束 停下動畫
           _anim.stop();
           _anim = undefined;
@@ -893,8 +916,14 @@ export default {
     },
 
     startAniBtn() {
-      //console.log(_anim, _anim === undefined);
-
+      // 判斷是否有完成斷點，如果有則清除
+      if (_breakPointGone !== null && "destroy" in _breakPointGone) {
+        // 將剛剛斷點的紅點移除
+        _breakPointGone.destroy();
+        _breakPointGone = null;
+        // 刷新斷點圖層
+        this.$refs.breakPoinLyaer.getStage().draw();
+      }
       if (_anim === undefined) this.initAnim();
       this.$data.is_ani_start = true;
       this.$data.isSimBegin = true;
@@ -928,14 +957,91 @@ export default {
         this.initSlopeBox();
         //_anim.start();
       }
+      if (_breakPointGroup !== null && "destroy" in _breakPointGroup) {
+        _breakPointGroup.destroy();
+        _breakPointGroup = null;
+      }
+      this.slopeBreakPoint.length = 0;
+      this.$refs.breakPoinLyaer.getStage().draw();
       this.tickTime = 0;
       this.vol = 0;
       this.disp = 0;
+    },
+    drawBreakPoint() {
+      const vm = this;
+      const sin = Math.sin(deg2rad(vm.$data.angle));
+      const cos = Math.cos(deg2rad(vm.$data.angle));
+
+      // 滑動位移計算使用
+      const d = {
+        x:
+          (vm.inputSlopeBreakPoint + vm.inputCubeLength) * cos * vm.ratio2cm +
+          vm.offsetX,
+        y:
+          (vm.inputSlopeBreakPoint + vm.inputCubeLength) * sin * vm.ratio2cm +
+          vm.offsetY
+      };
+      // 取得中斷點圖層
+      const layer = vm.$refs.breakPoinLyaer;
+      // 如果中斷點群組尚未建構，則建構
+      if (_breakPointGroup === null) {
+        _breakPointGroup = new Konva.Group();
+      }
+      // 新增中斷點圓圈標示
+      let circle = new Konva.Circle({
+        fill: "#ff0000ee",
+        radius: 10,
+        x: d.x,
+        y: d.y
+      });
+      // 設定中斷點圓圈id
+      circle.id(`bp-${vm.slopeBreakPoint.length}`);
+      // 中斷點mouseup事件綁定
+      circle.on("mouseup", function(e) {
+        // 找到要刪除中斷點的id
+        const removeId = vm.slopeBreakPoint.findIndex(element => {
+          return element.id === e.target.attrs.id;
+        });
+        // 從中斷點陣列中移除
+        vm.slopeBreakPoint.splice(removeId, 1);
+        // 清除中斷點圓圈
+        e.target.destroy();
+        // 刷新圖層
+        vm.$refs.stage.getStage().draw();
+      });
+      // 將剛中斷點陣列
+      vm.slopeBreakPoint.push({ bp: vm.inputSlopeBreakPoint, id: circle.id() });
+      // 排序位移索引(小到大 => 近到遠)
+      sort(vm.slopeBreakPoint).asc(e => e.bp);
+      // 將中斷點圓圈加入群組
+      _breakPointGroup.add(circle);
+      // 將中斷群組加入中斷圖層
+      layer.getStage().add(_breakPointGroup);
+      // 刷新中斷圖層
+      layer.getStage().draw();
+    },
+
+    pushSlopeLog() {
+      const vm = this;
+      // 紀錄最終結果(提供歷史紀錄表格使用)
+      const record = {
+        id: vm.logKeyId,
+        time: vm.tickTime,
+        accel: vm.accel,
+        angle: vm.angle,
+        slopeLen: vm.slope_len,
+        disp: vm.disp,
+        vol: vm.vol,
+        g: vm.g,
+        mass: vm.mass
+      };
+      vm.logKeyId++;
+      vm.dataLog.push(record);
     }
   },
 
   mounted() {
-    this.ratio2cm = 1 / this.inputSlopeLength * 1000;
+    this.ratio2cm = (1 / this.inputSlopeLength) * 1000;
     this.dragRealTime.boundingElement = this.$refs.container;
     //console.log(window.devicePixelRatio);
     const vm = this;

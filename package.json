@@ -21,6 +21,7 @@
         "dayjs": "^1.7.7",
         "draggable-vue-directive": "^2.0.6",
         "editorconfig": "^0.15.2",
+        "fast-sort": "^1.5.5",
         "handsontable": "^6.2.2",
         "jquery": "^3.2",
         "konva": "^2.6.0",
