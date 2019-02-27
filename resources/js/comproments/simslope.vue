@@ -423,6 +423,7 @@ export default {
     inputSlopeLength: function(val) {
       this.ratio2cm = 1 / val * 1000;
       this.cubeLength = this.inputCubeLength * this.ratio2cm;
+      this.updateGridLines();
     },
     cubeLength: function(val) {
       this.configRect.x =
