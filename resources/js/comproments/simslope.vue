@@ -869,15 +869,26 @@ export default {
               `#${vm.slopeBreakPoint[0].id}`
             );
             _breakPointGoneBp.bp = vm.slopeBreakPoint[0].bp;
-            // 清除當前的中斷點
-            vm.slopeBreakPoint.shift();
-            // 更新操作履歷
-            vm.pushSlopeLog();
             // 暫停動畫
             _anim.stop();
             vm.is_ani_start = false;
+            vm.disp = vm.slopeBreakPoint[0].bp;
+            vm.tickTime = Math.sqrt(
+              (2 * vm.disp) / (vm.g * Math.sin(deg2rad(vm.angle)))
+            ).toFixed(2);
+            vm.vol = (vm.accel * vm.tickTime).toFixed(2);
+            // 更新操作履歷
+            vm.pushSlopeLog();
+            // 清除當前的中斷點
+            vm.slopeBreakPoint.shift();
+          } else {
+            // 更新碼表數值
+            vm.disp = Math.sqrt(d.x * d.x + d.y * d.y).toFixed(2);
+            vm.tickTime = Math.sqrt(
+              (2 * vm.disp) / (vm.g * Math.sin(deg2rad(vm.angle)))
+            ).toFixed(2);
+            vm.vol = (vm.accel * vm.tickTime).toFixed(2);
           }
-          vm.log.push({ d: vm.disp, t: vm.tickTime, v: vm.vol });
           vm.$refs.mrect.rotate = deg2rad(vm.$data.angle);
           vm.$refs.mrect
             .getStage()
@@ -894,10 +905,6 @@ export default {
                   Math.tan(deg2rad(vm.$data.angle)) +
                 d.y * vm.$data.ratio2cm
             );
-          // 更新碼表數值
-          vm.disp = Math.sqrt(d.x * d.x + d.y * d.y).toFixed(2);
-          vm.tickTime = ((frame.time / 1000) * vm.ratioTime).toFixed(2);
-          vm.vol = (vm.accel * vm.tickTime).toFixed(2);
         } else {
           vm.tickTime = lastTime.toFixed(2);
           vm.vol = (vm.accel * lastTime).toFixed(2);
