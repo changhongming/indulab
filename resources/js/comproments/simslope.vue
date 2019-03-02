@@ -276,6 +276,7 @@ let _gridLinesGroup;
 let _gridLinesLayer;
 let _breakPointGroup = null;
 let _breakPointGone = null;
+const _breakPointGoneBp = { bp: 0 };
 function deg2rad(deg) {
   return (Math.PI * deg) / 180;
 }
@@ -458,9 +459,10 @@ export default {
     inputSlopeBreakPoint: function(val) {
       this.drawBreakPoint();
     },
-    inputSlopeLength: function(val) {
+    inputSlopeLength: function(val, oldVal) {
       this.ratio2cm = (1 / val) * 1000;
       this.cubeLength = this.inputCubeLength * this.ratio2cm;
+      this.updateBreakPointsLengthLocation(oldVal);
       this.updateGridLines();
     },
     cubeLength: function(val) {
@@ -509,7 +511,7 @@ export default {
       const vm = this;
       // 計算加速度
       this.accel = (this.g * Math.sin(deg2rad(val))).toFixed(2);
-
+      this.updateBreakPointsAngleLocation(val);
       this.configKonva = {
         width:
           this.slope_len * Math.cos(deg2rad(val)) +
@@ -632,6 +634,37 @@ export default {
               Math.tan(deg2rad(angle))
         );
       stage.draw();
+    },
+    updateBreakPointsLengthLocation(oldVal) {
+      const vm = this;
+      const k = (vm.ratio2cm * oldVal) / 1000;
+      if (vm.slopeBreakPoint.length > 0) {
+        vm.slopeBreakPoint.forEach(element => {
+          element.circle.setX(
+            (element.circle.getX() - vm.offsetX) * k + vm.offsetX
+          );
+          element.circle.setY(
+            (element.circle.getY() - vm.offsetY) * k + vm.offsetY
+          );
+        });
+      }
+      vm.$refs.stage.getStage().draw();
+    },
+    updateBreakPointsAngleLocation(angle) {
+      const vm = this;
+      const kSin = Math.sin(deg2rad(angle)) * vm.ratio2cm;
+      const kCos = Math.cos(deg2rad(angle)) * vm.ratio2cm;
+      if (vm.slopeBreakPoint.length > 0) {
+        vm.slopeBreakPoint.forEach(element => {
+          element.circle.setX(
+            (element.bp + vm.inputCubeLength) * kCos + vm.offsetX
+          );
+          element.circle.setY(
+            (element.bp + vm.inputCubeLength) * kSin + vm.offsetY
+          );
+        });
+      }
+      vm.$refs.stage.getStage().draw();
     },
     updateGridLines() {
       const vm = this;
@@ -835,6 +868,7 @@ export default {
             _breakPointGone = _breakPointGroup.find(
               `#${vm.slopeBreakPoint[0].id}`
             );
+            _breakPointGoneBp.bp = vm.slopeBreakPoint[0].bp;
             // 清除當前的中斷點
             vm.slopeBreakPoint.shift();
             // 更新操作履歷
@@ -990,9 +1024,20 @@ export default {
       // 新增中斷點圓圈標示
       let circle = new Konva.Circle({
         fill: "#ff0000ee",
-        radius: 10,
+        radius: 5,
         x: d.x,
         y: d.y
+      });
+
+      const tooltip = new Konva.Text({
+        text: "",
+        fontFamily: "Calibri",
+        fontSize: 16,
+        //padding: 5,
+        visible: false,
+        fill: "black",
+        opacity: 0.75,
+        textFill: "red"
       });
       // 設定中斷點圓圈id
       circle.id(`bp-${vm.slopeBreakPoint.length}`);
@@ -1004,17 +1049,51 @@ export default {
         });
         // 從中斷點陣列中移除
         vm.slopeBreakPoint.splice(removeId, 1);
+        // 隱藏提示
+        tooltip.hide();
         // 清除中斷點圓圈
         e.target.destroy();
         // 刷新圖層
         vm.$refs.stage.getStage().draw();
       });
-      // 將剛中斷點陣列
-      vm.slopeBreakPoint.push({ bp: vm.inputSlopeBreakPoint, id: circle.id() });
+
+      circle.on("mouseover", function(e) {
+        const id = vm.slopeBreakPoint.findIndex(element => {
+          return element.id === e.target.attrs.id;
+        });
+        const cxt = e.target.attrs;
+        tooltip.position({
+          x: cxt.x + 10,
+          y: cxt.y - 10
+        });
+        const text =
+          id === -1 ? _breakPointGoneBp.bp : vm.slopeBreakPoint[id].bp;
+        tooltip.text(text);
+        // 斷點提示顯示移動到最上層
+        tooltip.moveToTop();
+        // 顯示斷點提示
+        tooltip.show();
+        // 刷新圖層
+        vm.$refs.stage.getStage().draw();
+      });
+      circle.on("mouseout", function() {
+        // 隱藏斷點提示
+        tooltip.hide();
+        vm.$refs.stage.getStage().draw();
+      });
+      // 將中斷點放入陣列
+      vm.slopeBreakPoint.push({
+        bp: vm.inputSlopeBreakPoint,
+        id: circle.id(),
+        circle
+      });
+
       // 排序位移索引(小到大 => 近到遠)
       sort(vm.slopeBreakPoint).asc(e => e.bp);
       // 將中斷點圓圈加入群組
       _breakPointGroup.add(circle);
+      // 將中斷點圓圈加入群組
+      _breakPointGroup.add(tooltip);
       // 將中斷群組加入中斷圖層
       layer.getStage().add(_breakPointGroup);
       // 刷新中斷圖層
