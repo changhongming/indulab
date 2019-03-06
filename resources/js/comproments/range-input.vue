@@ -68,7 +68,7 @@ export default {
       state: null,
       isFocus: false,
       componentID: null,
-      rangeValue: null
+      rangeValue: this.value
     };
   },
   // 父元件丟入參數

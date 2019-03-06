@@ -275,6 +275,7 @@ import logTable from "./log-table.vue";
 import pictureContent from "./picture-content.vue";
 import tutorData from "../json/simSlopeTurtor.json.js";
 import sort from "fast-sort";
+import uuidGen from "../uuid-gen.js"
 let _data;
 let _anim;
 let _gridLinesGroup;
@@ -419,7 +420,7 @@ export default {
       is_ani_start: false,
       tickTime: 0,
       // 輸入框的中斷點數值
-      inputSlopeBreakPoint: null,
+      inputSlopeBreakPoint: 0,
       // 中斷點佇列
       slopeBreakPoint: [],
       inputSlopeLength: 1,
@@ -1055,7 +1056,7 @@ export default {
         textFill: "red"
       });
       // 設定中斷點圓圈id
-      circle.id(`bp-${vm.slopeBreakPoint.length}`);
+      circle.id(`bp-${uuidGen()}`);
       // 中斷點mouseup事件綁定
       circle.on("mouseup", function(e) {
         // 找到要刪除中斷點的id
