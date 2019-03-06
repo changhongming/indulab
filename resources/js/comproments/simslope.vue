@@ -110,6 +110,22 @@
             ></rangeInput>
           </b-col>
         </b-row>
+        <b-row>
+          <b-col>
+            <rangeInput
+              :value="inputSlopeBreakPoint"
+              :max="getBreakPointMax"
+              :min="0"
+              :step="0.01"
+              :disable="isSimBegin"
+              id="斷點設定"
+              unit="m"
+              type="range"
+              v-bind:on-value-change.sync="inputSlopeBreakPoint"
+              v-on:on-clear-btn-click="clearBreakPoint"
+            />
+          </b-col>
+        </b-row>
         <!-- 輔助線選單 -->
         <b-row>
           <b-col>
@@ -176,17 +192,6 @@
             </transition>
           </b-col>
         </b-row>
-        <rangeInput
-          :value="inputSlopeBreakPoint"
-          :max="getBreakPointMax"
-          :min="0"
-          :step="0.01"
-          :disable="isSimBegin"
-          id="斷點"
-          unit="m"
-          type="range"
-          v-bind:on-value-change.sync="inputSlopeBreakPoint"
-        ></rangeInput>
         <!-- 繪圖區 -->
         <!-- <b-row>
           <b-col>
@@ -998,15 +1003,18 @@ export default {
         this.initSlopeBox();
         //_anim.start();
       }
+      this.clearBreakPoint();
+      this.tickTime = 0;
+      this.vol = 0;
+      this.disp = 0;
+    },
+    clearBreakPoint() {
       if (_breakPointGroup !== null && "destroy" in _breakPointGroup) {
         _breakPointGroup.destroy();
         _breakPointGroup = null;
       }
       this.slopeBreakPoint.length = 0;
       this.$refs.breakPoinLyaer.getStage().draw();
-      this.tickTime = 0;
-      this.vol = 0;
-      this.disp = 0;
     },
     drawBreakPoint() {
       const vm = this;
