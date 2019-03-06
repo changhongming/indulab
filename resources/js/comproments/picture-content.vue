@@ -30,7 +30,20 @@
           />
         </b-row>
         <b-row align-h="center">
-            <button v-show="isFnalPage && this.href" @click="done" class="btn btn-danger">進行模擬實驗</button>
+          <b-alert
+            variant="danger"
+            fade
+            :show="!isAllRead && href && isFnalPage"
+            @dismissed="showDismissibleAlert=false"
+          >請看完每一頁後繼續</b-alert>
+        </b-row>
+        <b-row align-h="center">
+          <button
+            v-show="isFnalPage && href"
+            :disabled="!isAllRead"
+            @click="done"
+            class="btn btn-danger"
+          >進行模擬實驗</button>
         </b-row>
         <!-- <b-row align-h="between">
           <b-col cols="2">
@@ -61,7 +74,7 @@ const classMap = {
   table: "table table-hover table-bordered table-striped",
   td: "align-middle",
   thead: "thead-dark",
-  blockquote:"blockquote1"
+  blockquote: "blockquote1"
 };
 
 // 綁定classMap class到特定tag上
@@ -99,10 +112,12 @@ export default {
   data() {
     return {
       currentPage: 1,
+      hasReadPage: {},
       totalPage: 0,
       isNextBtnShow: null,
       isPrvBtnShow: null,
       isFnalPage: null,
+      isAllRead: false,
       src: "",
       title: "",
       content: ""
@@ -125,6 +140,7 @@ export default {
   },
   watch: {
     currentPage: function(val) {
+      if (!this.hasReadPage[val]) this.hasReadPage[val] = true;
       this.updateCard();
     }
   },
@@ -190,7 +206,10 @@ export default {
       } else if (this.currentPage == this.totalPage) {
         this.isNextBtnShow = false;
         this.isPrvBtnShow = true;
+        console.log(Object.keys(this.hasReadPage).length);
         this.isFnalPage = true;
+        if (Object.keys(this.hasReadPage).length === this.totalPage)
+          this.isAllRead = true;
       } else {
         this.isNextBtnShow = true;
         this.isPrvBtnShow = true;
@@ -200,7 +219,7 @@ export default {
   },
   mounted() {
     this.totalPage = this.items.length;
-    console.log(this.totalPage);
+    this.hasReadPage[this.currentPage] = true;
     this.updateCard();
   }
 };
