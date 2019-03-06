@@ -275,7 +275,7 @@ import logTable from "./log-table.vue";
 import pictureContent from "./picture-content.vue";
 import tutorData from "../json/simSlopeTurtor.json.js";
 import sort from "fast-sort";
-import uuidGen from "../uuid-gen.js"
+import uuidGen from "../uuid-gen.js";
 let _data;
 let _anim;
 let _gridLinesGroup;
@@ -283,6 +283,7 @@ let _gridLinesLayer;
 let _breakPointGroup = null;
 let _breakPointGone = null;
 const _breakPointGoneBp = { bp: 0 };
+let animTime = 0;
 function deg2rad(deg) {
   return (Math.PI * deg) / 180;
 }
@@ -831,6 +832,7 @@ export default {
     },
     initAnim() {
       console.log("init anim");
+
       const vm = this;
       vm.isSimBegin = false;
       _data = [];
@@ -848,17 +850,22 @@ export default {
       vm.disp = 0;
       this.accel = (this.g * Math.sin(deg2rad(this.angle))).toFixed(2);
       const anim = new Konva.Animation(function(frame) {
-        const t = (frame.time / 1000) * vm.ratioTime;
+        const t = (animTime / 1000) * vm.ratioTime;
         const sin = Math.sin(deg2rad(vm.$data.angle));
         const cos = Math.cos(deg2rad(vm.$data.angle));
+        animTime += frame.timeDiff;
         // 滑動位移計算使用
         let d = {
           x: 0.5 * vm.$data.g * sin * t * t * cos,
           y: 0.5 * vm.$data.g * sin * t * t * sin,
           frame: frame
         };
-
-        if ((frame.time / 1000) * vm.ratioTime <= lastTime) {
+        // 判斷是否結束，並且判斷目前留下來的斷點是否還有小於結束時間的，如果有則進入下一個斷點
+        if (
+          t <= lastTime ||
+          (vm.slopeBreakPoint.length > 0 &&
+            vm.slopeBreakPoint[0].bp < vm.inputSlopeLength - vm.inputCubeLength)
+        ) {
           // 判斷是否有斷點及達到斷點
           if (
             vm.slopeBreakPoint.length !== 0 &&
@@ -883,6 +890,7 @@ export default {
               (2 * vm.disp) / (vm.g * Math.sin(deg2rad(vm.angle)))
             ).toFixed(2);
             vm.vol = (vm.accel * vm.tickTime).toFixed(2);
+            animTime = Number(vm.tickTime * 1000);
             // 更新操作履歷
             vm.pushSlopeLog();
             // 清除當前的中斷點
@@ -954,6 +962,7 @@ export default {
           vm.$refs.breakPoinLyaer.getStage().draw();
           // 斜坡運結束 停下動畫
           _anim.stop();
+          animTime = 0;
           _anim = undefined;
           vm.is_ani_start = false;
           vm.isSimBegin = false;
