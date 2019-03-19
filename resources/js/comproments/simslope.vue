@@ -953,7 +953,6 @@ export default {
             mass: vm.mass,
             stream: vm.log
           });
-          vm.logKeyId++;
           vm.slopeBreakPoint = [];
           if (_breakPointGroup !== null && "destroy" in _breakPointGroup) {
             _breakPointGroup.destroy();
