@@ -25,7 +25,7 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav mr-auto">
                     <li class="nav-item active">
-                        <a class="nav-link" href="/">開始實驗</a>
+                        <a class="nav-link" href="/import">開始實驗</a>
                     </li>
                     <li class="nav-item active">
                       <a class="nav-link" href="/slope">斜坡運動</a>
@@ -35,7 +35,9 @@
                     </li>
                 </ul>
             </div>
-
+            @if (Session::has('name'))
+              <span class="collapse navbar-collapse navbar-brand">{{ Session::get('name')}},您好!</span>
+            @endif
         </nav>
 
 

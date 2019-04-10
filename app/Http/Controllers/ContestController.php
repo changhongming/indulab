@@ -15,6 +15,8 @@ use Illuminate\Database\Schema\Blueprint;
 use Debugbar;
 
 class ContestController extends Controller {
+    // 重定向URI位置
+    private $redirectTo;
 
     //遇到error顯示session中error訊息
     public function getError(Request $request)
@@ -27,8 +29,10 @@ class ContestController extends Controller {
     }
 
     //進入填資料的頁面
-    public function getRule()
+    public function getRule(Request $request)
     {
+        $url = $request->getRequestUri();
+        Debugbar::info($url);
         //從資料庫取得建立的實驗名稱
         $tables = Experiment::All();
         $experiment_name = collect();
@@ -77,6 +81,10 @@ class ContestController extends Controller {
             $record->save();
             //取得一個token，之後的建模過程都認這個token
             $old_token = $request->session()->get('_token');
+            // 重定向當初請求的頁面
+            if ($request->has('req-uri')) {
+                $redirectUriTo = $request->get('req-uri');
+            }
             $request->session()->flush();
             //將token、學號、名字、實驗項目、學號儲存到session
             $request->session()->put('_token', $old_token);
@@ -84,8 +92,8 @@ class ContestController extends Controller {
             $request->session()->put('name', $request->input('name'));
             $request->session()->put('experiment', $request->input('experiment'));
             $request->session()->put('student_id', $record->id);
-            //導向import，如果要改變import設定要在/app/Http/routes.php設定
-            return redirect('import');
+            // 重新定向到請求路由，如果沒設定則到import頁面
+            return redirect($redirectUriTo ?? 'import');
         }
     }
 

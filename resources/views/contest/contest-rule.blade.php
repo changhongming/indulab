@@ -2,10 +2,23 @@
 
 @section('content')
 <div class="introduce-bg2 introduce-mid">
-	<h2>InduLab 數學建模系統</h2>
+  <h2>InduLab 數學建模系統</h2>
+  {{--  如果有錯誤訊息則印出錯誤訊息  --}}
+  @if (Session::has('error-msg'))
+    <p class="alert alert-danger">{{ Session::get('error-msg') }}</p>
+  @endif
 
-	<form class="mt-4" role="form" method="post" action="/rule">
-		{!! csrf_field() !!}
+  <form class="mt-4" role="form" method="post" action="/rule">
+    {{--  POST時傳入CSRF的_token  --}}
+    {!! csrf_field() !!}
+
+    {{--  如果有請求的uri則發出請求的uri；沒有則直接取得請求的uri，待會用來重新定向用  --}}
+    @if (Session::has('req-uri'))
+      <input type="hidden" name="req-uri" value={{ Session::get('req-uri') }}>
+    @else
+      <input type="hidden" name="previous" value={{ Request::getRequesturi() }}>
+    @endif
+
 		<div class="form-group row">
 			<label for="name" class="col-sm-2 col-form-label">姓名：</label>
 			<div class="col-sm-5">
