@@ -36,7 +36,7 @@
                 </ul>
             </div>
             @if (Session::has('name'))
-              <span class="collapse navbar-collapse navbar-brand">{{ Session::get('name')}},您好!</span>
+              <span class="collapse navbar-collapse navbar-brand" style="position:absolute;right:0px;">{{ Session::get('name')}},您好!</span>
             @endif
         </nav>
 
