@@ -1,65 +1,118 @@
-<p align="center"><img src="https://laravel.com/assets/img/components/logo-laravel.svg"></p>
+
 
 <p align="center">
-<a href="https://travis-ci.org/laravel/framework"><img src="https://travis-ci.org/laravel/framework.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://poser.pugx.org/laravel/framework/d/total.svg" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://poser.pugx.org/laravel/framework/v/stable.svg" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://poser.pugx.org/laravel/framework/license.svg" alt="License"></a>
+<span>Laravel版本：</span><a href="https://packagist.org/packages/laravel/framework"><img src="https://poser.pugx.org/laravel/framework/v/stable.svg" alt="Latest Stable Version"></a>
 </p>
 
-## About Laravel
+# 開發所需工具
+必要開發套件：
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel attempts to take the pain out of development by easing common tasks used in the majority of web projects, such as:
+- PHP >= 7.13
+- Laravel >= 5.5
+- composer
+- MysqlDB或MariaDB
+- npm
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+可以直接安裝`XAMPP` => 裡面包含`PHP`、`MariaDB`、`Apache`、`phpmyadmin`.....等工具
 
-Laravel is accessible, yet powerful, providing tools needed for large, robust applications.
+# 開始
+首先確保`composer`與`npm`已經安裝完成可使用`composer --version`與`npm --version`測試有沒有安裝成功。
+- 安裝後端`PHP`套件
+    ```
+    composer install
+    ```
+- 安裝前端`JavaScript`套件
+    ```
+    npm install
+    ```
+- 設定`.env`檔案
+    先將專案下的`.env.example`複製一份並改名為`.env`，並且開啟編輯`.env`檔案
+    - `APP_NAME`為應用名稱。
+    - `APP_ENV`為環境變數。(此變數值本身沒什麼特別的作用，但對於某些套件會依照此值做出不同的變化)
+      - 一般設定為
+      - `local`開發模式
+      - `testing`測試模式
+      - `staging`上線測試模式
+      - `production`上線模式
+    - `APP_KEY`為應用密鑰。可使用指令`php artisan key:generate`自動產生
+    - `APP_DEBUG`為應用Debug模式。主要用於`Debugbar`這個laravel的debug套件，***注意上線時一定要將此值設為`false`***。(為`true`則開啟Debug訊息；反之`false`為關閉)
+    - `APP_URL`為設定Laravel伺服器的URL位址，有一些需要監聽伺服器的套件會需要用到。
+        ```
+        # 應用程式設定
+        APP_NAME=InduLab
+        APP_ENV=local
+        APP_KEY=
+        APP_DEBUG=true
+        APP_URL=http://localhost
 
-## Learning Laravel
+        ...
+        ```
+- 產生APP_KEY
+  ```
+  php artisan key:generate
+  ```
+    
+# Debug
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of any modern web application framework, making it a breeze to get started learning the framework.
+## 後端
+在專案目錄下開啟命令提示字元，輸入以下指令
+```
+php artisan serve
+```
 
-If you're not in the mood to read, [Laracasts](https://laracasts.com) contains over 1100 video tutorials on a range of topics including Laravel, modern PHP, unit testing, JavaScript, and more. Boost the skill level of yourself and your entire team by digging into our comprehensive video library.
+- `--host={YOUR ALLOW IP}`可設定ip白名單(預設為`localhost`)
+- `--port={YOUR PORT}`可設定伺服器的監聽通訊埠(預設為8000)
 
-## Laravel Sponsors
+## 前端
+在專案目錄下開啟命令提示字元，輸入以下指令
+```
+npm run watch
+```
+註記：watch與dev為開發階段使用，請勿拿到線上直接使用此打包的檔案。
 
-We would like to extend our thanks to the following sponsors for helping fund on-going Laravel development. If you are interested in becoming a sponsor, please visit the Laravel [Patreon page](https://patreon.com/taylorotwell):
+# 上線伺服器設定(以Apache教學)
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[Cubet Techno Labs](https://cubettech.com)**
-- **[British Software Development](https://www.britishsoftware.co)**
-- **[Webdock, Fast VPS Hosting](https://www.webdock.io/en)**
-- [UserInsights](https://userinsights.com)
-- [Fragrantica](https://www.fragrantica.com)
-- [SOFTonSOFA](https://softonsofa.com/)
-- [User10](https://user10.com)
-- [Soumettre.fr](https://soumettre.fr/)
-- [CodeBrisk](https://codebrisk.com)
-- [1Forge](https://1forge.com)
-- [TECPRESSO](https://tecpresso.co.jp/)
-- [Runtime Converter](http://runtimeconverter.com/)
-- [WebL'Agence](https://weblagence.com/)
-- [Invoice Ninja](https://www.invoiceninja.com)
-- [iMi digital](https://www.imi-digital.de/)
-- [Earthlink](https://www.earthlink.ro/)
-- [Steadfast Collective](https://steadfastcollective.com/)
+首先記得使用`composer install`先安裝`PHP`相關的套件，設定虛擬主機(Virtaul Host)。假設伺服器欲監通訊埠(port) 8000的位置，並且允許所有主機IP連入，設定如下範例。(請先確認proxy的模組已啟用 => `httpd.conf`)
 
-## Contributing
+***注意：如果僅需架設單獨一個伺服器，可不用設定虛擬主機與代理，直接設定`httpd.conf`即可。***
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+- **apache/conf/httpd.conf**
+    ```
+    LoadModule proxy_module modules/mod_proxy.so
+    LoadModule proxy_http_module modules/mod_proxy_http.so
+    ```
 
-## Security Vulnerabilities
+- **apache/conf/extra/httpd-vhosts.conf**
+    ```
+    # 監聽 0.0.0.0:8000 位置
+    Listen 8000
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+    <VirtualHost *:8000>
+    # 首頁位置，這邊設定在laravel專案下之public的index.php作為啟動處
+    DocumentRoot "D:/phy/InduLab_laravel5/public"
 
-## License
+    # 禁止當代理的跳板，可節省流量與增加效能
+    ProxyRequests Off
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+            # 代理設置
+            <Proxy *>
+                ## 下方兩行設定為允許所有的來源訪問 ##
+                # deny,allow為先檢查下方有沒有拒絕的選項如果沒有則全部允許所有訪問
+                Order deny,allow
+                # 允許所有來源訪問
+                Allow from all
+            </Proxy>
+
+    # 錯誤訊息紀錄位置
+    ErrorLog D:/xampp/logs/error_slope.log
+
+    # 一般訊息紀錄位置
+    CustomLog D:/xampp/logs/access_slope.log combined
+    </VirtualHost>
+    ```
+
+設定完成後，即可開啟伺服器測試是否可以成功開啟，完成後接者將前端程式碼進行編譯，使用以下指令
+```
+npm run prod
+```
+以上步驟完成後即可檢視網頁是否架設成功。
