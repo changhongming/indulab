@@ -3,7 +3,8 @@
 namespace App\Http\Middleware;
 
 use Closure;
-class VerifyStudentData
+
+class VerifyStudentProfileSession
 {
     /**
      * Handle an incoming request.
@@ -14,7 +15,6 @@ class VerifyStudentData
      */
     public function handle($request, Closure $next)
     {
-
         $studentId = $request->session()->get('student_id');
         $uri = $request->getRequestUri();
         $method = $request->getMethod();

@@ -35,11 +35,19 @@ class Kernel extends HttpKernel
             \Illuminate\View\Middleware\ShareErrorsFromSession::class,
             \App\Http\Middleware\VerifyCsrfToken::class,
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
-            \App\Http\Middleware\VerifyStudentData::class,
+            // 確認是否有輸入學生資料
+            \App\Http\Middleware\VerifyStudentProfileSession::class,
         ],
 
         'api' => [
+            // 限制每1分鐘最多請求60次
             'throttle:60,1',
+            // cookie加密中介軟體
+            \App\Http\Middleware\EncryptCookies::class,
+            \Illuminate\Session\Middleware\StartSession::class,
+            // 驗證token，如果不符合或找不到則回傳419
+            \App\Http\Middleware\VerifyCsrfToken::class,
+            // uri中介處理
             'bindings',
         ],
     ];
