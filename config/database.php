@@ -32,6 +32,18 @@ return [
     */
 
     'connections' => [
+        'testing' => [
+            'driver' => env('TESTING_DB_DRIVER', 'mysql'),
+            'host' => env('TESTING_DB_HOST', 'localhost'),
+            'database' => env('TESTING_DB_DATABASE', 'testing_db'),
+            'username' => env('TESTING_DB_USERNAME', 'testuser'),
+            'password' => env('TESTING_DB_PASSWORD', 'testpwd'),
+            'charset' => 'utf8mb4',
+            'collation' => 'utf8mb4_unicode_ci',
+            'prefix' => '',
+            'strict' => true,
+            'engine' => 'InnoDB',
+        ],
 
         'sqlite' => [
             'driver' => 'sqlite',
@@ -51,7 +63,7 @@ return [
             'collation' => 'utf8mb4_unicode_ci',
             'prefix' => '',
             'strict' => true,
-            'engine' => null,
+            'engine' => 'InnoDB',
             'dump' => [
                 // Microsoft Windows dump執行檔路徑
                 'setDumpBinaryPath' => env('DB_DUMP_COMMAND_PATH', 'C:/xampp/mysql/bin/'),
@@ -60,7 +72,7 @@ return [
                 'dump_command_timeout' => env('DB_DUMP_TIMEOUT', 60 * 5), // 5 minute timeout
                 'dump_using_single_transaction' => true, // perform dump using a single transaction
                 //'exclude_tables' => ['table1', 'table2'],
-                //'add_extra_option' => '--optionname=optionvalue', 
+                //'add_extra_option' => '--optionname=optionvalue',
              ]
         ],
 
