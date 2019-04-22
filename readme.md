@@ -12,6 +12,7 @@
 - composer
 - MysqlDB或MariaDB
 - npm
+- Apache >= 1.4 (可自行選取架設伺服器的工具，這邊僅介紹Apache)
 
 可以直接安裝`XAMPP` => 裡面包含`PHP`、`MariaDB`、`Apache`、`phpmyadmin`.....等工具
 
@@ -64,13 +65,23 @@ php artisan serve
 - `--port={YOUR PORT}`可設定伺服器的監聽通訊埠(預設為8000)
 
 ## 前端
-在專案目錄下開啟命令提示字元，輸入以下指令
-```
-npm run watch
-```
-註記：watch與dev為開發階段使用，請勿拿到線上直接使用此打包的檔案。
+1. **打包前端程式碼**
+   在專案目錄下開啟命令提示字元，可以使用```npm run watch```或```npm run dev```，dev為使用webpack編譯檔案，完成後輸出檔案到指定目錄；watch則是初次編譯完成後，會持續監聽指定打包的目錄檔案是否有變更，如果有變更則重新進行打包。
+    ```
+    npm run watch
+    ```
 
-# 上線伺服器設定(以Apache教學)
+    註記：watch與dev為開發階段使用，請勿拿到線上直接使用此打包的檔案。
+2. **相關設定**
+    如果想要改變webpack相關設定，可以自行查閱專案跟目錄下的```webpack.mix.js```檔案。
+    <br/>
+    - ```BrowserSyc```：```host```會綁定到全位置，所以注意要將轉發頁面及UI控制板的頁面對外之```port```進行封鎖。
+    <br/>
+    - ```SourceMap```：只要在開模式下，目前設定將此功能開啟。此功能主要用於webpack打包後可以有效地進行Debug，可以實際顯示執行的行號與位置，但會增加檔案大小及實際上線很容易使用者可以輕易查看到你的原始碼，所以這邊建議產品模式將此功能關閉。設定將```webpackConfig```的```devtool: "inline-source-map"```去除即可。(預設的設定會自行判斷目前為開發模式或產品模式，如果為產品模式則不會設定此行，也就是說**產品模式不會有SourceMap功能**)
+    <br/>
+    - 其他： 其他功能部分如```laravel```內的```mix```版本```JS```及```CSS```號管控、將常用的套件打包進行抽取到```vendor.js```以減少請求同樣內容的問題、如何打包檔案及```SASS```如何編譯為```CSS```檔案等等。可依照需求自行查看文檔進行修改，這邊就不贅述了。
+
+# 上線伺服器設定(以Apache教學 >= 1.4版)
 
 首先記得使用`composer install`先安裝`PHP`相關的套件，設定虛擬主機(Virtaul Host)。假設伺服器欲監通訊埠(port) 8000的位置，並且允許所有主機IP連入，設定如下範例。(請先確認proxy的模組已啟用 => `httpd.conf`)
 
@@ -87,21 +98,26 @@ npm run watch
     # 監聽 0.0.0.0:8000 位置
     Listen 8000
 
+    # 虛擬主機設定
     <VirtualHost *:8000>
     # 首頁位置，這邊設定在laravel專案下之public的index.php作為啟動處
-    DocumentRoot "D:/phy/InduLab_laravel5/public"
+    DocumentRoot D:/phy/InduLab_laravel5/public
 
-    # 禁止當代理的跳板，可節省流量與增加效能
-    ProxyRequests Off
+        # 掛載專案目錄
+        <Directory "D:/phy/InduLab_laravel5">
+            # 允許專案內的.htaccess檔案覆寫設定
+            AllowOverride All
+            # 設定允許及拒絕的Domain及IP
+            <RequireAll>
+                Require ip 140.125.32
+            </RequireAll>
+        </Directory>
 
-            # 代理設置
-            <Proxy *>
-                ## 下方兩行設定為允許所有的來源訪問 ##
-                # deny,allow為先檢查下方有沒有拒絕的選項如果沒有則全部允許所有訪問
-                Order deny,allow
-                # 允許所有來源訪問
-                Allow from all
-            </Proxy>
+        # 將一些敏感的設定檔如.htaccess、web.config拒絕存取。
+        <LocationMatch “\.htaccess|web\.config”>
+            Order Allow,Deny
+            Deny from all
+        </LocationMatch>
 
     # 錯誤訊息紀錄位置
     ErrorLog D:/xampp/logs/error_slope.log
