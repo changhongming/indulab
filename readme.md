@@ -132,3 +132,29 @@ php artisan serve
 npm run prod
 ```
 以上步驟完成後即可檢視網頁是否架設成功。
+
+# 常見問題
+- ## 狀態碼419
+    如果出現狀態碼419的問題，確認```.env```檔案內的```APP_KEY```及```session```相關的設定。
+    - 確認```.env```檔案內的```APP_KEY```變數是否有正確的配置，可使用`php artisan key:generate`來配置```APP_KEY```。
+    - 確認```.env```檔案內的```SESSION_LIFETIME```來設定```session```存在的時間(單位以分鐘計時)，因如果```session```過期會造成驗證```session```錯誤，會擲回```TokenMismatchException```錯誤，如果未來有需要可在```app/Exceptions/Handler.php```來處理錯誤，範例如以下程式碼。
+        ```
+        public function render($request, Exception $exception)
+        {
+            if($exception instanceof \Illuminate\Session\TokenMismatchException)    {
+            /*
+             * 實作例外擲回時的處理，如下方的重新導向到/login的URI
+            */
+            // 回到登入頁面
+            return redirect('/login');
+            }
+
+        ...
+        }
+        ```
+- ## 狀態碼 500
+    如果出現狀態碼500，請確認後端程式碼是否錯誤，如果擲回例外而沒又去接取時，便會跳出狀態碼500。
+- ## npm執行時出現cross-env錯誤
+    如果使用```npm run {command}``` 出現 ```cross-env```錯誤， 請安裝```cross-env```套件到電腦環境變數 ```npm install cross-env -g```
+- ## 使用```php artisan```相關指令無法找到新增的類別(class)檔案
+    請先執行指令```composer dump-autoload```，讓composer重新自動加載目錄下檔案。(一般會發生在```seed```命令下)
