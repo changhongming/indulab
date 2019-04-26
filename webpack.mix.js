@@ -36,6 +36,7 @@ const mix = require('laravel-mix');
  .browserSync({
     // 監聽的伺服器
     proxy: 'localhost:8000',
+    host: 'localhost',
     // 打包完成不開啟網頁
     open: false,
     // 關閉對外連線
@@ -48,5 +49,8 @@ const mix = require('laravel-mix');
  // 如果為產品版本，進行版本號管控(用於cache-control讓客戶端可以即時更新新版本的檔案)
  if (mix.inProduction()) {
     mix.version();
+ }
+ else {
+    mix.webpackConfig({ devtool: "inline-source-map" });
  }
 
