@@ -18,3 +18,7 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
 });
 
 Route::post('slope', 'SlopeController@postSlope');
+
+Route::post('slopesurvey', 'SlopeController@postSimSlopeSurvey');
+
+Route::get('survey/question/{class}', 'SlopeController@getSurveyQuestion');
