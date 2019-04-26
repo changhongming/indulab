@@ -276,6 +276,7 @@ import pictureContent from "./picture-content.vue";
 import tutorData from "../json/simSlopeTurtor.json.js";
 import sort from "fast-sort";
 import uuidGen from "../uuid-gen.js";
+
 let _data;
 let _anim;
 let _gridLinesGroup;
@@ -983,6 +984,18 @@ export default {
       this.$data.is_ani_start = true;
       this.$data.isSimBegin = true;
       _anim.start();
+      axios
+        .post("/api/slope", {
+          angle: this.angle,
+          mass: this.mass,
+          length: this.inputSlopeLength
+        })
+        .then(function(response) {
+          console.log(response);
+        })
+        .catch(function(error) {
+          console.log(error);
+        });
     },
     pauseAniBtn() {
       if (_anim !== undefined) {
