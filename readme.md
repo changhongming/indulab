@@ -135,7 +135,7 @@ npm run prod
 
 # 常見問題
 - ## 狀態碼419
-    如果出現狀態碼419的問題，確認```.env```檔案內的```APP_KEY```及```session```相關的設定。
+    如果出現狀態碼419的問題，確認```.env```檔案內的```APP_KEY```及```session```相關的設定。另外在使用```POST```方法時，請務必要加上```@csrf```在表單內，伺服器會驗證裡面的```_token```欄位。
     - 確認```.env```檔案內的```APP_KEY```變數是否有正確的配置，可使用`php artisan key:generate`來配置```APP_KEY```。
     - 確認```.env```檔案內的```SESSION_LIFETIME```來設定```session```存在的時間(單位以分鐘計時)，因如果```session```過期會造成驗證```session```錯誤，會擲回```TokenMismatchException```錯誤，如果未來有需要可在```app/Exceptions/Handler.php```來處理錯誤，範例如以下程式碼。
         ```
@@ -152,6 +152,16 @@ npm run prod
         ...
         }
         ```
+    - 使用```POST```方法時，請在表單內加入```@csrf```或```{!! csrf_field() !!}```在```blade.php```檔案內，範例如下
+        ```
+        <form method="POST" action="/data">
+            @csrf
+            <input type="text" name="data1" id="data1"/>
+            <input type="text" name="data2" id="data2"/>
+            {{-- ... --}}
+        </form>
+        ```
+        如果使用```ajax```方法請自行在```POST```時自己加入```_token```欄位，並放入目前的```token```字串給伺服器。或在請求的```header```內加入```X-CSRF-TOKEN```欄位並放入```token```。
 - ## 狀態碼 500
     如果出現狀態碼500，請確認後端程式碼是否錯誤，如果擲回例外而沒又去接取時，便會跳出狀態碼500。
 - ## npm執行時出現cross-env錯誤
