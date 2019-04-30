@@ -8,10 +8,12 @@ use App\Experiment;
 use App\ModelingLabel;
 use App\CsvUpload;
 use App\ChartLog;
+
 use Illuminate\Http\Request;
 use Illuminate\Database\Eloquent;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Auth;
 use Debugbar;
 
 class ContestController extends Controller {
@@ -59,6 +61,25 @@ class ContestController extends Controller {
             'school' => 'required',
             'experiment' => 'required',
         ]);
+
+        
+        if(auth::check()) {
+            $user = auth::user();
+            $records = Student::where('student_number', $user->name);
+            //檢查Student項目是否有該學生的資料，沒有的話宣告record儲存Student module的資料（Student在/app裡建立）
+            //儲存的內容設定要在/database/migration裡設定
+            $record = ($records->count() > 0)? $records->first(): new Student;
+            $record->student_number = $user->name;
+            $record->name = $user->name;
+            $record->school = $user->name;
+            $record->ip = implode(",", $request->ips());
+            //將record的內容儲存到資料庫裡
+            $record->save();
+            $request->session()->put('experiment', null);
+            $request->session()->put('student_id', $record->id);
+
+            return redirect('import');
+        }
 
         //如果檢查沒過發出提醒
         if ($validator->fails()) {

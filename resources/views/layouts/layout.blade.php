@@ -26,7 +26,7 @@
             </button>
 
             <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav mr-auto">
+                <ul class="nav navbar-nav mr-auto">
                     <li class="nav-item active">
                         <a class="nav-link" href="/import">開始實驗</a>
                     </li>
@@ -37,10 +37,69 @@
                       <a class="nav-link" href="/draw-data">繪製圖表</a>
                     </li>
                 </ul>
+                <ul class="nav navbar-nav navbar-right">
+                    @guest
+                      @if (Session::has('name'))
+                      <a id="navbarDropdown" class="nav-link dropdown-toggle active" href="#" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" v-pre>
+                          {{Session::get('name')}},您好! <span class="caret"></span>
+                      </a>
+                      <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdown">
+                      <li class="nav-item active">
+                          <a class="dropdown-item" href="{{ route('logout') }}"
+                          onclick="event.preventDefault();
+                                        document.getElementById('logout-form').submit();">
+                          {{ __('Logout') }}
+                       </a>
+                       <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">
+                           @csrf
+                       </form>
+                      </div>
+                        {{--  <a class="nav-link">{{Session::get('name')}},您好!</a>  --}}
+                      </li>
+                      @else
+                      <li class="nav-item">
+                        <a class="nav-link" href="{{ route('login') }}">{{ __('Login') }}</a>
+                      </li>
+                      @endif
+                    {{--  <li class="nav-item">
+                        @if (Route::has('register'))
+                            <a class="nav-link" href="{{ route('register') }}">{{ __('Register') }}</a>
+                        @endif
+                    </li>  --}}
+                    @else
+                    <li class="nav-item dropdown">
+                        <a id="navbarDropdown" class="nav-link dropdown-toggle active" href="#" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" v-pre>
+                            {{ Auth::user()->name }} <span class="caret"></span>
+                        </a>
+    
+                        <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdown">
+                            <a class="dropdown-item" href="{{ route('logout') }}"
+                               onclick="event.preventDefault();
+                                             document.getElementById('logout-form').submit();">
+                                {{ __('Logout') }}
+                            </a>
+    
+                            <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">
+                                @csrf
+                            </form>
+                        </div>
+                    </li>
+                @endguest
+                </ul>
             </div>
-            @if (Session::has('name'))
-              <span class="collapse navbar-collapse navbar-brand" style="position:absolute;right:0px;">{{ Session::get('name')}},您好!</span>
+            <div>
+
+
+            {{--  @if (Session::has('name'))
+            @if (Auth::check())
+            <form action="/logout" method="POST">
+              <span class="collapse navbar-collapse navbar-brand">{{Session::get('name')}},您好!</span>
+              @csrf
+              <input class="btn btn-primary" type="submit" value="logout"/>
+            </form>
             @endif
+            @endif
+          </div>  --}}
         </nav>
 
 
