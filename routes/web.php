@@ -24,5 +24,8 @@ Route::post('chartlog', 'ContestController@postChartLog');
 Route::get('slope', 'ContestController@getSlope');
 Route::get('draw-data', 'ContestController@getDrawData');
 
+Route::get('groupregister', 'Auth\GroupRegister@showRegisterView')->name('groupregister');;
+Route::post('groupregister', 'Auth\GroupRegister@register');
+
 Auth::routes();
 

@@ -48,37 +48,39 @@
                           <a class="dropdown-item" href="{{ route('logout') }}"
                           onclick="event.preventDefault();
                                         document.getElementById('logout-form').submit();">
-                          {{ __('Logout') }}
-                       </a>
+                          {{ __('登出') }}
+                          </a>
                        <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">
                            @csrf
                        </form>
                       </div>
-                        {{--  <a class="nav-link">{{Session::get('name')}},您好!</a>  --}}
                       </li>
                       @else
                       <li class="nav-item">
-                        <a class="nav-link" href="{{ route('login') }}">{{ __('Login') }}</a>
+                        <a class="nav-link" href="{{ route('login') }}">{{ __('登入') }}</a>
                       </li>
                       @endif
-                    {{--  <li class="nav-item">
-                        @if (Route::has('register'))
-                            <a class="nav-link" href="{{ route('register') }}">{{ __('Register') }}</a>
-                        @endif
-                    </li>  --}}
                     @else
                     <li class="nav-item dropdown">
                         <a id="navbarDropdown" class="nav-link dropdown-toggle active" href="#" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" v-pre>
                             {{ Auth::user()->name }} <span class="caret"></span>
                         </a>
-    
+
                         <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdown">
+                            {{-- 如果為管理員，出現額外設定欄位 --}}
+                            @if (!!Auth::user()->is_admin)
+                            <a class="dropdown-item" href="{{ route('groupregister') }}">
+                                <i class="fas fa-users-cog"></i>  {{ __('團體註冊') }}
+                            </a>
+                            <div class="dropdown-divider"></div>
+                            @endif
+
+                            {{-- 通用使用者欄位 --}}
                             <a class="dropdown-item" href="{{ route('logout') }}"
                                onclick="event.preventDefault();
                                              document.getElementById('logout-form').submit();">
-                                {{ __('Logout') }}
+                               <i class="fas fa-sign-out-alt"></i>  {{ __('登出') }}
                             </a>
-    
                             <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">
                                 @csrf
                             </form>
@@ -87,19 +89,6 @@
                 @endguest
                 </ul>
             </div>
-            <div>
-
-
-            {{--  @if (Session::has('name'))
-            @if (Auth::check())
-            <form action="/logout" method="POST">
-              <span class="collapse navbar-collapse navbar-brand">{{Session::get('name')}},您好!</span>
-              @csrf
-              <input class="btn btn-primary" type="submit" value="logout"/>
-            </form>
-            @endif
-            @endif
-          </div>  --}}
         </nav>
 
 
