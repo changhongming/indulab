@@ -53,7 +53,8 @@ class GroupRegister extends Controller
             'school' => 'required'
         ]);
         if ($validator->fails()) {
-            return redirect('/goupregister')
+            return redirect()
+                ->back()
                 ->withInput()
                 ->withErrors($validator);
         }
@@ -79,8 +80,10 @@ class GroupRegister extends Controller
                 if($validator->fails()) {
                     throw new \Exception('出現錯誤資料 => '.implode(',', $user));
                 }
+                error_log(request()->input('school'));
                 User::create([
                     'student_id' => $user[0],
+                    'school' => request()->input('school'),
                     'name' => $user[1],
                     'password' => Hash::make($user[0]),
                 ]);

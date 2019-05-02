@@ -30,5 +30,7 @@ Route::post('groupregister', 'Auth\GroupRegister@register');
 Route::get('changepassword', 'Auth\ChangePasswordController@showChangePasswordView')->name('changepassword');
 Route::post('changepassword', 'Auth\ChangePasswordController@changePassword');
 
+Route::get('alluser', 'Auth\AllUserController@showAllUserView')->name('alluser');
+
 Auth::routes();
 
