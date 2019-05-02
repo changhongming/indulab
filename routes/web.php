@@ -27,5 +27,8 @@ Route::get('draw-data', 'ContestController@getDrawData');
 Route::get('groupregister', 'Auth\GroupRegister@showRegisterView')->name('groupregister');;
 Route::post('groupregister', 'Auth\GroupRegister@register');
 
+Route::get('changepassword', 'Auth\ChangePasswordController@showChangePasswordView')->name('changepassword');
+Route::post('changepassword', 'Auth\ChangePasswordController@changePassword');
+
 Auth::routes();
 

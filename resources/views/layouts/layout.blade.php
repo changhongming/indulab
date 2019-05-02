@@ -67,6 +67,7 @@
                         </a>
 
                         <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdown">
+
                             {{-- 如果為管理員，出現額外設定欄位 --}}
                             @if (!!Auth::user()->is_admin)
                             <a class="dropdown-item" href="{{ route('groupregister') }}">
@@ -76,6 +77,12 @@
                             @endif
 
                             {{-- 通用使用者欄位 --}}
+                            <a class="dropdown-item" href="{{ route('changepassword') }}">
+                              <i class="fas fa-key"></i>{{ __('修改密碼')}}
+                            </a>
+
+                            <div class="dropdown-divider"></div>
+
                             <a class="dropdown-item" href="{{ route('logout') }}"
                                onclick="event.preventDefault();
                                              document.getElementById('logout-form').submit();">
