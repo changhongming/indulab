@@ -168,3 +168,12 @@ npm run prod
     如果使用```npm run {command}``` 出現 ```cross-env```錯誤， 請安裝```cross-env```套件到電腦環境變數 ```npm install cross-env -g```
 - ## 使用```php artisan```相關指令無法找到新增的類別(class)檔案
     請先執行指令```composer dump-autoload```，讓composer重新自動加載目錄下檔案。(一般會發生在```seed```命令下)
+
+# 自定義指令說明(本專案)
+以下指令都會配置在```php artisan {command}``` 下面，所以命令開頭請自行加上```php artisan```。
+  1. ```make:hash {待加密密碼}```：
+   將輸入的密碼進行hash加密，並將結果印出在命令提示視窗上。
+        ```
+        D:\workspace\master\InduLab_laravel5>php artisan make:hash 123456
+        $2y$10$U25mbHdNnM.Xu/.rB8jqvu6NJZAMvuErR3p7xF7LPqZTLT/sh.9Yq
+        ```
