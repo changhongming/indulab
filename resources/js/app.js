@@ -12,7 +12,7 @@
 // dayjs為momentjs的輕量版
 window.moment = require('dayjs');
 
-window.$ = window.jQuery = require('jquery');
+window.$ = global.jQuery = require('jquery');
 
 window.Vue = require('vue');
 
