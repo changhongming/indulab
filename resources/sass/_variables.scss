@@ -1,6 +1,7 @@
 
 // Body
 $body-bg: #f8fafc;
+$body-color: #212529;
 
 // Typography
 $font-family-sans-serif: "微軟正黑體", sans-serif;
@@ -18,3 +19,31 @@ $yellow: #ffed4a;
 $green: #38c172;
 $teal: #4dc0b5;
 $cyan: #6cb2eb;
+$primary: #428bca;
+
+$colors: (
+  blue: $blue,
+  indigo: $indigo,
+  purple: $purple,
+  pink: $pink,
+  red: $red,
+  orange: $orange,
+  yellow: $yellow,
+  green: $green,
+  teal: $teal,
+  cyan: $cyan,
+  //white: $white,
+  //gray: $gray-600,
+  //gray-dark: $gray-800
+) !default;
+
+$theme-colors: (
+  primary: $blue,
+  //secondary: $gray-600,
+  success: $green,
+  info: $cyan,
+  warning: $yellow,
+  danger: $red,
+  //light: $gray-100,
+  //dark: $gray-800
+) !default;
