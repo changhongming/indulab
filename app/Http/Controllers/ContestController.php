@@ -20,6 +20,11 @@ class ContestController extends Controller {
     // 重定向URI位置
     private $redirectTo;
 
+    public function __construct()
+    {
+        $this->middleware('auth');
+    }
+
     //遇到error顯示session中error訊息
     public function getError(Request $request)
     {
@@ -42,6 +47,7 @@ class ContestController extends Controller {
         foreach ($tables as $experiment_table) {
            $experiment_name->push($experiment_table->experiment);
         }
+
         //debug用
         Debugbar::info($experiment_name->all());
         //顯示contest.contest-rule.blade.php的頁面
@@ -52,34 +58,40 @@ class ContestController extends Controller {
     public function postRule(Request $request) {
 
         //取得學生輸入的學號
-        $student_number = $request->input('id');
+        // $student_number = $request->input('id');
 
         //檢查所有欄位是否都有填寫
-        $validator = Validator::make($request->all(), [
-            'name' => 'required',
-            'id' => 'required',
-            'school' => 'required',
-            'experiment' => 'required',
-        ]);
+        // $validator = Validator::make($request->all(), [
+        //     'name' => 'required',
+        //     'id' => 'required',
+        //     'school' => 'required',
+        //     'experiment' => 'required',
+        // ]);
 
-        
+
         if(auth::check()) {
             $user = auth::user();
-            $records = Student::where('student_number', $user->name);
+            $records = Student::where('student_number', $user->student_id);
             //檢查Student項目是否有該學生的資料，沒有的話宣告record儲存Student module的資料（Student在/app裡建立）
             //儲存的內容設定要在/database/migration裡設定
             $record = ($records->count() > 0)? $records->first(): new Student;
-            $record->student_number = $user->name;
+            $record->student_number = $user->student_id;
             $record->name = $user->name;
-            $record->school = $user->name;
+            $record->school = $user->school || 'null';
             $record->ip = implode(",", $request->ips());
             //將record的內容儲存到資料庫裡
             $record->save();
-            $request->session()->put('experiment', null);
-            $request->session()->put('student_id', $record->id);
 
+            $request->session()->put('experiment', $request->input('experiment'));
+            $request->session()->put('student_id', $record->id);
+            $request->session()->put('student_number', $user->student_id);
+            // error_log($request->session()->get('student_number'));
+            $request->session()->put('name', $user->name);
+            $request->session()->put('experiment', $request->input('experiment'));
+            // $request->session()->put('student_id', $record->id);
             return redirect('import');
         }
+
 
         //如果檢查沒過發出提醒
         if ($validator->fails()) {
@@ -136,6 +148,7 @@ class ContestController extends Controller {
             return redirect('error');
         }
 
+        $user = Auth::user();
         //建立data儲存上傳檔案裡面的資料，上傳功能的程式碼在contest-import.blade.php
         $data['data'] = $request->input('data');
 
@@ -159,9 +172,9 @@ class ContestController extends Controller {
             $tmp = $col['title'].'('.$col['unit'].')';
             $record->$tmp = 1;
         }
-        $record->student_id = $request->session()->get('student_id');
-        $record->student_number = $request->session()->get('student_number');
-        $record->name = $request->session()->get('name');
+        $record->student_id = $user->id;
+        $record->student_number = $user->student_id;
+        $record->name = $user->name;
         $record->experiment = $request->session()->get('experiment');
         $record->raw_data = $request->input('data');
         $record->save();
