@@ -3,29 +3,9 @@
 namespace App\Http\Middleware;
 
 use Closure;
-use Illuminate\Contracts\Auth\Guard;
-use Debugbar;
 
 class AdminMiddleware
 {
-    /**
-     * The Guard implementation.
-     *
-     * @var Guard
-     */
-    protected $auth;
-
-    /**
-     * Create a new filter instance.
-     *
-     * @param  Guard  $auth
-     * @return void
-     */
-    public function __construct(Guard $auth)
-    {
-        $this->auth = $auth;
-    }
-
     /**
      * Handle an incoming request.
      *
@@ -36,7 +16,7 @@ class AdminMiddleware
     public function handle($request, Closure $next)
     {
         // 確認該使用者是否有管理員權限
-        if (!!$this->auth->getUser()->is_admin !== TRUE) {
+        if (!!\Auth::user()->is_admin !== TRUE) {
             abort(403, 'Unauthorized action.');
         }
 
