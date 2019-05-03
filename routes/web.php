@@ -32,5 +32,7 @@ Route::post('changepassword', 'Auth\ChangePasswordController@changePassword');
 
 Route::get('alluser', 'Auth\AllUserController@showAllUserView')->name('alluser');
 
+Route::resource('user', 'UserController');
+
 Auth::routes();
 
