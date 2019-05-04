@@ -159,8 +159,10 @@ class UserController extends Controller
             $user->save();
 
 
-            \Session::flash('message', '使用者創建成功!');
-            return redirect()->back();
+            \Session::flash('message', '使用者資料修改成功!');
+
+            return redirect()
+                    ->back();
         }
     }
 
@@ -172,6 +174,13 @@ class UserController extends Controller
      */
     public function destroy($id)
     {
-        //
+        $user = User::find($id);
+        // 刪除使用者
+        $user->delete();
+
+        Debugbar::info($user);
+
+        \Session::flash('message', '成功刪除使用者!');
+        return redirect('user');
     }
 }
