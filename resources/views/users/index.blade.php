@@ -19,14 +19,14 @@
                   <table id="usertable" class="table table-hover table-striped table-stacked-md">
 
                     <thead>
-                      <th>id</th>
-                      <th>使用者名稱</th>
-                      <th>學校</th>
-                      <th>學號</th>
-                      <th>信箱</th>
-                      <th>管理員</th>
-                      <th>創建時間</th>
-                      <th>註銷</th>
+                      <th>ID</th>
+                      <th>{{ __('User Name') }}</th>
+                      <th>{{ __('School') }}</th>
+                      <th>{{ __('Student Number') }}</th>
+                      {{-- <th>{{ __('E-Mail') }}</th> --}}
+                      <th>{{ __('Admin') }}</th>
+                      <th>{{ __('Create Time') }}</th>
+                      <th>{{ __('Action') }}</th>
                     </thead>
 
                     <tbody>
@@ -36,7 +36,7 @@
                           <td>{{$user->name}}</td>
                           <td>{{$user->school}}</td>
                           <td>{{$user->student_id}}</td>
-                          <td>{{$user->email}}</td>
+                          {{-- <td>{{$user->email}}</td> --}}
 
                           {{-- 如果為管理員則將內容至換掉 --}}
                           @if (!!$user->is_admin)
@@ -47,11 +47,38 @@
 
                           <td>{{$user->created_at}}</td>
 
-                          <td><a class="btn btn-danger" href="{{ URL::to('users/' . $user->id) }}">刪除</a></td>
+                          <td>
+                            <a class="btn btn-samll btn-danger"  onclick="delete_btn_click(event)" user_id="{{ $user->id }}" data-toggle="modal" data-target="#deltedia"><i user_id="{{ $user->id }}" style="color:white" class="fas fa-user-times"></i></a>
+                            <a class="btn btn-samll btn-success" href="{{ URL::to('user/' . $user->id) }}"><i class="fas fa-user"></i></a>
+                            <a class="btn btn-small btn-info" href="{{ URL::to('user/' . $user->id . '/edit') }}"><i style="color:white" class="fas fa-user-edit"></i></a>
+                          </td>
                         </tr>
                       @endforeach
                     </tbody>
                   </table>
+
+                  <div class="modal fade align-middle" id="deltedia" tabindex="-1" role="dialog" aria-labelledby="modal_label" aria-hidden="true">
+                      <div class="modal-dialog" role="document">
+                        <div class="modal-content">
+                          <div class="modal-header">
+                            <h5 class="modal-title" id="modal_label">{{ __('Confirm') }}</h5>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                              <span aria-hidden="true">&times;</span>
+                            </button>
+                          </div>
+                          <div id="del_dia_body" class="modal-body">
+                          </div>
+                          <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">{{ __('Cancel') }}</button>
+                            <form id="delete_form" action="" method="POST">
+                              @csrf
+                              @method('DELETE')
+                              <button onclick="confirm_delete_btn_click()" data-dismiss="modal" class="btn btn-danger">確認</button>
+                            </form>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                 </div>
               </div>
             </div>
@@ -68,6 +95,16 @@
 <script src="https://cdn.datatables.net/1.10.19/js/dataTables.bootstrap4.min.js"></script>
 
 <script>
+  function confirm_delete_btn_click() {
+    document.getElementById("delete_form").submit();
+  }
+  function delete_btn_click(event) {
+    var userId = event.target.getAttribute('user_id');
+    console.log(event.target.getAttribute('user_id'));
+    document.getElementById('delete_form').setAttribute('action', '/user/' + userId);
+    {{-- document.getElementById('confirm_del_btn').setAttribute('href', '/user/' + userId) --}}
+    document.getElementById('del_dia_body').innerText = '確認是否刪除id為 ' + userId + ' 之用戶？';
+  }
   var dt = null;
     function rowDelete(e) {
       {{-- var dt = $('#usertable').DataTable(); --}}
@@ -76,9 +113,6 @@
       var col = row[2];
       console.log(col.innerText);
 
-      {{-- $.ajax({
-
-      }) --}}
       dt.row(rowDom)
       .remove()
       .draw();
@@ -106,4 +140,24 @@
     });
 
 </script>
+<style>
+    .modal {
+      text-align: center;
+    }
+
+    @media screen and (min-width: 768px) {
+      .modal:before {
+        display: inline-block;
+        vertical-align: middle;
+        content: " ";
+        height: 100%;
+      }
+    }
+
+    .modal-dialog {
+      display: inline-block;
+      text-align: left;
+      vertical-align: middle;
+    }
+</style>
 @endsection
