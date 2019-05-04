@@ -8,7 +8,14 @@
             <div class="card">
               <div class="card-header">{{ __('User Profile') }}</div>
                 <div class="card-body">
-
+                    @if (Session::has('message'))
+                    <div class="alert alert-success alert-dismissible fade show">
+                      {{Session::get('message')}}
+                      <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                          <span aria-hidden="true">&times;</span>
+                      </button>
+                    </div>
+                    @endif
                     <form method="POST" action="{{ route('user.update', ['id' => $user->id]) }}">
                         @method('PUT')
                         @csrf
@@ -121,12 +128,18 @@
 
 
                         <div class="form-group row mb-0">
-                            <div class="col-md-6 offset-md-4">
+                            <div class="col-md-2 offset-md-4">
                                 <button type="submit" class="btn btn-primary">
-                                    {{ __('Register') }}
+                                    {{ __('Submit') }}
                                 </button>
                             </div>
+                            <div class="col-md-2 offset-md-2">
+                                <a class="btn btn-danger" href="{{ URL::to('user') }}">
+                                  {{ __('Back') }}
+                                </a>
+                            </div>
                         </div>
+
                     </form>
 
                 </div>
