@@ -70,15 +70,35 @@
 
                             {{-- 如果為管理員，出現額外設定欄位 --}}
                             @if (!!Auth::user()->is_admin)
+                            <h6 class="dropdown-header">{{ __('Admin Functions') }}</h6>
+                            <div class="dropdown-divider"></div>
                             <a class="dropdown-item" href="{{ route('groupregister') }}">
-                                <i class="fas fa-users-cog"></i>  {{ __('團體註冊') }}
+                              <i class="fas fa-users-cog"></i>  {{ __('Group Register') }}
+                            </a>
+
+                            <a class="dropdown-item" href="{{ route('users.create') }}">
+                              <i class="fas fa-user-plus"></i>  {{ __('Register User') }}
+                            </a>
+
+                            <a class="dropdown-item" href="{{ route('users.index') }}">
+                              <i class="fas fa-users"></i>  {{ __('User Management') }}
                             </a>
                             <div class="dropdown-divider"></div>
                             @endif
 
                             {{-- 通用使用者欄位 --}}
+                            <h6 class="dropdown-header">{{ __('Account Functions') }}</h6>
+                            <div class="dropdown-divider"></div>
+                            <a class="dropdown-item" href="{{ route('users.show', Auth::user()->id) }}">
+                              <i class="fas fa-id-card-alt"></i>  {{ __('User Profile') }}
+                            </a>
+
+                            <a class="dropdown-item" href="{{ route('users.edit', Auth::user()->id) }}">
+                                <i class="fas fa-user-edit"></i>  {{ __('Edit User Profile') }}
+                            </a>
+
                             <a class="dropdown-item" href="{{ route('changepassword') }}">
-                              <i class="fas fa-key"></i>{{ __('修改密碼')}}
+                              <i class="fas fa-key"></i>  {{ __('Change Password') }}
                             </a>
 
                             <div class="dropdown-divider"></div>
@@ -86,7 +106,7 @@
                             <a class="dropdown-item" href="{{ route('logout') }}"
                                onclick="event.preventDefault();
                                              document.getElementById('logout-form').submit();">
-                               <i class="fas fa-sign-out-alt"></i>  {{ __('登出') }}
+                               <i class="fas fa-sign-out-alt"></i>  {{ __('Logout') }}
                             </a>
                             <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">
                                 @csrf
