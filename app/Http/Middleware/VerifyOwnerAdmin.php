@@ -3,8 +3,9 @@
 namespace App\Http\Middleware;
 
 use Closure;
+use Debugbar;
 
-class AdminMiddleware
+class VerifyOwnerAdmin
 {
     /**
      * Handle an incoming request.
@@ -15,17 +16,26 @@ class AdminMiddleware
      */
     public function handle($request, Closure $next)
     {
+
         try {
-            // 確認該使用者是否有管理員權限
-            if (!!\Auth::user()->is_admin !== TRUE) {
+
+            $user_id = $request->route()->parameters()['user_id'];
+            $user = \Auth::user();
+
+            // 如果是管理員或擁有者則繼續處理路由
+            if($user->id == $user_id || !!$user->is_admin) {
+                return $next($request);
+            }
+            else {
+                // 返回沒有權限
                 abort(403, 'Unauthorized action.');
             }
+
         }
-        // 如果出現例外，則直接擲回沒有權限
+        // 出現例外直接返回沒有權限
         catch(\Exception $e) {
             abort(403, 'Unauthorized action.');
         }
 
-        return $next($request);
     }
 }

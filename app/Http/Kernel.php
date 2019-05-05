@@ -36,7 +36,7 @@ class Kernel extends HttpKernel
             \App\Http\Middleware\VerifyCsrfToken::class,
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
             // 確認是否有輸入學生資料
-            \App\Http\Middleware\VerifyStudentProfileSession::class,
+            // \App\Http\Middleware\VerifyStudentProfileSession::class,
         ],
 
         'api' => [
@@ -70,5 +70,6 @@ class Kernel extends HttpKernel
         'throttle' => \Illuminate\Routing\Middleware\ThrottleRequests::class,
         'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
         'admin' => \App\Http\Middleware\AdminMiddleware::class,
+        'owner' => \App\Http\Middleware\VerifyOwnerAdmin::class,
     ];
 }

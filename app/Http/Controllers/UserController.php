@@ -8,6 +8,14 @@ use Debugbar;
 
 class UserController extends Controller
 {
+
+    public function __construct()
+    {
+        $this->middleware('owner', ['only' => ['edit', 'destroy', 'update']]);
+        $this->middleware('admin', ['only' => ['create', 'store','index']]);
+        $this->middleware('auth', ['only' => ['show']]);
+    }
+
     /**
      * Display a listing of the resource.
      *
