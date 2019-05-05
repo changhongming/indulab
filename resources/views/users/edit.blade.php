@@ -134,7 +134,7 @@
                                 </button>
                             </div>
                             <div class="col-md-2 offset-md-2">
-                                <a class="btn btn-danger" href="{{ URL::to('user') }}">
+                                <a class="btn btn-danger" href="{{ URL::previous() }}">
                                   {{ __('Back') }}
                                 </a>
                             </div>
