@@ -49,8 +49,8 @@
 
                           <td>
                             <a class="btn btn-samll btn-danger"  onclick="delete_btn_click(event)" user_id="{{ $user->id }}" data-toggle="modal" data-target="#deltedia"><i user_id="{{ $user->id }}" style="color:white" class="fas fa-user-times"></i></a>
-                            <a class="btn btn-samll btn-success" href="{{ URL::to('user/' . $user->id) }}"><i class="fas fa-user"></i></a>
-                            <a class="btn btn-small btn-info" href="{{ URL::to('user/' . $user->id . '/edit') }}"><i style="color:white" class="fas fa-user-edit"></i></a>
+                            <a class="btn btn-samll btn-success" href="{{ Route('users.show', $user->id) }}"><i class="fas fa-user"></i></a>
+                            <a class="btn btn-small btn-info" href="{{ Route('users.edit', $user->id) }}"><i style="color:white" class="fas fa-user-edit"></i></a>
                           </td>
                         </tr>
                       @endforeach
@@ -100,9 +100,11 @@
   }
   function delete_btn_click(event) {
     var userId = event.target.getAttribute('user_id');
+    var deleteURL = '{{ route('users.destroy', '@id') }}';
+
     console.log(event.target.getAttribute('user_id'));
-    document.getElementById('delete_form').setAttribute('action', '/user/' + userId);
-    {{-- document.getElementById('confirm_del_btn').setAttribute('href', '/user/' + userId) --}}
+    document.getElementById('delete_form').setAttribute('action', deleteURL.replace('@id', userId));
+    {{-- document.getElementById('confirm_del_btn').setAttribute('href', '/users/' + userId) --}}
     document.getElementById('del_dia_body').innerText = '確認是否刪除id為 ' + userId + ' 之用戶？';
   }
   var dt = null;

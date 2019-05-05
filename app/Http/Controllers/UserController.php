@@ -12,7 +12,7 @@ class UserController extends Controller
     public function __construct()
     {
         $this->middleware('owner', ['only' => ['edit', 'destroy', 'update']]);
-        $this->middleware('admin', ['only' => ['create', 'store','index']]);
+        $this->middleware('admin', ['only' => ['create', 'store', 'index']]);
         $this->middleware('auth', ['only' => ['show']]);
     }
 
@@ -73,7 +73,8 @@ class UserController extends Controller
             ]);
 
             \Session::flash('message', '使用者創建成功!');
-            return redirect('user');
+
+            return $this->index();
         }
 
     }
@@ -121,6 +122,8 @@ class UserController extends Controller
     {
         $data = $request->all();
 
+        $isAdmin = !!\Auth::user()->is_admin;
+
         // 將所有輸入為null值得key清除
         foreach($data as $key => $value)
             if(is_null($value))
@@ -129,8 +132,8 @@ class UserController extends Controller
         // 由於在User的Model內password預設為隱藏，但因使用者可能需要修改密碼，故將此值取出使用makeVisible
         $user = User::find($id)->makeVisible('password');
 
-        // 驗證表單
-        $validator = \Validator::make($data, [
+        // 驗證規則表
+        $validatorTale = [
             'name' => 'sometimes|string|max:255',
             'school' => 'sometimes|string|max:255',
             // 忽略當前列的使用者，但檢查其他欄位的唯一性。
@@ -139,7 +142,15 @@ class UserController extends Controller
             'email' => 'sometimes|string|email|max:255|unique:users,email,'.$user->id,
             'password' => 'sometimes|string|check_password:'.$user->id,
             'new_password' => 'sometimes|string|min:4|max:255|confirmed',
-        ]);
+        ];
+
+        // 如果為管理員，則不驗證當前密碼
+        if($isAdmin)
+            unset($validatorTale['password']);
+
+        // 驗證表單
+        $validator = \Validator::make($data, $validatorTale);
+        Debugbar::info($data);
 
         // 驗證失敗返回當前頁面
         if ($validator->fails()) {
@@ -149,7 +160,6 @@ class UserController extends Controller
                     ->withInput();
         }
         else{
-            // is_admin 欄位暫不處理
 
             // 如果有輸入"密碼"則清除，因為未加密的密碼會覆蓋掉原本的加密的密碼
             if(array_key_exists('password',$data))
@@ -166,11 +176,10 @@ class UserController extends Controller
             // 使用ORM進行修改資料
             $user->save();
 
-
             \Session::flash('message', '使用者資料修改成功!');
 
-            return redirect()
-                    ->back();
+            // 如果為管理員，返回使用者列表；反之回原本頁面
+            return ($isAdmin) ? $this->index() : redirect()->back();
         }
     }
 
@@ -189,6 +198,7 @@ class UserController extends Controller
         Debugbar::info($user);
 
         \Session::flash('message', '成功刪除使用者!');
-        return redirect('user');
+
+        return $this->index();
     }
 }

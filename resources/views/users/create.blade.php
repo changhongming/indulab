@@ -9,7 +9,7 @@
               <div class="card-header">{{ __('Create User') }}</div>
                 <div class="card-body">
 
-                    <form method="POST" action="{{ url('user') }}">
+                    <form method="POST" action="{{ Route('users.store') }}">
                         @csrf
 
                         {{-- 使用者名稱欄位 --}}

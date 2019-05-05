@@ -16,7 +16,7 @@
                       </button>
                     </div>
                     @endif
-                    <form method="POST" action="{{ route('user.update', ['id' => $user->id]) }}">
+                    <form method="POST" action="{{ route('users.update', $user->id) }}">
                         @method('PUT')
                         @csrf
 
