@@ -16,6 +16,7 @@
                     </button>
                   </div>
                   @endif
+                  <div id="no-more-tables">
                   <table id="usertable" class="table table-hover table-striped table-stacked-md">
 
                     <thead>
@@ -32,30 +33,40 @@
                     <tbody>
                       @foreach($users as $i => $user)
                         <tr>
-                          <td>{{$user->id}}</td>
-                          <td>{{$user->name}}</td>
-                          <td>{{$user->school}}</td>
-                          <td>{{$user->student_id}}</td>
+                          <td data-title="ID">{{$user->id}}</td>
+                          <td data-title="{{ __('User Name') }}">{{$user->name}}</td>
+                          <td data-title="{{ __('School') }}">{{$user->school}}</td>
+                          <td data-title="{{ __('Student Number') }}">{{$user->student_id}}</td>
                           {{-- <td>{{$user->email}}</td> --}}
 
                           {{-- 如果為管理員則將內容至換掉 --}}
                           @if (!!$user->is_admin)
-                            <td style="text-align:center; color:green;"><span style="display:none">1</span><i class="fas fa-check"></i></td>
+                            <td data-title="{{ __('Admin') }}"><span style="display:none">1</span><i style="color:green;" class="fas fa-check"></i></td>
                           @else
-                            <td style="text-align:center; color:red;"><span style="display:none">0</span><i class="fas fa-times"></i></td>
+                            <td data-title="{{ __('Admin') }}"><span style="display:none">0</span><i style="color:red;" class="fas fa-times"></i></td>
                           @endif
 
-                          <td>{{$user->created_at}}</td>
+                          <td data-title="{{ __('Create Time') }}">{{ $user->created_at }}</td>
 
-                          <td>
-                            <a class="btn btn-samll btn-danger"  onclick="delete_btn_click(event)" user_id="{{ $user->id }}" data-toggle="modal" data-target="#deltedia"><i user_id="{{ $user->id }}" style="color:white" class="fas fa-user-times"></i></a>
-                            <a class="btn btn-samll btn-success" href="{{ Route('users.show', $user->id) }}"><i class="fas fa-user"></i></a>
-                            <a class="btn btn-small btn-info" href="{{ Route('users.edit', $user->id) }}"><i style="color:white" class="fas fa-user-edit"></i></a>
+                          <td data-title="{{ __('Action') }}">
+                            <div class="row">
+
+                            <div class="col-4 col-md-12 col-lg-4">
+                              <a class="btn btn-samll btn-danger"  onclick="delete_btn_click(event)" user_id="{{ $user->id }}" data-toggle="modal" data-target="#deltedia"><i user_id="{{ $user->id }}" style="color:white" class="fas fa-user-times"></i></a>
+                            </div>
+                            <div class="col-4 col-md-12 col-lg-4">
+                              <a class="btn btn-samll btn-success" href="{{ Route('users.show', $user->id) }}"><i class="fas fa-user"></i></a>
+                            </div>
+                            <div class="col-4 col-md-12 col-lg-4">
+                              <a class="btn btn-small btn-info" href="{{ Route('users.edit', $user->id) }}"><i style="color:white" class="fas fa-user-edit"></i></a>
+                            </div>
+                          </div>
                           </td>
                         </tr>
                       @endforeach
                     </tbody>
                   </table>
+                </div>
 
                   <div class="modal fade align-middle" id="deltedia" tabindex="-1" role="dialog" aria-labelledby="modal_label" aria-hidden="true">
                       <div class="modal-dialog" role="document">
@@ -104,42 +115,29 @@
 
     console.log(event.target.getAttribute('user_id'));
     document.getElementById('delete_form').setAttribute('action', deleteURL.replace('@id', userId));
-    {{-- document.getElementById('confirm_del_btn').setAttribute('href', '/users/' + userId) --}}
+
     document.getElementById('del_dia_body').innerText = '確認是否刪除id為 ' + userId + ' 之用戶？';
   }
   var dt = null;
-    function rowDelete(e) {
-      {{-- var dt = $('#usertable').DataTable(); --}}
-      var rowDom = e.target.parentElement.parentElement;
-      var row = rowDom.getElementsByTagName('td');
-      var col = row[2];
-      console.log(col.innerText);
 
-      dt.row(rowDom)
-      .remove()
-      .draw();
-    }
-    $(document).ready(function() {
+  $(document).ready(function() {
 
-      dt = $('#usertable').DataTable();
-
-      {{-- // 修改一頁幾個的顯示 --}}
-      var onepage = document.querySelector('#usertable_length>label');
-      onepage.replaceChild( document.createTextNode('一頁'), onepage.childNodes[0]);
-      onepage.replaceChild( document.createTextNode('個'), onepage.childNodes[2]);
-
-      {{-- // 左下角顯示總筆數(當前因有其他事件會更動到此數值，暫不修改為中文)
-      document.getElementById('usertable_info').innerHTML = `總共有 ${document.querySelector('#usertable>tbody').childElementCount} 個使用者`; --}}
-
-      {{-- // 修改搜尋框 --}}
-      var serach = document.querySelector('#usertable_filter>label');
-      serach.replaceChild(document.createTextNode('搜尋'), serach.childNodes[0]);
-
-      {{-- // 換頁顯示(當前因有其他事件會更動到此數值，暫不修改為中文)
-      document.querySelector('#usertable_previous>a').innerHTML = '前一頁';
-      document.querySelector('#usertable_next>a').innerHTML = '下一頁'; --}}
-
+    dt = $('#usertable').DataTable({
+      "language": {
+        "lengthMenu" : "一頁 _MENU_ 個",
+        "zeroRecords" : "沒有搜尋到任何資料",
+        "info" : "顯示 _PAGE_ / _PAGES_",
+        "infoEmpty" : "沒有任何資料",
+        "infoFiltered" : "(過濾 _MAX_ 筆資料)",
+        "search" : "搜尋:",
+        "paginate": {
+          "next" : ">",
+          "previous" : "<"
+      },
+    },
+    "stateSave": true,
     });
+  });
 
 </script>
 <style>
@@ -161,5 +159,53 @@
       text-align: left;
       vertical-align: middle;
     }
+
+    {{-- 如果畫面尺寸再800以下，套用區塊內的CSS --}}
+    @media only screen and (max-width: 800px) {
+
+    {{-- 將原本的資料表使用換行表示 --}}
+    #no-more-tables table,
+    #no-more-tables thead,
+    #no-more-tables tbody,
+    #no-more-tables th,
+    #no-more-tables td,
+    #no-more-tables tr {
+      display: block;
+    }
+
+    {{-- 將原本的資料表標題列隱藏 --}}
+    #no-more-tables thead tr {
+      position: absolute;
+      top: -9999px;
+      left: -9999px;
+    }
+
+    {{-- 每列元素加入框線 --}}
+    #no-more-tables tr { border: 1px solid #ccc; }
+
+    {{-- 每行元素設定 --}}
+    #no-more-tables td {
+      border: none;
+      border-bottom: 1px solid #eee;
+      position: relative;
+      padding-left: 50%;
+      white-space: normal;
+      text-align:left;
+    }
+
+    {{-- 設定表單格式 --}}
+    #no-more-tables td:before {
+      position: absolute;
+      top: 6px;
+      left: 6px;
+      width: 45%;
+      padding-right: 10px;
+      white-space: nowrap;
+      text-align:left;
+      font-weight: bold;
+      {{-- 將data-title(標題欄位)欄位資料插入每列的td元素中 --}}
+      content: attr(data-title);
+    }
+
 </style>
 @endsection
