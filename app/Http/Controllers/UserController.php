@@ -140,7 +140,7 @@ class UserController extends Controller
             'student_id' => 'sometimes|string|max:255|unique:users,student_id,'.$user->id,
             // 忽略當前列的使用者，但檢查其他欄位的唯一性。
             'email' => 'sometimes|string|email|max:255|unique:users,email,'.$user->id,
-            'password' => 'required_with:new_password|sometimes|string|check_password:'.$user->id,
+            'password' => 'nullable|required_with:new_password,new_password_confirmation|string|check_password:'.$user->id,
             'new_password' => 'required_with:password|string|min:4|max:255|confirmed',
         ];
 
