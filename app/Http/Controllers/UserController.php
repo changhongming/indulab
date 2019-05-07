@@ -141,7 +141,8 @@ class UserController extends Controller
             // 忽略當前列的使用者，但檢查其他欄位的唯一性。
             'email' => 'sometimes|string|email|max:255|unique:users,email,'.$user->id,
             'password' => 'nullable|required_with:new_password,new_password_confirmation|string|check_password:'.$user->id,
-            'new_password' => 'required_with:password|string|min:4|max:255|confirmed',
+            'new_password' => 'required_with:password,new_password_confirmation|string|min:4|max:255|confirmed',
+            'new_password_confirmation' => 'required_with:new_password|string|min:4|max:255',
         ];
 
         // 如果為管理員，則不驗證當前密碼
