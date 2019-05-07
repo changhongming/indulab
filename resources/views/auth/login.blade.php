@@ -7,14 +7,20 @@
             <div class="card">
                 <div class="card-header">{{ __('登入') }}</div>
                 <div class="card-body">
+
+                    {{-- 回傳訊息 --}}
+                    @if ($message = Session::get('message'))
+                      <div class="row alert alert-{{ Session::has('alert-type') ? Session::get('alert-type') : danger }} alert-dismissible fade show">
+                        {{ $message }}
+                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                          <span aria-hidden="true">&times;</span>
+                        </button>
+                      </div>
+                    @endif
+
                     <form method="POST" action="{{ route('login') }}">
                         @csrf
-                        {{-- 錯誤訊息 --}}
-                        @if ($errors->has('message'))
-                        <div class="form-group row alert alert-danger">
-                            {{ $errors->first('message') }}
-                        </div>
-                        @endif
+
                         {{-- 學號或信箱欄位 --}}
                         <div class="form-group row">
                             <label for="login" class="col-sm-4 col-form-label text-md-right">{{ __('學號或電子信箱') }}</label>

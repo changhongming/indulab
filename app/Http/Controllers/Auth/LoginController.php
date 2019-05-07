@@ -52,28 +52,11 @@ class LoginController extends Controller
         return $field;
     }
 
-    protected function validateLogin(Request $request)
-    {
-        // 驗證帳號密碼是否有輸入，如果沒有則返回
-        $this->validate(
-            $request,
-            [
-                'login' => 'required|string',
-                'password' => 'required|string',
-            ],
-            [
-                'login.required' => '請輸入學號或信箱',
-                'password.required' => '請輸入密碼',
-            ]
-        );
-    }
-
     protected function sendFailedLoginResponse(Request $request)
     {
-        $errors = ['message'=> '帳號或密碼不正確'];
 
         // Load user from database
-        $user = \App\User::where($this->username(), $request->{$this->username()})->first();
+        // $user = \App\User::where($this->username(), $request->{$this->username()})->first();
 
         // Check if user was successfully loaded, that the password matches
         // and active is not 1. If so, override the default error message.
@@ -84,8 +67,12 @@ class LoginController extends Controller
         if ($request->expectsJson()) {
             return response()->json($errors, 422);
         }
+
+
+        $request->session()->flash('message', __('Password Invalid'));
+        $request->session()->flash('alert-type', 'danger');
+
         return redirect()->back()
-            ->withInput($request->only($this->username(), 'remember'))
-            ->withErrors($errors);
+            ->withInput($request->only($this->username(), 'remember'));
     }
 }
