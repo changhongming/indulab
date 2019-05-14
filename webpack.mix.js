@@ -31,8 +31,10 @@ const mix = require('laravel-mix');
  // 自動加載js庫到特定變數 https://github.com/JeffreyWay/laravel-mix/blob/master/docs/autoloading.md
  .autoload({
     jquery: ['$', 'window.jQuery', 'jQuery', 'jquery'],
-    vue: ['Vue','window.Vue']
+    vue: ['Vue','window.Vue'],
+    quill: ['window.Quill']
  })
+
  .browserSync({
     // 監聽的伺服器
     proxy: 'localhost:8000',
@@ -42,6 +44,7 @@ const mix = require('laravel-mix');
     // 關閉對外連線
     online: false
  })
+
  // 打包css
  .sass('resources/sass/app.scss','public/css/site.css')
  // devtool: "inline-source-map" 可以將打包的程式碼還原(source map)，以便看到打包前的程式碼
