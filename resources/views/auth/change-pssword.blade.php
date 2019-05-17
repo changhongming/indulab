@@ -10,6 +10,7 @@
                 <div class="card-body">
                     <form method="POST" action="{{ route('changepassword') }}">
                         @csrf
+                        @method('PUT')
 
                         {{-- 成功訊息 --}}
                         @if (Session::has('success'))
