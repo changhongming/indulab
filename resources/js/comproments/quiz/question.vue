@@ -6,11 +6,11 @@
           <label>
             <h1 @click="$refs.qsEditor.quill.focus()">題目</h1>
           </label>
-          <vue-editor ref="qsEditor" :editorOptions="editorSettings" v-model="content"></vue-editor>
+          <vue-editor @text-change="contentChange" ref="qsEditor" :editorOptions="editorSettings" v-model="content"></vue-editor>
         </b-col>
       </b-row>
     </div>
-    <button @click="returnFalse">strat</button>
+    <button @click="saveQuestion">save</button>
     <div class="row-group">
       <b-row v-for="(choice, index) in choices" v-bind:key="choice.id" class="mb-2">
         <!-- 選項表單開始 -->
@@ -58,6 +58,7 @@
             >
               <vue-editor
                 :ref="`choice-${choice.id}`"
+                @text-change="contentChange"
                 @mousedown="returnFalse"
                 :editorOptions="editorSettings"
                 v-model="choice.content"
@@ -113,6 +114,9 @@
         </div>
       </b-row>
     </div>
+    <b-row>
+      <b-button @click="saveQuestion">儲存</b-button>
+    </b-row>
   </b-container>
 </template>
 
@@ -150,6 +154,8 @@
 <script>
 import uuid from "../../uuid-gen";
 
+import debounce from "lodash.debounce";
+
 import { VueEditor, Quill } from "vue2-editor";
 // import { ImageDrop } from 'quill-image-drop-module'
 import ImageResize from "quill-image-resize-module";
@@ -168,11 +174,19 @@ export default {
   props: {
     choices: Array,
     question: String,
-    answer: String
+    answer: String,
+    inputId: {type: Number, default: null},
+    questionId: {type: Number, default: null}
   },
 
   data() {
     return {
+      currentId: 0,
+
+      isInit: false,
+
+      answerId: null,
+
       choiceDeleteDisable: false,
 
       content: "",
@@ -201,7 +215,19 @@ export default {
 
   computed: {
     getClientHeight() {
-      return innerHeight;
+      console.log(document.querySelector('#app').querySelector('p').clientHeight)
+      return innerHeight - document.querySelector('nav').clientHeight - document.querySelector('#app').querySelector('p').clientHeight - 100;
+    }
+  },
+
+
+  updated() {
+    // 確認是否為變更選項操作
+    if(this.currentId !== this.inputId) {
+      // 在下次更新才將內部狀態更新，用於判斷是否修改
+      this.$nextTick(() => {
+        this.currentId = this.inputId;
+      });
     }
   },
 
@@ -214,10 +240,10 @@ export default {
       deep: false
     },
 
-    content(val) {
-      // 推送題目內容變更的消息到外部
-      this.$emit("on-question-change", val);
-    },
+    // content(val) {
+    //   // 推送題目內容變更的消息到外部
+    //   this.$emit("on-question-change", val);
+    // },
 
     question(val) {
       this.content = val;
@@ -225,6 +251,45 @@ export default {
   },
 
   methods: {
+    contentDebounce: debounce(function(){
+      this.$emit("on-question-change", this.content);
+    }, 1000),
+
+    saveQuestion() {
+      console.log('saveQs');
+      axios.post('/question', {
+        id: this.questionId,
+        answer_id: this.answer | this.answerId,
+        question: this.question,
+        choices: JSON.stringify(this.choices),
+        order: 0
+      })
+      .then((res) => {
+        console.log(res);
+        // alert('新增成功')
+        this.$emit('save-state-change', true);
+        this.$emit('save-success');
+      })
+      .catch((err) => {
+        console.log(err);
+      })
+      // this.isSave = true;
+
+    },
+
+    contentChange() {
+      console.log('textChange')
+      this.contentDebounce();
+      this.showNotSave();
+    },
+
+    showNotSave() {
+      console.log('showNotSave', false)
+      // this.isSave = false;
+      if(this.inputId === this.currentId)
+        this.$emit('save-state-change', false);
+    },
+
     removeChoice(e, id) {
       this.choices.splice(id, 1);
     },
@@ -251,9 +316,10 @@ export default {
     },
 
     onAnswerChange(e) {
+      this.showNotSave();
+      this.answerId = e.target.value;
+      console.log(e.target.value, this.answerId)
       this.$emit("answer-value", e.target.value);
-
-      // console.log(e.target.value);
     },
 
     drag(e) {
@@ -390,6 +456,7 @@ export default {
 
   mounted() {
     this.content = this.question;
+    this.isInit = true;
   }
 };
 </script>

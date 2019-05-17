@@ -28,7 +28,8 @@ Route::get('groupregister', 'Auth\GroupRegister@showRegisterView')->name('groupr
 Route::post('groupregister', 'Auth\GroupRegister@register');
 
 Route::get('changepassword', 'Auth\ChangePasswordController@showChangePasswordView')->name('changepassword');
-Route::post('changepassword', 'Auth\ChangePasswordController@changePassword');
+
+Route::match(['put', 'patch'], 'changepassword', 'Auth\ChangePasswordController@changePassword');
 
 Route::get('alluser', 'Auth\AllUserController@showAllUserView')->name('alluser');
 
@@ -37,4 +38,7 @@ Route::resource('users', 'UserController', ['parameters' => [
 ]]);
 
 Auth::routes();
+
+Route::post('question', 'QuizEditorContorller@postQuestion');
+Route::get('question', 'QuizEditorContorller@getQuestions');
 

@@ -4,6 +4,7 @@
       <div class="ql-viewer">
         <span>{{qid + 1}}.</span>
         <div v-html="showText(question)">{{ showText(question) }}</div>
+        <span class="ql-notsave" v-show="!isSave">未儲存</span>
       </div>
     </b-row>
     <b-row v-for="(choice) in choices" v-bind:key="choice.id">
@@ -105,6 +106,13 @@ pre.ql-syntax {
 .ql-align-right {
   text-align: right;
 }
+
+.ql-notsave {
+  background: red;
+  color: #f8f8f2;
+  padding: 4px;
+  border-radius: 4px
+}
 </style>
 
 
@@ -116,7 +124,7 @@ export default {
     choices: Array,
     question: String,
     answer: String,
-    qid: Number
+    qid: Number,
   },
 
   computed: {},
@@ -143,7 +151,8 @@ export default {
 
   data() {
     return {
-      choicesUUID: uuid()
+      choicesUUID: uuid(),
+      isSave: true
     };
   }
 };
