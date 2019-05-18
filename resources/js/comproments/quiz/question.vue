@@ -12,6 +12,7 @@
     </div>
     <button @click="saveQuestion">save</button>
     <div class="row-group">
+      <transition-group name="flip-list" tag="div">
       <b-row v-for="(choice, index) in choices" v-bind:key="choice.id" class="mb-2">
         <!-- 選項表單開始 -->
         <div
@@ -19,6 +20,7 @@
           :index="index"
           draggable="true"
           @dragstart="dragStart"
+          @dragend="$event.target.style.opacity = null;"
           @drag.prevent="drag"
           @dragover.prevent="dragOver"
           @drop.prevent="drop"
@@ -44,7 +46,7 @@
                 @change="onAnswerChange"
                 :name="answerUUID"
                 :value="choice.id"
-                :checked="answer === choice.id ? true : false"
+                :checked="initAnswerId === choice.id ? true : false"
               >
             </b-col>
 
@@ -113,6 +115,7 @@
           </b-row>
         </div>
       </b-row>
+      </transition-group>
     </div>
     <b-row>
       <b-button @click="saveQuestion">儲存</b-button>
@@ -121,6 +124,19 @@
 </template>
 
 <style scoped>
+.flip-list-item {
+  transition: all 0.4s;
+  display: inline-block;
+}
+
+.flip-list-move {
+  transition: transform 0.4s;
+}
+
+.flip-list-leave-active {
+  position: absolute;
+}
+
 .q-title {
   /* border: 2px solid black; */
   border-left-width: 5px;
@@ -174,7 +190,7 @@ export default {
   props: {
     choices: Array,
     question: String,
-    answer: String,
+    initAnswerId: String,
     inputId: {type: Number, default: null},
     questionId: {type: Number, default: null}
   },
@@ -187,14 +203,13 @@ export default {
 
       answerId: null,
 
-      choiceDeleteDisable: false,
+      choiceDeleteDisable: true,
 
       content: "",
 
       answerUUID: uuid(),
 
       dragingIndex: null,
-      dragingChangeIndex: null,
 
       editorSettings: {
         modules: {
@@ -202,6 +217,8 @@ export default {
           imageResize: {}
         }
       },
+
+      prvSourceIndex: null,
 
       editorToolbar: [
         [{ size: ["small", false, "large", "huge"] }],
@@ -257,9 +274,10 @@ export default {
 
     saveQuestion() {
       console.log('saveQs');
+      console.log(this.initAnswerId, this.answerId, this.answer | this.answerId)
       axios.post('/question', {
         id: this.questionId,
-        answer_id: this.answer | this.answerId,
+        answer_id: this.answerId,
         question: this.question,
         choices: JSON.stringify(this.choices),
         order: 0
@@ -328,7 +346,6 @@ export default {
       const step = 20;
       // 拖動過靠近上方邊界
       if (e.clientY < 50) {
-        //
         scrollbar.scrollTo({
           top: scroll - step
           //behavior: 'smooth',
@@ -344,89 +361,56 @@ export default {
     },
 
     dragStart(e) {
-      console.log(e.target);
-      e.dataTransfer.setData("dragIndex", e.target.getAttribute("index"));
       // 記錄拖動元件的索引
       this.dragingIndex = e.target.getAttribute("index");
+      e.target.style.opacity = ".5";
     },
 
     dragOver(e) {
       const sourceIndex = this.dragingIndex;
       const targetIndex = e.target.closest(".dragable").getAttribute("index");
+
+      // 確認動畫移動是否完成(來源與目標都指向自己)
+      if(sourceIndex === targetIndex) {
+        this.prvSourceIndex = null;
+      }
+
       if (
+        // 來源與目標不同
         sourceIndex !== targetIndex &&
-        this.dragingChangeIndex !== targetIndex
+        // 來源不能為空(拒絕從其他元件拉進來的來源)
+        sourceIndex !== null &&
+        // 避免動畫交互觸發事件(前一次來源與目標不相同)
+        this.prvSourceIndex !== targetIndex
       ) {
-        console.log("source", sourceIndex);
-        console.log("target", targetIndex);
+        // console.log("source", sourceIndex, "target", targetIndex);
+        // console.log("==============================");
+
         // 暫存來源資料
         const sourceData = this.choices[sourceIndex];
         const finalIndex = this.choices.length - 1;
-        // if(targetIndex == 0) {
-        //   this.choices[0].isHighest = false;
-        //   sourceData.isHighest = true;
-        // }
-        // else if(targetIndex == finalIndex) {
-        //   console.log('final')
-        //   this.choices[finalIndex].isLowest = false;
-        //   sourceData.isLowest = true;
-        // }
-        // else if(sourceIndex == 0) {
-        //   sourceData.isHighest = false;
-        //   this.choices[targetIndex].isHighest = true;
-        //   // sourceData.isHighest = true;
-        // }
-        // else if(sourceIndex == finalIndex) {
-        //   sourceData.isLowest = false;
-        //   this.choices[targetIndex].isLowest = true;
-        // }
 
         // 插入物件
         this.choices.splice(sourceIndex, 1);
         this.choices.splice(targetIndex, 0, sourceData);
 
         // 修改變更後的索引
-        this.dragingChangeIndex = targetIndex;
         this.dragingIndex = targetIndex;
+        this.prvSourceIndex = sourceIndex;
       }
 
       e.preventDefault();
     },
 
     drop(e) {
-      console.log("drop", e.target);
-      const sourceIndex = e.dataTransfer.getData("dragIndex");
-      const targetIndex = e.target.getAttribute("index");
-      const sourceData = this.choices[sourceIndex];
-      // if(sourceIndex !== targetIndex) {
-      //   this.choices.splice(sourceIndex, 1);
-      //   this.choices.splice(targetIndex, 0, sourceData);
-      // }
       this.dragingIndex = null;
-      console.log("drop", sourceIndex);
+      this.prvSourceIndex = null;
     },
 
     swapChoice(id, loc) {
       const data = this.choices[id];
       const finalPos = id + loc;
       const finalIndex = this.choices.length - 1;
-
-      // if(finalPos === 0 && id === 1) {
-      //   this.choices[0].isHighest = false;
-      //   data.isHighest = true;
-      // }
-      // else if(finalPos === 1 && id === 0) {
-      //   this.choices[1].isHighest = true;
-      //   data.isHighest = false;
-      // }
-      // if(finalPos === finalIndex && id === finalIndex - 1) {
-      //   this.choices[finalIndex].isLowest = false;
-      //   data.isLowest = true;
-      // }
-      // if(finalPos === finalIndex - 1 && id === finalIndex) {
-      //   data.isLowest = false;
-      //   this.choices[finalIndex - 1].isLowest = true;
-      // }
 
       this.choices.splice(id, 1);
       this.choices.splice(finalPos, 0, data);
@@ -457,6 +441,8 @@ export default {
   mounted() {
     this.content = this.question;
     this.isInit = true;
+    if(this.initAnswerId)
+      this.answerId = this.initAnswerId;
   }
 };
 </script>

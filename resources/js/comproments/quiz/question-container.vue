@@ -17,7 +17,7 @@
         <question v-if="questions.length !== 0"
           :question="questions[selId].question"
           :choices="questions[selId].choices"
-          :answer="questions[selId].answer"
+          :initAnswerId="questions[selId].answer"
           :questionId="questions[selId].id"
           :inputId="selId ? selId : -1"
           v-on:on-question-change="questions[selId ? selId : 0].question = $event"
