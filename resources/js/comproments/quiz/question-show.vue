@@ -111,7 +111,7 @@ pre.ql-syntax {
   background: red;
   color: #f8f8f2;
   padding: 4px;
-  border-radius: 4px
+  border-radius: 4px;
 }
 </style>
 

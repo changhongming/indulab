@@ -1,16 +1,16 @@
 <template>
-  <b-container fluid class="c-scollbar" :style="{ height: getClientHeight + 'px'}">
+  <b-container fluid>
+    <div class="c-scollbar" ref="ediotorBlock" >
     <div class="row-group">
       <b-row class="mb-2">
         <b-col>
           <label>
             <h1 @click="$refs.qsEditor.quill.focus()">題目</h1>
           </label>
-          <vue-editor @text-change="contentChange" ref="qsEditor" :editorOptions="editorSettings" v-model="content"></vue-editor>
+          <vue-editor @text-change="contentChange" ref="qsEditor" :editorToolbar="editorToolbar" :editorOptions="editorSettings" v-model="content"></vue-editor>
         </b-col>
       </b-row>
     </div>
-    <button @click="saveQuestion">save</button>
     <div class="row-group">
       <transition-group name="flip-list" tag="div">
       <b-row v-for="(choice, index) in choices" v-bind:key="choice.id" class="mb-2">
@@ -33,18 +33,12 @@
           </b-row>
 
           <b-row>
-            <!-- <b-col>
-        <div :index="index" draggable="true" @dragstart="dragStart" @drag="drag" @dragover="dragOver" @drop="drop">
-          drag
-        </div>
-            </b-col>-->
 
             <!-- 選項答案選取 -->
             <b-col cols="auto" class="align-self-center">
               <input
                 type="radio"
                 @change="onAnswerChange"
-                :name="answerUUID"
                 :value="choice.id"
                 :checked="initAnswerId === choice.id ? true : false"
               >
@@ -117,13 +111,24 @@
       </b-row>
       </transition-group>
     </div>
-    <b-row>
-      <b-button @click="saveQuestion">儲存</b-button>
-    </b-row>
+    </div>
+    <div ref="saveBlock" class="save-block d-flex justify-content-center">
+      <b-row>
+        <b-col>
+          <b-button variant="success" @click="saveQuestion">儲存</b-button>
+        </b-col>
+        <b-col>
+          <b-button variant="danger" @click="recoveryQuestion">取消</b-button>
+        </b-col>
+      </b-row>
+    </div>
   </b-container>
 </template>
 
 <style scoped>
+.save-block {
+  margin-top: 5px;
+}
 .flip-list-item {
   transition: all 0.4s;
   display: inline-block;
@@ -181,6 +186,8 @@ Quill.register("modules/imageResize", ImageResize);
 
 import questionShow from "./question-show.vue";
 
+let initAnswerId = null;
+
 export default {
   components: {
     VueEditor,
@@ -197,20 +204,31 @@ export default {
 
   data() {
     return {
-      currentId: 0,
+      // 目前選取的ID(內部)
+      currentId: null,
 
+      // 問題輸入框內容
+      content: null,
+
+      // 元件初始化完成狀態
       isInit: false,
 
+      // 元件復原(取消)狀態
+      isRecovery: true,
+
+      // 答案的UUID
       answerId: null,
 
+      // 當前選項狀態是否可以刪除選項
       choiceDeleteDisable: true,
 
-      content: "",
-
-      answerUUID: uuid(),
-
+      // 當前拖曳選項的ID
       dragingIndex: null,
 
+      // 前一次拖曳來源ID
+      prvSourceIndex: null,
+
+      // quill套件擴展功能
       editorSettings: {
         modules: {
           // imageDrop: true,
@@ -218,22 +236,21 @@ export default {
         }
       },
 
-      prvSourceIndex: null,
-
+      // quill套件的toolbar選項設定
       editorToolbar: [
         [{ size: ["small", false, "large", "huge"] }],
         [{ header: [1, 2, 3, 4, 5, 6, false] }],
-        ["bold", "italic", "underline", "strike"],
+        ["bold", "italic", "underline", "strike", "formula", "link"],
         [{ list: "ordered" }, { list: "bullet" }],
-        ["image", "url"]
+        ["image", "video"]
       ]
     };
   },
 
   computed: {
     getClientHeight() {
-      console.log(document.querySelector('#app').querySelector('p').clientHeight)
-      return innerHeight - document.querySelector('nav').clientHeight - document.querySelector('#app').querySelector('p').clientHeight - 100;
+      // console.log(this.$refs.saveBlock)
+      return innerHeight - document.querySelector('nav').clientHeight - 5;
     }
   },
 
@@ -251,67 +268,97 @@ export default {
   watch: {
     choices: {
       handler: function(choice) {
-        // 如選項小於等於2個則不能刪除選項
-        this.choiceDeleteDisable = choice.length <= 2 ? true : false;
+        this.isChoiceDeleteDisable();
       },
       deep: false
     },
-
-    // content(val) {
-    //   // 推送題目內容變更的消息到外部
-    //   this.$emit("on-question-change", val);
-    // },
-
+    
     question(val) {
       this.content = val;
     }
   },
 
   methods: {
+    // 選項是否可以繼續刪除(小於兩項不能刪)
+    isChoiceDeleteDisable() {
+      this.choiceDeleteDisable = this.choices.length <= 2 ? true : false;
+    },
+
+    // 讀取目前網頁剩餘的高度
+    setEditorHeight() {
+      console.log(this.$refs.saveBlock.clientHeight);
+      this.$refs.ediotorBlock.style.height = (innerHeight - document.querySelector('nav').clientHeight - this.$refs.saveBlock.clientHeight - 5) + "px";
+    },
+
+    // 問題輸入框debounce功能(500ms間隔)
     contentDebounce: debounce(function(){
       this.$emit("on-question-change", this.content);
-    }, 1000),
+    }, 500),
 
     saveQuestion() {
-      console.log('saveQs');
-      console.log(this.initAnswerId, this.answerId, this.answer | this.answerId)
+      // 使用Ajax儲存目前問題資料
       axios.post('/question', {
         id: this.questionId,
         answer_id: this.answerId,
         question: this.question,
         choices: JSON.stringify(this.choices),
+        /** 目前題目排序尚未實作(由上一層父組件用props傳入order) **/
         order: 0
       })
       .then((res) => {
         console.log(res);
-        // alert('新增成功')
+        // 儲存成功
         this.$emit('save-state-change', true);
         this.$emit('save-success');
       })
       .catch((err) => {
+        /** 儲存失敗(需要實作跳出儲存失敗視窗) **/
         console.log(err);
       })
-      // this.isSave = true;
-
     },
 
+    // 取消按鈕事件(復原回原本狀態)
+    recoveryQuestion() {
+      // 送出復原信號
+      this.$emit('recovery');
+      // 告訴該組件目前為復原狀態
+      this.isRecovery = true;
+      this.answerId = initAnswerId;
+      // 送出儲存狀態為以儲存(因為復原回資料庫剛拿出來的資料)
+      this.$emit('save-state-change', true);
+    },
+
+    // question欄位內容改變
     contentChange() {
-      console.log('textChange')
       this.contentDebounce();
       this.showNotSave();
     },
 
     showNotSave() {
-      console.log('showNotSave', false)
-      // this.isSave = false;
-      if(this.inputId === this.currentId)
+      if(this.inputId === this.currentId && !this.isRecovery) {
         this.$emit('save-state-change', false);
+      }
+
+      // 復位isRecovery數值，使它可以重新判斷是否儲存
+      this.isRecovery = false;
     },
 
+    // 選取答案改變
+    answerChange(answerId) {
+      this.showNotSave();
+      this.answerId = answerId;
+      this.$emit("answer-value", this.answerId);
+    },
+
+    // 刪除選項
     removeChoice(e, id) {
+      if(this.answerId === this.choices[id].id) {
+        this.answerChange(this.choices[id === 0 ? 1 : 0].id)
+      }
       this.choices.splice(id, 1);
     },
 
+    // 新增選項
     addChoice(id) {
       const uid = uuid();
 
@@ -331,13 +378,11 @@ export default {
           isLowest: false
         });
       }
+      this.showNotSave();
     },
 
     onAnswerChange(e) {
-      this.showNotSave();
-      this.answerId = e.target.value;
-      console.log(e.target.value, this.answerId)
-      this.$emit("answer-value", e.target.value);
+      this.answerChange(e.target.value)
     },
 
     drag(e) {
@@ -383,8 +428,6 @@ export default {
         // 避免動畫交互觸發事件(前一次來源與目標不相同)
         this.prvSourceIndex !== targetIndex
       ) {
-        // console.log("source", sourceIndex, "target", targetIndex);
-        // console.log("==============================");
 
         // 暫存來源資料
         const sourceData = this.choices[sourceIndex];
@@ -397,6 +440,7 @@ export default {
         // 修改變更後的索引
         this.dragingIndex = targetIndex;
         this.prvSourceIndex = sourceIndex;
+        this.showNotSave();
       }
 
       e.preventDefault();
@@ -423,26 +467,41 @@ export default {
     },
 
     focusQsEditor() {
-      console.log("focus");
-
       this.$refs.qsEditor.quill.focus();
     },
 
     focusEditor(e) {
-      //console.log(this.$refs[`ch-${e.target.getAttribute('index')}`][0]);
       this.$nextTick(() => {
         this.$refs[`choice-${e.target.getAttribute("index")}`][0].quill.focus();
       });
 
       this.returnFalse(e);
+    },
+
+    initCreated() {
+      this.content = this.question;
+      if(this.initAnswerId)
+        this.answerId = this.initAnswerId;
+      this.isInit = true;
+      initAnswerId = this.answerId;
+    },
+
+    initMounted() {
+      this.isChoiceDeleteDisable();
     }
   },
 
+  created() {
+    const vm = this;
+    this.initCreated();
+    // 當頁面載入完成
+    window.addEventListener('load', () => {
+      vm.setEditorHeight();
+    });
+  },
+
   mounted() {
-    this.content = this.question;
-    this.isInit = true;
-    if(this.initAnswerId)
-      this.answerId = this.initAnswerId;
+    this.initMounted();
   }
 };
 </script>

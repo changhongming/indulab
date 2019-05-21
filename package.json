@@ -46,6 +46,7 @@
         "vue-template-compiler": "^2.6.6"
     },
     "dependencies": {
+        "lodash.clonedeep": "^4.5.0",
         "quill-image-resize-module": "^3.0.0",
         "vue2-editor": "^2.6.6"
     }

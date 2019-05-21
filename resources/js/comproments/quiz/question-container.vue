@@ -1,16 +1,30 @@
 <template>
   <b-container fluid>
-
+    <div v-show="!isLoaded">
+    <div class="loading">
+      <div class="lds-ring">
+        <div></div>
+        <div></div>
+        <div></div>
+        <div></div>
+      </div>
+    </div>
+  </div>
+  <div v-show="isLoadedFail">
+    <span style="color:red;">讀取失敗，請重新整理頁面再試試</span>
+  </div>
+  <div v-show ="!isLoadedFail && isLoaded">
+    <div class="alert-msg">
     <b-alert
       :show="dismissCountDown"
       dismissible
       fade
       variant="success"
       @dismiss-count-down="countDownChanged"
-      class="alert-msg"
     >
       <i class="fas fa-check-circle fa-lg"></i> 儲存成功
     </b-alert>
+    </div>
 
     <b-row>
       <b-col cols="6">
@@ -20,7 +34,8 @@
           :initAnswerId="questions[selId].answer"
           :questionId="questions[selId].id"
           :inputId="selId ? selId : -1"
-          v-on:on-question-change="questions[selId ? selId : 0].question = $event"
+          v-on:recovery="recoveryQuestion"
+          v-on:on-question-change="questions[selId].question = $event"
           v-on:answer-value="answerevt"
           v-on:save-state-change="saveStateChange"
           v-on:save-success="questionSaveSuccess"
@@ -30,8 +45,7 @@
   <b-container fluid class="c-scollbar" :style="{ height: getClientHeight + 'px'}">
         <div class="list-group" v-if="questions.length !== 0">
           <li
-            :class="index === selId ? 'qs-selected' : ''"
-            class="list-group-item list-group-item-action"
+            :class="['list-group-item', 'list-group-item-action', index === selId ? 'qs-selected ' : '']"
             v-for="(question, index) in questions"
             v-bind:key="question.id"
             @click="questionClick(index)"
@@ -52,19 +66,41 @@
   </b-container>
       </b-col>
     </b-row>
-    <!-- <b-row>
-      <button @click="saveData">asdsda</button>
-    </b-row> -->
+    </div>
   </b-container>
 </template>
 
 <style>
+.filter-gray {
+  width: 100%;
+  height: 100%;
+  top: 0;
+  right: 0;
+  background-color: #FFBB73;
+  z-index: 9999;
+}
+
+.lds-ring {
+    position: absolute;
+    top: 50%;
+    right: 50%;
+    width: 100px;
+    height: 100px;
+}
+
+.lds-ring div {
+    width: 100px;
+    height: 100px;
+    margin: 15px;
+    border-width: 15px;
+}
+
 .alert-msg {
   position: fixed;
-  top: 20px;
+  top: 5%;
   left: 50%;
   z-index: 999;
-  font-size: 30px;
+  font-size: 26px;
 }
 
 .c-scollbar {
@@ -73,12 +109,13 @@
 }
 
 .qs-selected {
-  border: 4px solid red;
+  border: 4px solid red !important;
 }
 </style>
 
 
 <script>
+import cloneDeep from 'lodash.clonedeep';
 import uuid from "../../uuid-gen";
 import questionShow from "./question-show.vue";
 import question from "./question.vue";
@@ -129,9 +166,12 @@ function initState() {
       //   ]
       // }
     ],
-            dismissSecs: 5,
-        dismissCountDown: 0,
-        showDismissibleAlert: false
+      dismissSecs: 5,
+      dismissCountDown: 0,
+      showDismissibleAlert: false,
+      isLoaded: false,
+      isLoadedFail: false,
+      initQuestion: null,
   };
 
 
@@ -154,14 +194,28 @@ export default {
     questionShow
   },
 
+
+  props:{
+    quizId: Number
+  },
+
   data() {
     return initState();
   },
 
+  watch: {
+    selId: function(val) {
+        if(this.selId >= 0) {
+          this.initQuestion = cloneDeep(JSON.parse(JSON.stringify(this.questions[val])));
+          console.log(this.initQuestion);
+        }
+    }
+  },
+
   computed: {
     getClientHeight() {
-      return innerHeight - document.querySelector('nav').clientHeight - document.querySelector('#app').querySelector('p').clientHeight - 100;
-    }
+      return innerHeight - document.querySelector('nav').clientHeight - 5;
+    },
   },
 
   methods: {
@@ -175,6 +229,31 @@ export default {
       this.dismissCountDown = this.dismissSecs
     },
 
+    recoveryQuestion() {
+      // 深拷貝覆蓋資料(並且會刪除多的內容) => 註：由於JS內物件是採用參考(reference)方式，所以需要將物件內各個數值一一覆蓋(因數值是by value)。
+      const copyData = (obj, overObj) => {
+        // overObj = JSON.parse(JSON.stringify(overObj));
+        Object.keys(obj).forEach(key => {
+
+          // 刪除原本物件沒有的key
+          if(!overObj.hasOwnProperty(key)) {
+            // 跳過本次迭代
+            return delete obj[key];
+          }
+
+          // 如果為型別為Object，則遞迴往該物件下去搜尋(註：因為null的typeof也是回傳Object，所以加入obj[key]來判斷null)
+          if(typeof obj[key] === 'object' && obj[key]) {
+            copyData(obj[key], overObj[key]);
+          }
+
+          // 如果不是上述情況，則執行一般覆蓋
+          obj[key] = overObj[key];
+        })
+      };
+
+      // 深拷貝覆蓋資料
+      copyData(this.questions[this.selId], JSON.parse(JSON.stringify(this.initQuestion)));
+    },
 
     answerevt(e) {
       this.questions[this.selId].answer = e;
@@ -186,9 +265,6 @@ export default {
     },
 
     questionClick(id) {
-      console.log("qc", id);
-      //this.selQuestion = this.questions[id].question;
-      //this.selChoices = this.questions[id].choices;
       this.selId = id;
     },
 
@@ -217,25 +293,12 @@ export default {
     },
 
     saveData() {
-      console.log(this);
-      //console.log(JSON.stringify(this.$data));
       document.cookie = "questionData=" + JSON.stringify(this.$data);
       console.log(JSON.parse(getCookie("questionData")));
-      // $.cookie("questionData", JSON.stringify(JSON.parse(JSON.stringify(this.$data))));
     },
 
     destroy(e, id) {
-      // const qs = this.questions;
-      // let index = null;
-      // for(let i = 0; i < qs.length; i++) {
-      //   if(qs[i].id === id) {
-      //     index = i;
-      //     break;
-      //   }
-      // }
-      // console.log(index);
-
-
+      // 等待刷新完成在重新指向刷新後的位置
       this.$nextTick(() => {
         this.selId = 0;
       })
@@ -246,13 +309,13 @@ export default {
 
     uuid() {
       return uuid();
-    }
+    },
   },
 
   created() {
     const vm = this;
-    console.log(this.$data);
-      axios.get('/question')
+    
+    axios.get(`/question?id=${vm.quizId}`)
     .then((res) => {
     console.log(res);
     const questions = [];
@@ -265,16 +328,16 @@ export default {
         choices: JSON.parse(row.choices)
       });
     });
-    const data = {};
-    data.questions = questions;
     vm.selId = 0;
     vm.questions = questions;
   })
   .catch((err) => {
+    vm.isLoadedFail = true;
     console.log(err)
+  })
+  .finally(() => {
+    vm.isLoaded = true;
   });
-    // this.$data = JSON.parse(getCookie("questionData"));
-    // JSON.parse(getCookie("questionData");
   }
 };
 </script>
