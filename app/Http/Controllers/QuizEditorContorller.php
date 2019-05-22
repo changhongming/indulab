@@ -9,6 +9,7 @@ use Debugbar;
 
 use App\Http\Controllers\Response\JsonMsgResponse;
 use App\QuizQuestion;
+use App\QuizTest;
 
 class QuizEditorContorller extends Controller {
 
@@ -22,7 +23,7 @@ class QuizEditorContorller extends Controller {
         $data = $request->all();
 
         // 有傳入id，表示修改
-        if($data['id']) {
+        if(array_key_exists('id', $data)) {
             $record = QuizQuestion::find($data['id']);
         }
         // 表示新增
@@ -38,14 +39,45 @@ class QuizEditorContorller extends Controller {
         $record->order = $data['order'];
         // 新增到資料庫
         $record->save();
-
-        return JsonMsgResponse::response('ok', 200);
+        Debugbar::info($record);
+        return response()->json(['id' => $record->id], 200);
     }
 
-    public function getQuestions() {
-        $rows = QuizQuestion::where('qt_id', 1)->select('id', 'answer_id', 'question', 'choices', 'order')->get();
+    public function getQuestionEditorView(Request $request) {
+        $req_id = $request->query('id');
+        if(!$req_id) {
+            return JsonMsgResponse::response('Need to provide query id value', 400);
+        }
+        return view('quiz.edit')->with('id', $req_id);
+    }
+
+    public function getQuestions(Request $request) {
+        $req_id = $request->query('id');
+        if(!$req_id) {
+            return JsonMsgResponse::response('Need to provide query id value', 400);
+        }
+        $rows = QuizQuestion::where('qt_id', $req_id)->select('id', 'answer_id', 'question', 'choices', 'order')->get();
         Debugbar::info($rows);
         return response()->json($rows, 200);
+    }
+
+    public function getQuizes() {
+        $rows = QuizTest::get(['id', 'test_name']);
+
+        Debugbar::info($rows);
+        return view('quiz.index')->with('quizs', $rows);
+        // return response()->json($rows, 200);
+    }
+
+    public function deleteQuestion($id) {
+        $question = QuizQuestion::find($id);
+
+        // 刪除使用者
+        $question->delete();
+
+        Debugbar::info($question);
+
+        return JsonMsgResponse::response('ok', 200);
     }
 
 }

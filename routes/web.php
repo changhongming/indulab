@@ -39,6 +39,8 @@ Route::resource('users', 'UserController', ['parameters' => [
 
 Auth::routes();
 
-Route::post('question', 'QuizEditorContorller@postQuestion');
+Route::post('question', 'QuizEditorContorller@postQuestion')->name('questions.create');
+Route::delete('question/{id}', 'QuizEditorContorller@deleteQuestion')->name('questions.destroy');
 Route::get('question', 'QuizEditorContorller@getQuestions');
-
+Route::get('quizs', 'QuizEditorContorller@getQuizes');
+Route::get('quizs/edit', 'QuizEditorContorller@getQuestionEditorView')->name('quizs.edit');
