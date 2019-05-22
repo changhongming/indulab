@@ -120,6 +120,26 @@ import uuid from "../../uuid-gen";
 import questionShow from "./question-show.vue";
 import question from "./question.vue";
 
+let initQuestion = null;
+
+// 深拷貝覆蓋資料(並且會刪除多的內容) => 註：由於JS內物件是採用參考(reference)方式，所以需要將物件內各個數值一一覆蓋(因數值是by value)。
+const copyData = (obj, overObj) => {
+  // overObj = JSON.parse(JSON.stringify(overObj));
+  Object.keys(obj).forEach(key => {
+    // 刪除原本物件沒有的key
+    if(!overObj.hasOwnProperty(key)) {
+      // 跳過本次迭代
+      return delete obj[key];
+    }
+    // 如果為型別為Object，則遞迴往該物件下去搜尋(註：因為null的typeof也是回傳Object，所以加入obj[key]來判斷null)
+    if(typeof obj[key] === 'object' && obj[key]) {
+      copyData(obj[key], overObj[key]);
+    }
+    // 如果不是上述情況，則執行一般覆蓋
+    obj[key] = overObj[key];
+  })
+};
+
 function getCookie(cname) {
   var name = cname + "=";
   var ca = document.cookie.split(";");
@@ -203,15 +223,6 @@ export default {
     return initState();
   },
 
-  watch: {
-    selId: function(val) {
-        if(this.selId >= 0) {
-          this.initQuestion = cloneDeep(JSON.parse(JSON.stringify(this.questions[val])));
-          console.log(this.initQuestion);
-        }
-    }
-  },
-
   computed: {
     getClientHeight() {
       return innerHeight - document.querySelector('nav').clientHeight - 5;
@@ -221,6 +232,7 @@ export default {
   methods: {
     questionSaveSuccess() {
       this.dismissCountDown = this.dismissSecs;
+      copyData(initQuestion[this.selId], JSON.parse(JSON.stringify(this.questions[this.selId])));
     },
     countDownChanged(dismissCountDown) {
       this.dismissCountDown = dismissCountDown
@@ -230,29 +242,8 @@ export default {
     },
 
     recoveryQuestion() {
-      // 深拷貝覆蓋資料(並且會刪除多的內容) => 註：由於JS內物件是採用參考(reference)方式，所以需要將物件內各個數值一一覆蓋(因數值是by value)。
-      const copyData = (obj, overObj) => {
-        // overObj = JSON.parse(JSON.stringify(overObj));
-        Object.keys(obj).forEach(key => {
-
-          // 刪除原本物件沒有的key
-          if(!overObj.hasOwnProperty(key)) {
-            // 跳過本次迭代
-            return delete obj[key];
-          }
-
-          // 如果為型別為Object，則遞迴往該物件下去搜尋(註：因為null的typeof也是回傳Object，所以加入obj[key]來判斷null)
-          if(typeof obj[key] === 'object' && obj[key]) {
-            copyData(obj[key], overObj[key]);
-          }
-
-          // 如果不是上述情況，則執行一般覆蓋
-          obj[key] = overObj[key];
-        })
-      };
-
       // 深拷貝覆蓋資料
-      copyData(this.questions[this.selId], JSON.parse(JSON.stringify(this.initQuestion)));
+      copyData(this.questions[this.selId], JSON.parse(JSON.stringify(initQuestion[this.selId])));
     },
 
     answerevt(e) {
@@ -270,12 +261,14 @@ export default {
 
     addQuestion() {
       const vm = this;
+      const defaultAnswerId = uuid();
       const question = {
         order: ++this.order,
         question: "",
+        answer: defaultAnswerId,
         choices: [
           {
-            id: uuid(),
+            id: defaultAnswerId,
             content: ""
           },
           {
@@ -301,8 +294,9 @@ export default {
       // 等待刷新完成在重新指向刷新後的位置
       this.$nextTick(() => {
         this.selId = 0;
-      })
+      });
 
+      initQuestion.splice(id, 1);
       this.questions.splice(id, 1);
       // e.stopPropagation();
     },
@@ -314,7 +308,6 @@ export default {
 
   created() {
     const vm = this;
-    
     axios.get(`/question?id=${vm.quizId}`)
     .then((res) => {
     console.log(res);
@@ -330,6 +323,7 @@ export default {
     });
     vm.selId = 0;
     vm.questions = questions;
+    initQuestion = JSON.parse(JSON.stringify(questions));
   })
   .catch((err) => {
     vm.isLoadedFail = true;
