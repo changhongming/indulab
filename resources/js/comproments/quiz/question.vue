@@ -272,7 +272,7 @@ export default {
       },
       deep: false
     },
-    
+
     question(val) {
       this.content = val;
     }
@@ -293,7 +293,7 @@ export default {
     // 問題輸入框debounce功能(500ms間隔)
     contentDebounce: debounce(function(){
       this.$emit("on-question-change", this.content);
-    }, 500),
+    }, 50),
 
     saveQuestion() {
       // 使用Ajax儲存目前問題資料
@@ -494,13 +494,14 @@ export default {
   created() {
     const vm = this;
     this.initCreated();
-    // 當頁面載入完成
-    window.addEventListener('load', () => {
-      vm.setEditorHeight();
-    });
   },
 
   mounted() {
+    // 當頁面載入完成
+    setTimeout(() => {
+      this.setEditorHeight();
+    }, 0);
+
     this.initMounted();
   }
 };
