@@ -1,124 +1,130 @@
 <template>
   <b-container fluid>
-    <div class="c-scollbar" ref="ediotorBlock" >
-    <div class="row-group">
-      <b-row class="mb-2">
-        <b-col>
-          <label>
-            <h1 @click="$refs.qsEditor.quill.focus()">題目</h1>
-          </label>
-          <vue-editor @text-change="contentChange" ref="qsEditor" :editorToolbar="editorToolbar" :editorOptions="editorSettings" v-model="content"></vue-editor>
-        </b-col>
-      </b-row>
-    </div>
-    <div class="row-group">
-      <transition-group name="flip-list" tag="div">
-      <b-row v-for="(choice, index) in choices" v-bind:key="choice.id" class="mb-2">
-        <!-- 選項表單開始 -->
-        <div
-          class="dragable"
-          :index="index"
-          draggable="true"
-          @dragstart="dragStart"
-          @dragend="$event.target.style.opacity = null;"
-          @drag.prevent="drag"
-          @dragover.prevent="dragOver"
-          @drop.prevent="drop"
-        >
-          <!-- 選項標題 -->
-          <b-row>
-            <b-col>
-              <h1 :index="choice.id" @click="focusEditor">{{index}} - {{choice.id}}</h1>
-            </b-col>
-          </b-row>
-
-          <b-row>
-
-            <!-- 選項答案選取 -->
-            <b-col cols="auto" class="align-self-center">
-              <input
-                type="radio"
-                @change="onAnswerChange"
-                :value="choice.id"
-                :checked="initAnswerId === choice.id ? true : false"
-              >
-            </b-col>
-
-            <!-- 選項編輯區 -->
-            <b-col
-              cols="10"
-              draggable="false"
-              @dragend="returnFalse"
-              @dragstart="returnFalse"
-              @drag="returnFalse"
+    <div class="c-scollbar" ref="ediotorBlock">
+      <div class="row-group">
+        <b-row class="mb-2">
+          <b-col>
+            <label>
+              <h1 @click="$refs.qsEditor.quill.focus()">題目</h1>
+            </label>
+            <vue-editor
+              @text-change="contentChange"
+              ref="qsEditor"
+              :editorToolbar="editorToolbar"
+              :editorOptions="editorSettings"
+              v-model="content"
+            ></vue-editor>
+          </b-col>
+        </b-row>
+      </div>
+      <div class="row-group">
+        <transition-group name="flip-list" tag="div">
+          <b-row v-for="(choice, index) in choices" v-bind:key="choice.id" class="mb-2">
+            <!-- 選項表單開始 -->
+            <div
+              class="dragable"
+              :index="index"
+              draggable="true"
+              @dragstart="dragStart"
+              @dragend="$event.target.style.opacity = null;"
+              @drag.prevent="drag"
+              @dragover.prevent="dragOver"
+              @drop.prevent="drop"
             >
-              <vue-editor
-                :ref="`choice-${choice.id}`"
-                @text-change="contentChange"
-                @mousedown="returnFalse"
-                :editorOptions="editorSettings"
-                v-model="choice.content"
-              ></vue-editor>
-            </b-col>
-
-            <!-- 操作工具列開始 -->
-            <b-col cols="1" class="toolbar">
-              <!-- 新增選項 -->
+              <!-- 選項標題 -->
               <b-row>
                 <b-col>
-                  <b-button variant="success" @click="addChoice(index)">
-                    <i class="fas fa-plus"></i>
-                  </b-button>
+                  <h1 :index="choice.id" @click="focusEditor">{{index}} - {{choice.id}}</h1>
                 </b-col>
               </b-row>
 
-              <!-- 刪除選項 -->
               <b-row>
-                <b-col>
-                  <b-button
-                    :disabled="choiceDeleteDisable"
-                    variant="danger"
-                    @click="removeChoice($event, index)"
+                <!-- 選項答案選取 -->
+                <b-col cols="auto" class="align-self-center">
+                  <input
+                    type="radio"
+                    @change="onAnswerChange"
+                    :value="choice.id"
+                    :checked="initAnswerId === choice.id ? true : false"
+                    :disabled="isProcess"
                   >
-                    <i class="fas fa-minus"></i>
-                  </b-button>
                 </b-col>
-              </b-row>
 
-              <!-- 與上方交換選項 -->
-              <b-row>
-                <b-col>
-                  <b-button v-show="!index == 0" @click="swapChoice(index, -1)">
-                    <i class="fas fa-caret-up"></i>
-                  </b-button>
+                <!-- 選項編輯區 -->
+                <b-col
+                  cols="10"
+                  draggable="false"
+                  @dragend="returnFalse"
+                  @dragstart="returnFalse"
+                  @drag="returnFalse"
+                >
+                  <vue-editor
+                    :ref="`choice-${choice.id}`"
+                    @text-change="contentChange"
+                    @mousedown="returnFalse"
+                    :editorOptions="editorSettings"
+                    v-model="choice.content"
+                  ></vue-editor>
                 </b-col>
-              </b-row>
 
-              <!-- 與下方交換選項 -->
-              <b-row>
-                <b-col>
-                  <b-button
-                    v-show="!(index === (choices.length - 1))"
-                    @click="swapChoice(index, 1)"
-                  >
-                    <i class="fas fa-caret-down"></i>
-                  </b-button>
+                <!-- 操作工具列開始 -->
+                <b-col cols="1" class="toolbar">
+                  <!-- 新增選項 -->
+                  <b-row>
+                    <b-col>
+                      <b-button variant="success" @click="addChoice(index)">
+                        <i class="fas fa-plus"></i>
+                      </b-button>
+                    </b-col>
+                  </b-row>
+
+                  <!-- 刪除選項 -->
+                  <b-row>
+                    <b-col>
+                      <b-button
+                        :disabled="choiceDeleteDisable"
+                        variant="danger"
+                        @click="removeChoice($event, index)"
+                      >
+                        <i class="fas fa-minus"></i>
+                      </b-button>
+                    </b-col>
+                  </b-row>
+
+                  <!-- 與上方交換選項 -->
+                  <b-row>
+                    <b-col>
+                      <b-button v-show="!index == 0" @click="swapChoice(index, -1)">
+                        <i class="fas fa-caret-up"></i>
+                      </b-button>
+                    </b-col>
+                  </b-row>
+
+                  <!-- 與下方交換選項 -->
+                  <b-row>
+                    <b-col>
+                      <b-button
+                        v-show="!(index === (choices.length - 1))"
+                        @click="swapChoice(index, 1)"
+                      >
+                        <i class="fas fa-caret-down"></i>
+                      </b-button>
+                    </b-col>
+                  </b-row>
                 </b-col>
               </b-row>
-            </b-col>
+            </div>
           </b-row>
-        </div>
-      </b-row>
-      </transition-group>
-    </div>
+        </transition-group>
+      </div>
     </div>
     <div ref="saveBlock" class="save-block d-flex justify-content-center">
       <b-row>
         <b-col>
-          <b-button variant="success" @click="saveQuestion">儲存</b-button>
+          <b-button :disabled="isProcess" variant="success" @click="saveQuestion">儲存</b-button>
         </b-col>
         <b-col>
-          <b-button variant="danger" @click="recoveryQuestion">取消</b-button>
+          <b-button :disabled="isProcess" variant="danger" @click="recoveryQuestion">取消</b-button>
         </b-col>
       </b-row>
     </div>
@@ -188,6 +194,11 @@ import questionShow from "./question-show.vue";
 
 let initAnswerId = null;
 
+const changeProcessState = function(state) {
+  this.isProcess = state;
+  this.$emit("process-state-change", this.isProcess);
+};
+
 export default {
   components: {
     VueEditor,
@@ -198,12 +209,14 @@ export default {
     choices: Array,
     question: String,
     initAnswerId: String,
-    inputId: {type: Number, default: null},
-    questionId: {type: Number, default: null}
+    inputId: { type: Number, default: null },
+    questionId: { type: Number, default: null }
   },
 
   data() {
     return {
+      isProcess: false,
+
       // 目前選取的ID(內部)
       currentId: null,
 
@@ -250,18 +263,21 @@ export default {
   computed: {
     getClientHeight() {
       // console.log(this.$refs.saveBlock)
-      return innerHeight - document.querySelector('nav').clientHeight - 5;
+      return innerHeight - document.querySelector("nav").clientHeight - 5;
     }
   },
 
-
   updated() {
     // 確認是否為變更選項操作
-    if(this.currentId !== this.inputId) {
+    if (this.currentId !== this.inputId) {
       // 在下次更新才將內部狀態更新，用於判斷是否修改
       this.$nextTick(() => {
         this.currentId = this.inputId;
       });
+    }
+
+    if (this.initAnswerId !== this.answerId) {
+      this.answerId = this.initAnswerId;
     }
   },
 
@@ -286,46 +302,57 @@ export default {
 
     // 讀取目前網頁剩餘的高度
     setEditorHeight() {
-      console.log(this.$refs.saveBlock.clientHeight);
-      this.$refs.ediotorBlock.style.height = (innerHeight - document.querySelector('nav').clientHeight - this.$refs.saveBlock.clientHeight - 5) + "px";
+      this.$refs.ediotorBlock.style.height =
+        innerHeight -
+        document.querySelector("nav").clientHeight -
+        this.$refs.saveBlock.clientHeight -
+        5 +
+        "px";
     },
 
     // 問題輸入框debounce功能(500ms間隔)
-    contentDebounce: debounce(function(){
+    contentDebounce: debounce(function() {
       this.$emit("on-question-change", this.content);
     }, 50),
 
     saveQuestion() {
-      // 使用Ajax儲存目前問題資料
-      axios.post('/question', {
-        id: this.questionId,
+      const payload = {
         answer_id: this.answerId,
         question: this.question,
         choices: JSON.stringify(this.choices),
         /** 目前題目排序尚未實作(由上一層父組件用props傳入order) **/
         order: 0
-      })
-      .then((res) => {
-        console.log(res);
-        // 儲存成功
-        this.$emit('save-state-change', true);
-        this.$emit('save-success');
-      })
-      .catch((err) => {
-        /** 儲存失敗(需要實作跳出儲存失敗視窗) **/
-        console.log(err);
-      })
+      };
+      if (this.questionId) {
+        payload.id = this.questionId;
+      }
+      // 使用Ajax儲存目前問題資料
+      axios
+        .post("/question", payload)
+        .then(res => {
+          // 儲存成功
+          this.$emit("save-state-change", true);
+          this.$emit("save-success", res.data);
+        })
+        .catch(err => {
+          /** 儲存失敗(需要實作跳出儲存失敗視窗) **/
+          console.log(err);
+        })
+        .finally(() => {
+          changeProcessState.call(this, false);
+        });
+      changeProcessState.call(this, true);
     },
 
     // 取消按鈕事件(復原回原本狀態)
     recoveryQuestion() {
       // 送出復原信號
-      this.$emit('recovery');
+      this.$emit("recovery");
       // 告訴該組件目前為復原狀態
       this.isRecovery = true;
       this.answerId = initAnswerId;
       // 送出儲存狀態為以儲存(因為復原回資料庫剛拿出來的資料)
-      this.$emit('save-state-change', true);
+      this.$emit("save-state-change", true);
     },
 
     // question欄位內容改變
@@ -335,8 +362,8 @@ export default {
     },
 
     showNotSave() {
-      if(this.inputId === this.currentId && !this.isRecovery) {
-        this.$emit('save-state-change', false);
+      if (this.inputId === this.currentId && !this.isRecovery) {
+        this.$emit("save-state-change", false);
       }
 
       // 復位isRecovery數值，使它可以重新判斷是否儲存
@@ -352,8 +379,8 @@ export default {
 
     // 刪除選項
     removeChoice(e, id) {
-      if(this.answerId === this.choices[id].id) {
-        this.answerChange(this.choices[id === 0 ? 1 : 0].id)
+      if (this.answerId === this.choices[id].id) {
+        this.answerChange(this.choices[id === 0 ? 1 : 0].id);
       }
       this.choices.splice(id, 1);
     },
@@ -382,7 +409,7 @@ export default {
     },
 
     onAnswerChange(e) {
-      this.answerChange(e.target.value)
+      this.answerChange(e.target.value);
     },
 
     drag(e) {
@@ -416,7 +443,7 @@ export default {
       const targetIndex = e.target.closest(".dragable").getAttribute("index");
 
       // 確認動畫移動是否完成(來源與目標都指向自己)
-      if(sourceIndex === targetIndex) {
+      if (sourceIndex === targetIndex) {
         this.prvSourceIndex = null;
       }
 
@@ -428,7 +455,6 @@ export default {
         // 避免動畫交互觸發事件(前一次來源與目標不相同)
         this.prvSourceIndex !== targetIndex
       ) {
-
         // 暫存來源資料
         const sourceData = this.choices[sourceIndex];
         const finalIndex = this.choices.length - 1;
@@ -480,8 +506,6 @@ export default {
 
     initCreated() {
       this.content = this.question;
-      if(this.initAnswerId)
-        this.answerId = this.initAnswerId;
       this.isInit = true;
       initAnswerId = this.answerId;
     },

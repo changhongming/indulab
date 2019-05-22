@@ -2,14 +2,12 @@
   <div class="qs">
     <b-row>
       <div class="ql-viewer">
-        <span>{{qid + 1}}.</span>
+        <span>{{serial + 1}}.</span>
         <div v-html="showText(question)">{{ showText(question) }}</div>
         <span class="ql-notsave" v-show="!isSave">未儲存</span>
       </div>
     </b-row>
     <b-row v-for="(choice) in choices" v-bind:key="choice.id">
-      <!-- <span>{{qid}}.</span> -->
-
       <div>
         <label>
           <input
@@ -23,7 +21,7 @@
           <span v-html="showText(choice.content)">{{ showText(choice.content) }}</span>
         </label>
         <div class="remove">
-          <b-button variant="danger" @click="destroy">Remove</b-button>
+          <b-button :selId="serial" variant="danger" @click="destroy">Remove</b-button>
         </div>
       </div>
     </b-row>
@@ -125,6 +123,7 @@ export default {
     question: String,
     answer: String,
     qid: Number,
+    serial: Number
   },
 
   computed: {},
@@ -143,8 +142,11 @@ export default {
 
     destroy(e) {
       console.log(this.qid);
-
-      this.$emit("destroy",e , this.qid);
+      const id = {
+        selId: Number(e.target.getAttribute("selId")),
+        qid: this.qid
+      };
+      this.$emit("destroy", e, id);
       e.stopPropagation();
     }
   },
