@@ -18,6 +18,7 @@
           v-model="rangeValue"
           @focus.native="onFocus"
           @blur.native="onBlur"
+          class="form-control"
         />
         <b-input-group-append>
           <b-form-input
