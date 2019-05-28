@@ -28,7 +28,7 @@
   </div>
 </template>
 
-<style>
+<style scoped>
 .qs:hover .remove {
   display: block;
 }
@@ -50,7 +50,8 @@
   word-wrap: break-word;
 }
 
-.ql-viewer p .ql-viewer ol,
+.ql-viewer p,
+.ql-viewer ol,
 .ql-viewer ul,
 .ql-viewer pre,
 .ql-viewer blockquote,
@@ -126,7 +127,6 @@ export default {
     serial: Number
   },
 
-  computed: {},
 
   methods: {
     showText(text) {

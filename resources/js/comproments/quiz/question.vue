@@ -1,5 +1,5 @@
 <template>
-  <b-container fluid>
+  <div>
     <div class="c-scollbar" ref="ediotorBlock">
       <div class="row-group">
         <b-row class="mb-2">
@@ -10,7 +10,7 @@
             <vue-editor
               @text-change="contentChange"
               ref="qsEditor"
-              :editorToolbar="editorToolbar"
+
               :editorOptions="editorSettings"
               v-model="content"
             ></vue-editor>
@@ -32,15 +32,15 @@
               @drop.prevent="drop"
             >
               <!-- 選項標題 -->
-              <b-row>
+              <!-- <b-row>
                 <b-col>
                   <h1 :index="choice.id" @click="focusEditor">{{index}} - {{choice.id}}</h1>
                 </b-col>
-              </b-row>
+              </b-row> -->
 
               <b-row>
                 <!-- 選項答案選取 -->
-                <b-col cols="auto" class="align-self-center">
+                <b-col cols="auto" class="choice-radio d-flex align-items-center">
                   <input
                     type="radio"
                     @change="onAnswerChange"
@@ -52,6 +52,7 @@
 
                 <!-- 選項編輯區 -->
                 <b-col
+                  class="choice-editor"
                   cols="10"
                   draggable="false"
                   @dragend="returnFalse"
@@ -59,6 +60,7 @@
                   @drag="returnFalse"
                 >
                   <vue-editor
+                    class="choiceeditor"
                     :ref="`choice-${choice.id}`"
                     @text-change="contentChange"
                     @mousedown="returnFalse"
@@ -128,12 +130,48 @@
         </b-col>
       </b-row>
     </div>
-  </b-container>
+  </div>
 </template>
 
+<style>
+/* .ql-editor {
+  max-height:200px;
+} */
+.choiceeditor .ql-editor {
+  min-height:100px;
+  max-height:100px;
+}
+</style>
+
+
 <style scoped>
+.choice-radio {
+  border: 1px solid lightgray;
+  border-right: 0;
+  padding: 0;
+  margin-left: 30px;
+}
+/*
+.choice-radio input {
+display: flex;
+align-items: center;
+justify-content: center;
+} */
+
+.choice-editor {
+  padding: 0;
+}
+
+.ans-radio div {
+  padding: 0;
+}
+
+
 .save-block {
-  margin-top: 5px;
+  border: 2px solid lightgray;
+  border-bottom-left-radius: 10px;
+  border-bottom-right-radius: 10px;
+  /* margin-top: 2px; */
 }
 .flip-list-item {
   transition: all 0.4s;
@@ -148,24 +186,28 @@
   position: absolute;
 }
 
-.q-title {
-  /* border: 2px solid black; */
-  border-left-width: 5px;
-  border-left-color: blue;
-  border-left-style: solid;
-  padding-left: 15px;
-}
-
+/* div.ql-editor {
+  min-height: 100px !important;
+} */
 .row-group {
-  border: 4px solid red;
-  border-radius: 20px;
-  margin: 25px;
+  border: 2px solid #2F7AE0;
+  /* border-radius: 15px; */
+  margin: 15px;
+  margin-top: 0;
+  margin-bottom: 0;
   padding: 15px;
 }
 
 .c-scollbar {
   position: relative;
   overflow: auto;
+  /* background-color: rgb(3, 169, 244); */
+  border-color: #93AF95;
+  border-style:solid;
+  border-width: 2px;
+  border-bottom-width: 0;
+  border-top-left-radius: 10px;
+  border-top-right-radius: 10px;
 }
 
 .dragable:hover .toolbar {
@@ -253,7 +295,7 @@ export default {
       editorToolbar: [
         [{ size: ["small", false, "large", "huge"] }],
         [{ header: [1, 2, 3, 4, 5, 6, false] }],
-        ["bold", "italic", "underline", "strike", "formula", "link"],
+        ["bold", "italic", "underline", "strike", "formula", "link", "script", "color"],
         [{ list: "ordered" }, { list: "bullet" }],
         ["image", "video"]
       ]
@@ -310,7 +352,7 @@ export default {
         "px";
     },
 
-    // 問題輸入框debounce功能(500ms間隔)
+    // 問題輸入框debounce功能(50ms間隔)
     contentDebounce: debounce(function() {
       this.$emit("on-question-change", this.content);
     }, 50),
@@ -336,7 +378,26 @@ export default {
         })
         .catch(err => {
           /** 儲存失敗(需要實作跳出儲存失敗視窗) **/
-          console.log(err);
+
+          const status = err.response.status;
+          switch (status) {
+            case 419:
+              axios.post('/login', {
+                login: 'user',
+                password: '1234'
+              })
+              .then(res => {
+                console.log('login sucess');
+              })
+              .catch(error => {
+                console.log(err);
+              })
+            break;
+          }
+
+          if(err.response.status === 419) {
+          }
+          console.log(err.response.status);
         })
         .finally(() => {
           changeProcessState.call(this, false);
@@ -433,9 +494,14 @@ export default {
     },
 
     dragStart(e) {
-      // 記錄拖動元件的索引
-      this.dragingIndex = e.target.getAttribute("index");
-      e.target.style.opacity = ".5";
+      try{
+        // 記錄拖動元件的索引
+        this.dragingIndex = e.target.getAttribute("index");
+        e.target.style.opacity = ".5";
+      }
+      catch(err){
+        return;
+      }
     },
 
     dragOver(e) {

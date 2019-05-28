@@ -41,7 +41,7 @@
       </div>
 
       <b-row v-if="questions.length !== 0">
-        <b-col cols="6">
+        <b-col cols="12" md="6">
           <question
             :question="questions[selId].question"
             :choices="questions[selId].choices"
@@ -57,7 +57,7 @@
             ref="questionEditor"
           ></question>
         </b-col>
-        <b-col cols="6">
+        <b-col cols="12" md="6">
           <b-container fluid class="c-scollbar" :style="{ height: getClientHeight + 'px'}">
             <div class="list-group" v-if="questions.length !== 0">
               <li
@@ -87,7 +87,18 @@
   </b-container>
 </template>
 
-<style>
+<style scoped>
+body {
+  background-color: #F1FFFA;
+}
+.col-border {
+  /* border: 4px; */
+  border-color: lightgray;
+  border-style:solid;
+  border-width: 2px;
+  border-radius: 15px;
+}
+
 .lds-ring .lds-ring-text {
   display: inline-block;
   position: relative;
@@ -139,9 +150,18 @@
   font-size: 26px;
 }
 
+.list-group {
+  margin-top: 20px;
+}
+
 .c-scollbar {
   position: relative;
   overflow: auto;
+  border-color: #93AF95;
+  border-style:solid;
+  border-width: 2px;
+  border-radius: 10px;
+  background-color: #96E6B3
 }
 
 .qs-selected {
