@@ -116,6 +116,7 @@ export default {
       // 使用 kebab-case 命名(不區分大小寫)
       // 當內部值改變發出改變的數值，給父元件進行更新(雙向綁定)
       this.$emit("update:on-value-change", parseFloat(this.rangeValue));
+      this.$emit("setup-value", parseFloat(this.rangeValue));
     },
     onClickRangeInputClear() {
       this.$emit("on-clear-btn-click");

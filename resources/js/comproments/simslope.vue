@@ -122,6 +122,7 @@
               unit="m"
               type="range"
               v-bind:on-value-change.sync="inputSlopeBreakPoint"
+              v-on:setup-value="drawBreakPoint"
               v-on:on-clear-btn-click="clearBreakPoint"
             />
           </b-col>
@@ -463,9 +464,6 @@ export default {
   watch: {
     g: function(val) {
       this.accel = (val * Math.sin(deg2rad(this.angle))).toFixed(2);
-    },
-    inputSlopeBreakPoint: function(val) {
-      this.drawBreakPoint();
     },
     inputSlopeLength: function(val, oldVal) {
       this.ratio2cm = (1 / val) * 1000;
@@ -1029,6 +1027,7 @@ export default {
       this.tickTime = 0;
       this.vol = 0;
       this.disp = 0;
+      animTime = 0;
     },
     clearBreakPoint() {
       if (_breakPointGroup !== null && "destroy" in _breakPointGroup) {
