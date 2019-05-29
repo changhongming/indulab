@@ -373,6 +373,16 @@ export default {
     },
 
     destroy(e, id) {
+      // 如果問題已建立，但尚未保存置資料庫(資料庫還沒有索引)
+      if(id.qid === null) {
+          this.$nextTick(() => {
+            initQuestion.splice(id.selId, 1);
+            this.questions.splice(id.selId, 1);
+            this.selId = 0;
+          });
+      }
+      // 如果資料庫已建立索引
+      else {
       axios
         .delete(`/question/${id.qid}`)
         .then(res => {
@@ -387,6 +397,7 @@ export default {
         .catch(err => {
           console.log(err);
         });
+      }
     },
 
     uuid() {
