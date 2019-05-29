@@ -10,7 +10,6 @@
             <vue-editor
               @text-change="contentChange"
               ref="qsEditor"
-
               :editorOptions="editorSettings"
               v-model="content"
             ></vue-editor>
@@ -36,13 +35,14 @@
                 <b-col>
                   <h1 :index="choice.id" @click="focusEditor">{{index}} - {{choice.id}}</h1>
                 </b-col>
-              </b-row> -->
+              </b-row>-->
 
               <b-row>
                 <!-- 選項答案選取 -->
-                <b-col cols="auto" class="choice-radio d-flex align-items-center">
+                <b-col cols="auto" @click="answerClick" class="choice-radio d-flex align-items-center" :class="answerId === choice.id ? 'checked' : ''">
                   <input
                     type="radio"
+                    class="radio"
                     @change="onAnswerChange"
                     :value="choice.id"
                     :checked="initAnswerId === choice.id ? true : false"
@@ -70,50 +70,44 @@
                 </b-col>
 
                 <!-- 操作工具列開始 -->
-                <b-col cols="1" class="toolbar">
+                <div class="toolbar">
                   <!-- 新增選項 -->
-                  <b-row>
-                    <b-col>
-                      <b-button variant="success" @click="addChoice(index)">
-                        <i class="fas fa-plus"></i>
-                      </b-button>
-                    </b-col>
-                  </b-row>
+                  <div class="row">
+                    <b-button class="tool" variant="success" @click="addChoice(index)">
+                      <i class="fas fa-plus"></i>
+                    </b-button>
+                  </div>
 
                   <!-- 刪除選項 -->
-                  <b-row>
-                    <b-col>
-                      <b-button
-                        :disabled="choiceDeleteDisable"
-                        variant="danger"
-                        @click="removeChoice($event, index)"
-                      >
-                        <i class="fas fa-minus"></i>
-                      </b-button>
-                    </b-col>
-                  </b-row>
+                  <div class="row">
+                    <b-button
+                      class="tool"
+                      :disabled="choiceDeleteDisable"
+                      variant="danger"
+                      @click="removeChoice($event, index)"
+                    >
+                      <i class="fas fa-minus"></i>
+                    </b-button>
+                  </div>
 
                   <!-- 與上方交換選項 -->
-                  <b-row>
-                    <b-col>
-                      <b-button v-show="!index == 0" @click="swapChoice(index, -1)">
-                        <i class="fas fa-caret-up"></i>
-                      </b-button>
-                    </b-col>
-                  </b-row>
+                  <div class="row">
+                    <b-button class="tool" v-show="!index == 0" @click="swapChoice(index, -1)">
+                      <i class="fas fa-caret-up"></i>
+                    </b-button>
+                  </div>
 
                   <!-- 與下方交換選項 -->
-                  <b-row>
-                    <b-col>
-                      <b-button
-                        v-show="!(index === (choices.length - 1))"
-                        @click="swapChoice(index, 1)"
-                      >
-                        <i class="fas fa-caret-down"></i>
-                      </b-button>
-                    </b-col>
-                  </b-row>
-                </b-col>
+                  <div class="row tool">
+                    <b-button
+                      class="tool"
+                      v-show="!(index === (choices.length - 1))"
+                      @click="swapChoice(index, 1)"
+                    >
+                      <i class="fas fa-caret-down"></i>
+                    </b-button>
+                  </div>
+                </div>
               </b-row>
             </div>
           </b-row>
@@ -133,19 +127,59 @@
   </div>
 </template>
 
-<style>
+<style scoped>
 /* .ql-editor {
   max-height:200px;
 } */
 .choiceeditor .ql-editor {
-  min-height:100px;
-  max-height:100px;
+  min-height: 100px;
+  max-height: 100px;
+}
+
+.checked {
+  background: #2f7ae0;
+}
+
+/* radio button */
+.radio {
+  max-height: 100%;
+  cursor: pointer;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  display: inline-block;
+  position: relative;
+  background-color: #f1f1f1;
+  color: green;
+  top: 10px;
+  height: 30px;
+  width: 30px;
+  border: 0;
+  border-radius: 50px;
+  margin-right: 7px;
+  outline: none;
+  margin-left: 10px;
+}
+.radio:checked::before {
+  position: absolute;
+  font: 13px/1 "Open Sans", sans-serif;
+  left: 11px;
+  top: 7px;
+  content: "\02143";
+  transform: rotate(40deg);
+}
+.radio:hover {
+  background-color: #f7f7f7;
+}
+.radio:checked {
+  background-color: #f1f1f1;
 }
 </style>
 
 
 <style scoped>
 .choice-radio {
+  cursor: pointer;
   border: 1px solid lightgray;
   border-right: 0;
   padding: 0;
@@ -165,7 +199,6 @@ justify-content: center;
 .ans-radio div {
   padding: 0;
 }
-
 
 .save-block {
   border: 2px solid lightgray;
@@ -190,7 +223,7 @@ justify-content: center;
   min-height: 100px !important;
 } */
 .row-group {
-  border: 2px solid #2F7AE0;
+  border: 2px solid #2f7ae0;
   /* border-radius: 15px; */
   margin: 15px;
   margin-top: 0;
@@ -202,8 +235,8 @@ justify-content: center;
   position: relative;
   overflow: auto;
   /* background-color: rgb(3, 169, 244); */
-  border-color: #93AF95;
-  border-style:solid;
+  border-color: #93af95;
+  border-style: solid;
   border-width: 2px;
   border-bottom-width: 0;
   border-top-left-radius: 10px;
@@ -216,6 +249,14 @@ justify-content: center;
 
 .toolbar {
   display: none;
+  position: relative;
+  top: 15px;
+  right: 20px;
+}
+
+.toolbar .row .tool {
+  min-width: 38px;
+  max-width: 38px;
 }
 </style>
 
@@ -295,7 +336,16 @@ export default {
       editorToolbar: [
         [{ size: ["small", false, "large", "huge"] }],
         [{ header: [1, 2, 3, 4, 5, 6, false] }],
-        ["bold", "italic", "underline", "strike", "formula", "link", "script", "color"],
+        [
+          "bold",
+          "italic",
+          "underline",
+          "strike",
+          "formula",
+          "link",
+          "script",
+          "color"
+        ],
         [{ list: "ordered" }, { list: "bullet" }],
         ["image", "video"]
       ]
@@ -382,20 +432,21 @@ export default {
           const status = err.response.status;
           switch (status) {
             case 419:
-              axios.post('/login', {
-                login: 'user',
-                password: '1234'
-              })
-              .then(res => {
-                console.log('login sucess');
-              })
-              .catch(error => {
-                console.log(err);
-              })
-            break;
+              axios
+                .post("/login", {
+                  login: "user",
+                  password: "1234"
+                })
+                .then(res => {
+                  console.log("login sucess");
+                })
+                .catch(error => {
+                  console.log(err);
+                });
+              break;
           }
 
-          if(err.response.status === 419) {
+          if (err.response.status === 419) {
           }
           console.log(err.response.status);
         })
@@ -444,6 +495,7 @@ export default {
         this.answerChange(this.choices[id === 0 ? 1 : 0].id);
       }
       this.choices.splice(id, 1);
+      this.showNotSave();
     },
 
     // 新增選項
@@ -469,7 +521,12 @@ export default {
       this.showNotSave();
     },
 
+    answerClick(e) {
+      this.answerChange(e.target.getElementsByTagName('input')[0].value);
+    },
+
     onAnswerChange(e) {
+      console.log(typeof e)
       this.answerChange(e.target.value);
     },
 
@@ -494,12 +551,11 @@ export default {
     },
 
     dragStart(e) {
-      try{
+      try {
         // 記錄拖動元件的索引
         this.dragingIndex = e.target.getAttribute("index");
         e.target.style.opacity = ".5";
-      }
-      catch(err){
+      } catch (err) {
         return;
       }
     },
