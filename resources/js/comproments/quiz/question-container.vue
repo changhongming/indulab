@@ -73,6 +73,7 @@
                   :answer="question.answer"
                   :question="question.question"
                   :choices="question.choices"
+                  :removeDisgabled="questions.length <= 1 ? true : false"
                   v-on:destroy="destroy"
                 ></questionShow>
               </li>
@@ -423,6 +424,13 @@ export default {
         });
         vm.selId = 0;
         vm.questions = questions;
+        // 此問題庫資料為空
+        if(res.data.length === 0) {
+          // 等待空陣列初始化完成直接加入一個新問題
+          vm.$nextTick(()=> {
+            vm.addQuestion()
+          });
+        }
         initQuestion = JSON.parse(JSON.stringify(questions));
       })
       .catch(err => {

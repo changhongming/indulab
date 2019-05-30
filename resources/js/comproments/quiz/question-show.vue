@@ -21,7 +21,9 @@
           <span v-html="showText(choice.content)">{{ showText(choice.content) }}</span>
         </label>
         <div class="remove">
-          <b-button :selId="serial" variant="danger" @click="destroy">Remove</b-button>
+          <b-button :disabled="removeDisgabled" :selId="serial" variant="danger" @click="destroy">
+            <i class="fas fa-trash-alt"></i>
+          </b-button>
         </div>
       </div>
     </b-row>
@@ -124,9 +126,9 @@ export default {
     question: String,
     answer: String,
     qid: Number,
-    serial: Number
+    serial: Number,
+    removeDisgabled: Boolean
   },
-
 
   methods: {
     showText(text) {
