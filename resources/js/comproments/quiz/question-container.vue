@@ -44,12 +44,14 @@
         <b-col cols="12" md="6">
           <question
             :question="questions[selId].question"
+            :wrong-answer="questions[selId].wronganswer"
             :choices="questions[selId].choices"
             :initAnswerId="questions[selId].answer"
             :questionId="questions[selId].id"
             :inputId="selId ? selId : -1"
             v-on:recovery="recoveryQuestion"
             v-on:on-question-change="questions[selId].question = $event"
+            v-on:on-wrong-answer-change="questions[selId].wronganswer = $event"
             v-on:answer-value="answerevt"
             v-on:save-state-change="saveStateChange"
             v-on:save-success="questionSaveSuccess"
@@ -72,6 +74,7 @@
                   :serial="index"
                   :answer="question.answer"
                   :question="question.question"
+                  :wrong-answer="question.wronganswer"
                   :choices="question.choices"
                   :removeDisgabled="questions.length <= 1 ? true : false"
                   v-on:destroy="destroy"
@@ -90,12 +93,12 @@
 
 <style scoped>
 body {
-  background-color: #F1FFFA;
+  background-color: #f1fffa;
 }
 .col-border {
   /* border: 4px; */
   border-color: lightgray;
-  border-style:solid;
+  border-style: solid;
   border-width: 2px;
   border-radius: 15px;
 }
@@ -158,11 +161,11 @@ body {
 .c-scollbar {
   position: relative;
   overflow: auto;
-  border-color: #93AF95;
-  border-style:solid;
+  border-color: #93af95;
+  border-style: solid;
   border-width: 2px;
   border-radius: 10px;
-  background-color: #96E6B3
+  background-color: #96e6b3;
 }
 
 .qs-selected {
@@ -343,6 +346,7 @@ export default {
         id: null,
         order: ++this.order,
         question: "",
+        wronganswer: "",
         answer: defaultAnswerId,
         choices: [
           {
@@ -375,29 +379,29 @@ export default {
 
     destroy(e, id) {
       // 如果問題已建立，但尚未保存置資料庫(資料庫還沒有索引)
-      if(id.qid === null) {
-          this.$nextTick(() => {
-            initQuestion.splice(id.selId, 1);
-            this.questions.splice(id.selId, 1);
-            this.selId = 0;
-          });
+      if (id.qid === null) {
+        this.$nextTick(() => {
+          initQuestion.splice(id.selId, 1);
+          this.questions.splice(id.selId, 1);
+          this.selId = 0;
+        });
       }
       // 如果資料庫已建立索引
       else {
-      axios
-        .delete(`/question/${id.qid}`)
-        .then(res => {
-          console.log(res, id);
-          // 等待刷新完成在重新指向刷新後的位置
-          this.$nextTick(() => {
-            initQuestion.splice(id.selId, 1);
-            this.questions.splice(id.selId, 1);
-            this.selId = 0;
+        axios
+          .delete(`/question/${id.qid}`)
+          .then(res => {
+            console.log(res, id);
+            // 等待刷新完成在重新指向刷新後的位置
+            this.$nextTick(() => {
+              initQuestion.splice(id.selId, 1);
+              this.questions.splice(id.selId, 1);
+              this.selId = 0;
+            });
+          })
+          .catch(err => {
+            console.log(err);
           });
-        })
-        .catch(err => {
-          console.log(err);
-        });
       }
     },
 
@@ -418,6 +422,7 @@ export default {
             id: row.id,
             order: row.order,
             question: row.question,
+            wronganswer: row.wrong_answer_message,
             answer: row.answer_id,
             choices: JSON.parse(row.choices)
           });
@@ -425,10 +430,10 @@ export default {
         vm.selId = 0;
         vm.questions = questions;
         // 此問題庫資料為空
-        if(res.data.length === 0) {
+        if (res.data.length === 0) {
           // 等待空陣列初始化完成直接加入一個新問題
-          vm.$nextTick(()=> {
-            vm.addQuestion()
+          vm.$nextTick(() => {
+            vm.addQuestion();
           });
         }
         initQuestion = JSON.parse(JSON.stringify(questions));

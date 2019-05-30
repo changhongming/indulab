@@ -17,6 +17,21 @@
         </b-row>
       </div>
       <div class="row-group">
+        <b-row class="mb-2">
+          <b-col>
+            <label>
+              <h1>答錯解釋</h1>
+            </label>
+            <vue-editor
+              @text-change="wrongAnswerChange"
+              ref="qsEditor"
+              :editorOptions="editorSettings"
+              v-model="wrongAnswerContent"
+            ></vue-editor>
+          </b-col>
+        </b-row>
+      </div>
+      <div class="row-group">
         <transition-group name="flip-list" tag="div">
           <b-row v-for="(choice, index) in choices" v-bind:key="choice.id" class="mb-2">
             <!-- 選項表單開始 -->
@@ -291,6 +306,7 @@ export default {
   props: {
     choices: Array,
     question: String,
+    wrongAnswer: String,
     initAnswerId: String,
     inputId: { type: Number, default: null },
     questionId: { type: Number, default: null }
@@ -305,6 +321,8 @@ export default {
 
       // 問題輸入框內容
       content: null,
+
+      wrongAnswerContent: null,
 
       // 元件初始化完成狀態
       isInit: false,
@@ -383,6 +401,10 @@ export default {
 
     question(val) {
       this.content = val;
+    },
+
+    worngAnswer(val) {
+      this.wrongAnswerContent = val;
     }
   },
 
@@ -407,10 +429,16 @@ export default {
       this.$emit("on-question-change", this.content);
     }, 50),
 
+    wrongAnswerDebounce: debounce(function() {
+      console.log(this.wrongAnswerContent)
+      this.$emit("on-wrong-answer-change", this.wrongAnswerContent);
+    }, 50),
+
     saveQuestion() {
       const payload = {
         answer_id: this.answerId,
         question: this.question,
+        wrong_answer: this.wrongAnswerContent,
         choices: JSON.stringify(this.choices),
         /** 目前題目排序尚未實作(由上一層父組件用props傳入order) **/
         order: 0
@@ -473,6 +501,11 @@ export default {
       this.showNotSave();
     },
 
+    wrongAnswerChange() {
+      this.wrongAnswerDebounce();
+      this.showNotSave();
+    },
+
     showNotSave() {
       if (this.inputId === this.currentId && !this.isRecovery) {
         this.$emit("save-state-change", false);
@@ -506,14 +539,14 @@ export default {
         this.choices[this.choices.length - 1].isLowest = false;
         this.choices.push({
           id: uid,
-          content: uid,
+          content: "",
           isHighest: false,
           isLowest: true
         });
       } else {
         this.choices.splice(id + 1, 0, {
           id: uid,
-          content: uid,
+          content: "",
           isHighest: false,
           isLowest: false
         });
@@ -628,6 +661,7 @@ export default {
 
     initCreated() {
       this.content = this.question;
+      this.wrongAnswerContent = this.wrongAnswer;
       this.isInit = true;
       initAnswerId = this.answerId;
     },

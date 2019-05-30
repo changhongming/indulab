@@ -3,8 +3,12 @@
     <b-row>
       <div class="ql-viewer">
         <span>{{serial + 1}}.</span>
+        <h1 class="title">題目</h1>
         <div v-html="showText(question)">{{ showText(question) }}</div>
         <span class="ql-notsave" v-show="!isSave">未儲存</span>
+        <h1 class="title">答案錯誤解釋：</h1>
+        <div v-html="showText(wrongAnswer)">{{ showText(wrongAnswer) }}</div>
+        <h1 class="title">選項：</h1>
       </div>
     </b-row>
     <b-row v-for="(choice) in choices" v-bind:key="choice.id">
@@ -42,82 +46,32 @@
   right: 0;
 }
 
-.ql-viewer {
-  box-sizing: border-box;
-  /* font-size: 13px; */
-  height: 100%;
-  margin: 0px;
-  width: 100%;
-  white-space: pre-wrap;
-  word-wrap: break-word;
-}
-
-.ql-viewer p,
-.ql-viewer ol,
-.ql-viewer ul,
-.ql-viewer pre,
-.ql-viewer blockquote,
-.ql-viewer h1,
-.ql-viewer h2,
-.ql-viewer h3,
-.ql-viewer h4,
-.ql-viewer h5,
-.ql-viewer h6 {
-  margin: 0;
-  padding: 0;
-}
-
-.ql-viewer blockquote {
-  border-left: 4px solid #ccc;
-  margin-bottom: 5px;
-  margin-top: 5px;
-  padding-left: 16px;
-}
-
-.ql-viewer .ql-size-small {
-  font-size: 0.75em;
-}
-.ql-viewer .ql-size-large {
-  font-size: 1.5em;
-}
-.ql-viewer .ql-size-huge {
-  font-size: 2.5em;
-}
-
-pre {
-  white-space: pre-wrap;
-  margin-bottom: 5px;
-  margin-top: 5px;
-  padding: 5px 10px;
-}
-
-pre.ql-syntax {
-  border-radius: 3px;
-  background-color: #23241f;
-  color: #f8f8f2;
-  overflow: visible;
-}
-
-.ql-align-center {
-  text-align: center;
-}
-.ql-align-justify {
-  text-align: justify;
-}
-.ql-align-right {
-  text-align: right;
-}
-
 .ql-notsave {
   background: red;
   color: #f8f8f2;
   padding: 4px;
+  margin-top: 4px;
+  margin-bottom: 4px;
   border-radius: 4px;
+}
+
+.qs-block {
+  border: #0000ff 2px solid;
+}
+
+.wrong-blcok {
+  border: #0000ff 2px solid;
+}
+
+.title {
+  font-weight: bold;
+  border-bottom: 1px solid #eee;
 }
 </style>
 
 
 <script>
+import "../../../sass/quiz.scss";
 import uuid from "../../uuid-gen";
 // import 'quill/dist/quill.core.css';
 export default {
@@ -125,6 +79,7 @@ export default {
     choices: Array,
     question: String,
     answer: String,
+    wrongAnswer: String,
     qid: Number,
     serial: Number,
     removeDisgabled: Boolean
