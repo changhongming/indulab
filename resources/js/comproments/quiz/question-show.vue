@@ -73,7 +73,8 @@
 <script>
 import "../../../sass/quiz.scss";
 import uuid from "../../uuid-gen";
-// import 'quill/dist/quill.core.css';
+import { mapState, mapGetters, mapActions } from "vuex";
+
 export default {
   props: {
     choices: Array,
@@ -82,7 +83,29 @@ export default {
     wrongAnswer: String,
     qid: Number,
     serial: Number,
-    removeDisgabled: Boolean
+    removeDisgabled: Boolean,
+    initIsSave: Boolean
+  },
+
+  computed: {
+    ...mapState("quiz", {
+      selectId: "selectId",
+      questions: "questions",
+      isLoaded: "isLoaded",
+      isLoadedFail: "isLoadedFail",
+      isProcess: "isLoading",
+      initQuestion: "initQuestions"
+    }),
+
+    ...mapGetters("quiz", {
+      questionNumber: "questionNumber"
+    })
+  },
+
+  watch: {
+    initIsSave(val) {
+      this.isSave = val;
+    }
   },
 
   methods: {

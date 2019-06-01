@@ -7,12 +7,12 @@
             <label>
               <h1 @click="$refs.qsEditor.quill.focus()">題目</h1>
             </label>
-            <vue-editor
-              @text-change="contentChange"
+            <quill-editor
+              @change="contentChange"
               ref="qsEditor"
               :editorOptions="editorSettings"
               v-model="content"
-            ></vue-editor>
+            />
           </b-col>
         </b-row>
       </div>
@@ -22,12 +22,12 @@
             <label>
               <h1>答錯解釋</h1>
             </label>
-            <vue-editor
-              @text-change="wrongAnswerChange"
+            <quill-editor
+              @change="wrongAnswerChange"
               ref="qsEditor"
               :editorOptions="editorSettings"
               v-model="wrongAnswerContent"
-            ></vue-editor>
+            />
           </b-col>
         </b-row>
       </div>
@@ -54,7 +54,12 @@
 
               <b-row>
                 <!-- 選項答案選取 -->
-                <b-col cols="auto" @click="answerClick" class="choice-radio d-flex align-items-center" :class="answerId === choice.id ? 'checked' : ''">
+                <b-col
+                  cols="auto"
+                  @click="answerClick"
+                  class="choice-radio d-flex align-items-center"
+                  :class="answerId === choice.id ? 'checked' : ''"
+                >
                   <input
                     type="radio"
                     class="radio"
@@ -74,21 +79,22 @@
                   @dragstart="returnFalse"
                   @drag="returnFalse"
                 >
-                  <vue-editor
+                  <quill-editor
                     class="choiceeditor"
+                    :content="choice.content"
+                    @change="choiceContentChange($event, index)"
                     :ref="`choice-${choice.id}`"
-                    @text-change="contentChange"
                     @mousedown="returnFalse"
                     :editorOptions="editorSettings"
-                    v-model="choice.content"
-                  ></vue-editor>
+                  />
+                  <!-- v-model="choice.content" -->
                 </b-col>
 
                 <!-- 操作工具列開始 -->
                 <div class="toolbar">
                   <!-- 新增選項 -->
                   <div class="row">
-                    <b-button class="tool" variant="success" @click="addChoice(index)">
+                    <b-button class="tool" variant="success" @click="addChoiceEvent(index)">
                       <i class="fas fa-plus"></i>
                     </b-button>
                   </div>
@@ -99,7 +105,7 @@
                       class="tool"
                       :disabled="choiceDeleteDisable"
                       variant="danger"
-                      @click="removeChoice($event, index)"
+                      @click="removeChoiceEvent($event, index)"
                     >
                       <i class="fas fa-minus"></i>
                     </b-button>
@@ -107,7 +113,11 @@
 
                   <!-- 與上方交換選項 -->
                   <div class="row">
-                    <b-button class="tool" v-show="!index == 0" @click="swapChoice(index, -1)">
+                    <b-button
+                      class="tool"
+                      v-show="!index == 0"
+                      @click="swapChoiceArg(index, index-1)"
+                    >
                       <i class="fas fa-caret-up"></i>
                     </b-button>
                   </div>
@@ -117,7 +127,7 @@
                     <b-button
                       class="tool"
                       v-show="!(index === (choices.length - 1))"
-                      @click="swapChoice(index, 1)"
+                      @click="swapChoiceArg(index, index+1)"
                     >
                       <i class="fas fa-caret-down"></i>
                     </b-button>
@@ -132,7 +142,7 @@
     <div ref="saveBlock" class="save-block d-flex justify-content-center">
       <b-row>
         <b-col>
-          <b-button :disabled="isProcess" variant="success" @click="saveQuestion">儲存</b-button>
+          <b-button :disabled="isProcess" variant="success" @click="saveQuestionEvent">儲存</b-button>
         </b-col>
         <b-col>
           <b-button :disabled="isProcess" variant="danger" @click="recoveryQuestion">取消</b-button>
@@ -281,9 +291,19 @@ import uuid from "../../uuid-gen";
 
 import debounce from "lodash.debounce";
 
-import { VueEditor, Quill } from "vue2-editor";
+// import { VueEditor, Quill } from "vue2-editor";
 // import { ImageDrop } from 'quill-image-drop-module'
 import ImageResize from "quill-image-resize-module";
+
+import { mapState, mapGetters, mapActions } from "vuex";
+
+import Quill from "quill";
+// console.log(Quill)
+import "quill/dist/quill.core.css";
+import "quill/dist/quill.snow.css";
+import "quill/dist/quill.bubble.css";
+
+import { quillEditor } from "vue-quill-editor";
 
 // Quill.register('modules/imageDrop', ImageDrop)
 Quill.register("modules/imageResize", ImageResize);
@@ -292,22 +312,17 @@ import questionShow from "./question-show.vue";
 
 let initAnswerId = null;
 
-const changeProcessState = function(state) {
-  this.isProcess = state;
-  this.$emit("process-state-change", this.isProcess);
-};
-
 export default {
   components: {
-    VueEditor,
+    quillEditor,
     questionShow
   },
 
   props: {
-    choices: Array,
-    question: String,
-    wrongAnswer: String,
-    initAnswerId: String,
+    choices: { type: Array, default: () => [] },
+    question: { type: String, default: "" },
+    wrongAnswer: { type: String, default: "" },
+    initAnswerId: { type: String, default: "" },
     inputId: { type: Number, default: null },
     questionId: { type: Number, default: null }
   },
@@ -371,8 +386,19 @@ export default {
   },
 
   computed: {
+    ...mapState("quiz", {
+      selectId: "selectId",
+      questions: "questions",
+      isLoaded: "isLoaded",
+      isLoadedFail: "isLoadedFail",
+      initQuestion: "initQuestions"
+    }),
+
+    ...mapGetters("quiz", {
+      questionNumber: "questionNumber",
+      getQuestion: "getQuestion"
+    }),
     getClientHeight() {
-      // console.log(this.$refs.saveBlock)
       return innerHeight - document.querySelector("nav").clientHeight - 5;
     }
   },
@@ -403,12 +429,25 @@ export default {
       this.content = val;
     },
 
-    worngAnswer(val) {
+    wrongAnswer(val) {
+      console.log("qq", val);
       this.wrongAnswerContent = val;
     }
   },
 
   methods: {
+    ...mapActions("quiz", {
+      updateQuestionContent: "updateQuestionContent",
+      updateQuestionAnswerId: "updateQuestionAnswerId",
+      updateWrongAnswerExplain: "updateWrongAnswerExplain",
+      swapChoice: "swapChoice",
+      removeChoice: "removeChoice",
+      updateChoice: "updateChoice",
+      recoveyQuestion: "recoveyQuestion",
+      saveQuestion: "saveQuestion",
+      addChoice: "addChoice"
+    }),
+
     // 選項是否可以繼續刪除(小於兩項不能刪)
     isChoiceDeleteDisable() {
       this.choiceDeleteDisable = this.choices.length <= 2 ? true : false;
@@ -426,140 +465,63 @@ export default {
 
     // 問題輸入框debounce功能(50ms間隔)
     contentDebounce: debounce(function() {
-      this.$emit("on-question-change", this.content);
+      this.updateQuestionContent(this.content);
     }, 50),
 
     wrongAnswerDebounce: debounce(function() {
-      console.log(this.wrongAnswerContent)
-      this.$emit("on-wrong-answer-change", this.wrongAnswerContent);
+      this.updateWrongAnswerExplain(this.wrongAnswerContent);
     }, 50),
-
-    saveQuestion() {
-      const payload = {
-        answer_id: this.answerId,
-        question: this.question,
-        wrong_answer: this.wrongAnswerContent,
-        choices: JSON.stringify(this.choices),
-        /** 目前題目排序尚未實作(由上一層父組件用props傳入order) **/
-        order: 0
-      };
-      if (this.questionId) {
-        payload.id = this.questionId;
-      }
-      // 使用Ajax儲存目前問題資料
-      axios
-        .post("/question", payload)
-        .then(res => {
-          // 儲存成功
-          this.$emit("save-state-change", true);
-          this.$emit("save-success", res.data);
-        })
-        .catch(err => {
-          /** 儲存失敗(需要實作跳出儲存失敗視窗) **/
-
-          const status = err.response.status;
-          switch (status) {
-            case 419:
-              axios
-                .post("/login", {
-                  login: "user",
-                  password: "1234"
-                })
-                .then(res => {
-                  console.log("login sucess");
-                })
-                .catch(error => {
-                  console.log(err);
-                });
-              break;
-          }
-
-          if (err.response.status === 419) {
-          }
-          console.log(err.response.status);
-        })
-        .finally(() => {
-          changeProcessState.call(this, false);
-        });
-      changeProcessState.call(this, true);
-    },
 
     // 取消按鈕事件(復原回原本狀態)
     recoveryQuestion() {
-      // 送出復原信號
-      this.$emit("recovery");
       // 告訴該組件目前為復原狀態
+      this.recoveyQuestion();
       this.isRecovery = true;
       this.answerId = initAnswerId;
-      // 送出儲存狀態為以儲存(因為復原回資料庫剛拿出來的資料)
-      this.$emit("save-state-change", true);
     },
 
     // question欄位內容改變
     contentChange() {
       this.contentDebounce();
-      this.showNotSave();
+    },
+
+    choiceContentChange({ quill, html, text }, index) {
+      this.updateChoice({ index: index, content: html });
     },
 
     wrongAnswerChange() {
       this.wrongAnswerDebounce();
-      this.showNotSave();
-    },
-
-    showNotSave() {
-      if (this.inputId === this.currentId && !this.isRecovery) {
-        this.$emit("save-state-change", false);
-      }
-
-      // 復位isRecovery數值，使它可以重新判斷是否儲存
-      this.isRecovery = false;
     },
 
     // 選取答案改變
     answerChange(answerId) {
-      this.showNotSave();
       this.answerId = answerId;
-      this.$emit("answer-value", this.answerId);
+      this.updateQuestionAnswerId(this.answerId);
+      // this.$emit("answer-value", this.answerId);
+    },
+
+    saveQuestionEvent() {
+      this.saveQuestion();
     },
 
     // 刪除選項
-    removeChoice(e, id) {
+    removeChoiceEvent(e, id) {
       if (this.answerId === this.choices[id].id) {
         this.answerChange(this.choices[id === 0 ? 1 : 0].id);
       }
-      this.choices.splice(id, 1);
-      this.showNotSave();
+      this.removeChoice(id);
     },
 
     // 新增選項
-    addChoice(id) {
-      const uid = uuid();
-
-      if (this.choices.length === id + 1) {
-        this.choices[this.choices.length - 1].isLowest = false;
-        this.choices.push({
-          id: uid,
-          content: "",
-          isHighest: false,
-          isLowest: true
-        });
-      } else {
-        this.choices.splice(id + 1, 0, {
-          id: uid,
-          content: "",
-          isHighest: false,
-          isLowest: false
-        });
-      }
-      this.showNotSave();
+    addChoiceEvent(index) {
+      this.addChoice({ index: index });
     },
 
     answerClick(e) {
-      this.answerChange(e.target.getElementsByTagName('input')[0].value);
+      this.answerChange(e.target.getElementsByTagName("input")[0].value);
     },
 
     onAnswerChange(e) {
-      console.log(typeof e)
       this.answerChange(e.target.value);
     },
 
@@ -613,15 +575,13 @@ export default {
         // 暫存來源資料
         const sourceData = this.choices[sourceIndex];
         const finalIndex = this.choices.length - 1;
-
+        console.log(targetIndex);
         // 插入物件
-        this.choices.splice(sourceIndex, 1);
-        this.choices.splice(targetIndex, 0, sourceData);
+        this.swapChoice({ sourceIndex, targetIndex });
 
         // 修改變更後的索引
         this.dragingIndex = targetIndex;
         this.prvSourceIndex = sourceIndex;
-        this.showNotSave();
       }
 
       e.preventDefault();
@@ -632,13 +592,8 @@ export default {
       this.prvSourceIndex = null;
     },
 
-    swapChoice(id, loc) {
-      const data = this.choices[id];
-      const finalPos = id + loc;
-      const finalIndex = this.choices.length - 1;
-
-      this.choices.splice(id, 1);
-      this.choices.splice(finalPos, 0, data);
+    swapChoiceArg(source, target) {
+      this.swapChoice({ sourceIndex: source, targetIndex: target });
     },
 
     returnFalse(e) {

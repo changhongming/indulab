@@ -1,6 +1,6 @@
 <template>
   <b-container fluid>
-    <div v-show="isProcess">
+    <div v-show="isLoading">
       <div>
         <div class="lds-ring">
           <div></div>
@@ -49,15 +49,8 @@
             :initAnswerId="questions[selId].answer"
             :questionId="questions[selId].id"
             :inputId="selId ? selId : -1"
-            v-on:recovery="recoveryQuestion"
-            v-on:on-question-change="questions[selId].question = $event"
-            v-on:on-wrong-answer-change="questions[selId].wronganswer = $event"
-            v-on:answer-value="answerevt"
-            v-on:save-state-change="saveStateChange"
-            v-on:save-success="questionSaveSuccess"
-            v-on:process-state-change="processStateChange"
             ref="questionEditor"
-          ></question>
+          />
         </b-col>
         <b-col cols="12" md="6">
           <b-container fluid class="c-scollbar" :style="{ height: getClientHeight + 'px'}">
@@ -77,6 +70,7 @@
                   :wrong-answer="question.wronganswer"
                   :choices="question.choices"
                   :removeDisgabled="questions.length <= 1 ? true : false"
+                  :init-is-save="question.isSave"
                   v-on:destroy="destroy"
                 ></questionShow>
               </li>
@@ -179,6 +173,7 @@ import cloneDeep from "lodash.clonedeep";
 import uuid from "../../uuid-gen";
 import questionShow from "./question-show.vue";
 import question from "./question.vue";
+import { mapState, mapGetters, mapActions } from "vuex";
 
 let initQuestion = null;
 
@@ -216,53 +211,20 @@ function getCookie(cname) {
 
 function initState() {
   const data = {
-    questions: [
-      //{
-      //   id: uuid(),
-      //   order: 0,
-      //   question: "",
-      //   answer: null,
-      //   choices: [
-      //     {
-      //       id: uuid(),
-      //       content: ""
-      //     },
-      //     {
-      //       id: uuid(),
-      //       content: ""
-      //     }
-      //   ]
-      // },
-      // {
-      //   id: uuid(),
-      //   order: 2,
-      //   question: "",
-      //   answer: null,
-      //   choices: [
-      //     {
-      //       id: uuid(),
-      //       content: ""
-      //     },
-      //     {
-      //       id: uuid(),
-      //       content: ""
-      //     }
-      //   ]
-      // }
-    ],
+    questions: [],
     dismissSecs: 5,
     dismissCountDown: 0,
-    showDismissibleAlert: false,
-    isLoaded: false,
-    isLoadedFail: false,
-    isProcess: null,
-    initQuestion: null
+    showDismissibleAlert: false
+    //isLoaded: false,
+    //isLoadedFail: false,
+    //isProcess: null,
+    //initQuestion: null
   };
 
-  data.selId = -1;
+  //data.selId = 0;
 
   // 等待後端完成 由後端資料庫取出最大值
-  data.order = Math.max(...data.questions.map(x => x.order));
+  //data.order = Math.max(...data.questions.map(x => x.order));
   return data;
 }
 
@@ -273,7 +235,8 @@ export default {
   },
 
   props: {
-    quizId: Number
+    quizId: Number,
+    initSelId: Number
   },
 
   data() {
@@ -288,26 +251,55 @@ export default {
           editor.setSelection(editor.getLength());
           editor.focus();
         }, 0);
+        // this.$emit("select-index", val);
+      }
+    },
+
+    initSelId(val) {
+      this.selId = val;
+    },
+
+    questionsState(val) {
+      this.questions = val;
+    },
+
+    isSaveSuccess(val) {
+      if (val) {
+        this.showAlert();
+        this.setIsSaveSucess(false);
       }
     }
   },
 
   computed: {
+    ...mapState("quiz", {
+      selId: "selectId",
+      questionsState: "questions",
+      isLoaded: "isLoaded",
+      isLoadedFail: "isLoadedFail",
+      isLoading: "isLoading",
+      initQuestion: "initQuestions",
+      isSaveSuccess: "isSaveSuccess"
+    }),
+
+    ...mapGetters("quiz", {
+      questionNumber: "questionNumber",
+      getQuestion: "getQuestion"
+    }),
+
     getClientHeight() {
       return innerHeight - document.querySelector("nav").clientHeight - 5;
     }
   },
 
   methods: {
-    questionSaveSuccess(payload) {
-      this.dismissCountDown = this.dismissSecs;
-      initQuestion[this.selId].id = payload.id;
+    ...mapActions("quiz", {
+      changeSelectId: "changeSelectId",
+      getQuestions: "getQuestions",
+      addQuestion: "addQuestion",
+      setIsSaveSucess: "setIsSaveSucess"
+    }),
 
-      copyData(
-        initQuestion[this.selId],
-        JSON.parse(JSON.stringify(this.questions[this.selId]))
-      );
-    },
     countDownChanged(dismissCountDown) {
       this.dismissCountDown = dismissCountDown;
     },
@@ -315,28 +307,12 @@ export default {
       this.dismissCountDown = this.dismissSecs;
     },
 
-    recoveryQuestion() {
-      // 深拷貝覆蓋資料
-      copyData(
-        this.questions[this.selId],
-        JSON.parse(JSON.stringify(initQuestion[this.selId]))
-      );
-    },
-
-    answerevt(e) {
-      this.questions[this.selId].answer = e;
-    },
-
     processStateChange(state) {
       this.isProcess = state;
     },
 
-    saveStateChange(state) {
-      this.$refs.questionShow[this.selId].isSave = state;
-    },
-
     questionClick(id) {
-      this.selId = id;
+      this.changeSelectId(id);
     },
 
     addQuestion() {
@@ -408,43 +384,6 @@ export default {
     uuid() {
       return uuid();
     }
-  },
-
-  created() {
-    const vm = this;
-    axios
-      .get(`/question?id=${vm.quizId}`)
-      .then(res => {
-        console.log(res);
-        const questions = [];
-        res.data.forEach(row => {
-          questions.push({
-            id: row.id,
-            order: row.order,
-            question: row.question,
-            wronganswer: row.wrong_answer_message,
-            answer: row.answer_id,
-            choices: JSON.parse(row.choices)
-          });
-        });
-        vm.selId = 0;
-        vm.questions = questions;
-        // 此問題庫資料為空
-        if (res.data.length === 0) {
-          // 等待空陣列初始化完成直接加入一個新問題
-          vm.$nextTick(() => {
-            vm.addQuestion();
-          });
-        }
-        initQuestion = JSON.parse(JSON.stringify(questions));
-      })
-      .catch(err => {
-        vm.isLoadedFail = true;
-        console.log(err);
-      })
-      .finally(() => {
-        vm.isLoaded = true;
-      });
   }
 };
 </script>
