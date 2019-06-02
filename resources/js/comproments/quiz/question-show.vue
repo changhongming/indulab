@@ -98,7 +98,8 @@ export default {
     }),
 
     ...mapGetters("quiz", {
-      questionNumber: "questionNumber"
+      questionNumber: "questionNumber",
+      selectIsSave: "selectIsSave",
     })
   },
 
@@ -109,6 +110,11 @@ export default {
   },
 
   methods: {
+    ...mapActions("quiz", {
+      changeSelectId: "changeSelectId",
+      removeQuestion: "removeQuestion"
+    }),
+
     showText(text) {
       return text == "" ? "沒有輸入內容" : text;
     },
@@ -121,12 +127,25 @@ export default {
     },
 
     destroy(e) {
-      console.log(this.qid);
+      function findAttribute(targetDOM, attribute, depth = 3) {
+        let cnt = 0;
+        let currentDOM = targetDOM;
+        while(!currentDOM.hasAttribute(attribute)) {
+          currentDOM = currentDOM.parentElement;
+          cnt++;
+          if(cnt >= depth)
+            return null;
+        }
+        return currentDOM.getAttribute(attribute);
+      }
+
       const id = {
-        selId: Number(e.target.getAttribute("selId")),
+        selId: Number(findAttribute(e.target, "selId")),
         qid: this.qid
       };
-      this.$emit("destroy", e, id);
+
+      this.removeQuestion(id);
+      return false;
       e.stopPropagation();
     }
   },

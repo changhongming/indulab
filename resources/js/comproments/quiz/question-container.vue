@@ -76,7 +76,7 @@
               </li>
             </div>
             <div>
-              <b-button @click="addQuestion">+</b-button>
+              <b-button @click="addQuestionEvent">+</b-button>
             </div>
           </b-container>
         </b-col>
@@ -215,16 +215,7 @@ function initState() {
     dismissSecs: 5,
     dismissCountDown: 0,
     showDismissibleAlert: false
-    //isLoaded: false,
-    //isLoadedFail: false,
-    //isProcess: null,
-    //initQuestion: null
   };
-
-  //data.selId = 0;
-
-  // 等待後端完成 由後端資料庫取出最大值
-  //data.order = Math.max(...data.questions.map(x => x.order));
   return data;
 }
 
@@ -251,7 +242,6 @@ export default {
           editor.setSelection(editor.getLength());
           editor.focus();
         }, 0);
-        // this.$emit("select-index", val);
       }
     },
 
@@ -279,7 +269,8 @@ export default {
       isLoadedFail: "isLoadedFail",
       isLoading: "isLoading",
       initQuestion: "initQuestions",
-      isSaveSuccess: "isSaveSuccess"
+      isSaveSuccess: "isSaveSuccess",
+      isQuestionLoaded: 'isQuestionLoaded'
     }),
 
     ...mapGetters("quiz", {
@@ -295,9 +286,9 @@ export default {
   methods: {
     ...mapActions("quiz", {
       changeSelectId: "changeSelectId",
-      getQuestions: "getQuestions",
       addQuestion: "addQuestion",
-      setIsSaveSucess: "setIsSaveSucess"
+      setIsSaveSucess: "setIsSaveSucess",
+      recoveyQuestion: "recoveyQuestion",
     }),
 
     countDownChanged(dismissCountDown) {
@@ -315,38 +306,11 @@ export default {
       this.changeSelectId(id);
     },
 
-    addQuestion() {
-      const vm = this;
-      const defaultAnswerId = uuid();
-      const question = {
-        id: null,
-        order: ++this.order,
-        question: "",
-        wronganswer: "",
-        answer: defaultAnswerId,
-        choices: [
-          {
-            id: defaultAnswerId,
-            content: ""
-          },
-          {
-            id: uuid(),
-            content: ""
-          }
-        ]
-      };
-
-      // 新建一個問題
-      this.questions.push(question);
-      initQuestion.push(newObj(question));
-
-      // 選擇到新建問題
-      this.selId = this.questions.length - 1;
-
-      // 標記尚未儲存
-      this.$nextTick(() => {
+    addQuestionEvent(){
+      this.addQuestion();
+      setTimeout(() => {
         this.$refs.questionShow[this.selId].isSave = false;
-      });
+      }, 0);
     },
 
     saveData() {

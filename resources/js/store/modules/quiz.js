@@ -1,8 +1,9 @@
 import uuid from '../../uuid-gen';
 
 class Question {
-    constructor({ answer = '', id = null, order = 0, wronganswer = '', question = '', choices = [new Choice, new Choice], isSave = false } = { answer, id, order, wronganswer, question, choices, isSave }) {
-        this.answer = answer;
+    constructor({ answer, id = null, order = 0, wronganswer = '', question = '', choices = [new Choice, new Choice], isSave = false } = { answer, id, order, wronganswer, question, choices, isSave }) {
+        // 如果有指定答案ID，就用答案ID，否則調用第一個選項做為答案ID
+        this.answer = answer || choices[0].id;
         this.id = id;
         this.order = order;
         this.question = question;
@@ -48,6 +49,7 @@ const state = {
     isLoaded: false,
     isSaveSuccess: null,
     isRecovery: false,
+    isQuestionLoaded: false,
 }
 
 const getters = {
@@ -57,6 +59,17 @@ const getters = {
 
     getQuestion: (state) => {
         return state.questions[state.selectId];
+    },
+
+    getIsSave(state) {
+        return index => {
+            const id = index ? index : state.selectId;
+            return state.questions[id].isSave
+        }
+    },
+
+    selectIsSave(state) {
+        return state.questions[state.selectId].isSave;
     }
 }
 
@@ -69,19 +82,17 @@ const mutations = {
     /* 問題 */
     ADD_QUESTION(state, question) {
         state.questions.push(question);
-        state.initQuestions.question.push(JSON.parse(JSON.stringify(question)));
+        state.initQuestions.push(JSON.parse(JSON.stringify(question)));
     },
 
-    ADD_CHOICE(state, { choice, index }) {
-        console.log(choice);
-        state.questions[state.selectId].choices.splice(index + 1, 0, choice);
-        console.log(state.questions[state.selectId].choices);
+    REMOVE_QUESTION(state, targetIndex) {
+        state.questions.splice(targetIndex, 1);
+        state.initQuestions.splice(targetIndex, 1);
     },
 
     SET_QUESTIONS(state, questions) {
         state.questions = questions;
         state.initQuestions = JSON.parse(JSON.stringify(questions));
-        console.log(state.initQuestions)
     },
 
     UPDATE_QUESTION(state, content) {
@@ -94,6 +105,28 @@ const mutations = {
 
     BACKUP_QUESTION(state) {
         copyData(state.initQuestions[state.selectId], state.questions[state.selectId]);
+    },
+
+    ADD_CHOICE(state, { choice, index }) {
+        state.questions[state.selectId].choices.splice(index + 1, 0, choice);
+    },
+
+    REMOVE_CHOICE(state, targetIndex) {
+        state.questions[state.selectId].choices.splice(targetIndex, 1);
+    },
+
+    INSERT_CHOICE(state, { targetIndex, choice }) {
+        state.questions[state.selectId].choices.splice(targetIndex, 0, choice);
+    },
+
+    SWAP_CHOICES(state, { sourceIndex, targetIndex }) {
+        const sourceData = state.questions[state.selectId].choices[sourceIndex];
+        state.questions[state.selectId].choices.splice(sourceIndex, 1);
+        state.questions[state.selectId].choices.splice(targetIndex, 0, sourceData);
+    },
+
+    UPDATE_CHOICE(state, { index, content }) {
+        state.questions[state.selectId].choices[index].content = content;
     },
 
     UPDATE_WRONG_ANSWER_EXPLAIN(state, content) {
@@ -129,30 +162,15 @@ const mutations = {
         state.isRecovery = status;
     },
 
-    REMOVE_CHOICE(state, targetIndex) {
-        state.questions[state.selectId].choices.splice(targetIndex, 1);
+    SET_IS_QUESTION_LOADED(state, status) {
+        state.isQuestionLoaded = status;
     },
-
-    INSERT_CHOICE(state, { targetIndex, choice }) {
-        state.questions[state.selectId].choices.splice(targetIndex, 0, choice);
-    },
-
-    SWAP_CHOICES(state, { sourceIndex, targetIndex }) {
-        const sourceData = state.questions[state.selectId].choices[sourceIndex];
-        state.questions[state.selectId].choices.splice(sourceIndex, 1);
-        state.questions[state.selectId].choices.splice(targetIndex, 0, sourceData);
-    },
-
-    UPDATE_CHOICE(state, { index, content }) {
-        state.questions[state.selectId].choices[index].content = content;
-    },
-
-
 }
 
 const actions = {
     changeSelectId({ commit }, id) {
         commit('SET_SELECT_ID', id);
+        commit('SET_IS_RECOVERY', true);
     },
 
     getQuestions({ commit, dispatch }) {
@@ -194,7 +212,6 @@ const actions = {
     },
 
     saveQuestion({ commit, state }) {
-        console.log(state.questions[state.selectId]);
         commit('SET_IS_LOADING', true);
         const question = state.questions[state.selectId];
         const payload = {
@@ -225,11 +242,40 @@ const actions = {
             .finally(() => commit('SET_IS_LOADING', false))
     },
 
-    addQuestion({ commit }, question = new Question) {
-        if (!question instanceof Question) {
+    addQuestion({ commit, dispatch }, question = new Question) {
+        if (!(question instanceof Question)) {
             question = new Question(question);
         }
         commit('ADD_QUESTION', question);
+        setTimeout(() => {
+            dispatch('changeSelectId', state.questions.length - 1);
+            commit('SET_IS_SAVE', false);
+        }, 0);
+    },
+
+    removeQuestion({ commit, dispatch }, { selId, qid }) {
+      // 如果問題已建立，但尚未保存置資料庫(資料庫還沒有索引)
+      if (qid === null) {
+        setTimeout(() => {
+            dispatch('changeSelectId', 0);
+            commit('REMOVE_QUESTION', selId);
+        }, 0);
+      }
+      // 如果資料庫已建立索引
+      else {
+        axios
+          .delete(`/question/${qid}`)
+          .then(res => {
+            console.log(res);
+            setTimeout(() => {
+                dispatch('changeSelectId', 0);
+                commit('REMOVE_QUESTION', selId);
+            }, 0);
+          })
+          .catch(err => {
+            console.log(err);
+          });
+      }
     },
 
     addChoice({ commit, dispatch }, { choice = new Choice, index = 0 }) {
@@ -273,14 +319,22 @@ const actions = {
     },
 
     doNotSave({ commit }) {
-        // 確認是否為復原狀態，如果是則代表沒有變更
-        commit('SET_IS_SAVE', state.isRecovery);
-        // 復位isRecovery數值，使它可以重新判斷是否儲存
-        commit('SET_IS_RECOVERY', false);
+        if (state.isQuestionLoaded) {
+            if (!state.isRecovery) {
+                // 確認是否為復原狀態，如果是則代表沒有變更
+                commit('SET_IS_SAVE', false);
+            }
+            // 復位isRecovery數值，使它可以重新判斷是否儲存
+            commit('SET_IS_RECOVERY', false);
+        }
     },
 
     setIsSaveSucess({ commit }, state) {
         commit('SET_IS_SAVE_SUCCESS', state);
+    },
+
+    setIsQuestionLoaded({ commit }, state) {
+        commit('SET_IS_QUESTION_LOADED', state);
     }
 }
 

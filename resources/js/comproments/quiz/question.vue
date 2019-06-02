@@ -8,9 +8,10 @@
               <h1 @click="$refs.qsEditor.quill.focus()">題目</h1>
             </label>
             <quill-editor
+              id="qs-editor"
               @change="contentChange"
               ref="qsEditor"
-              :editorOptions="editorSettings"
+              :options="editorSettings"
               v-model="content"
             />
           </b-col>
@@ -23,9 +24,10 @@
               <h1>答錯解釋</h1>
             </label>
             <quill-editor
+              id="qs-wrong-editor"
               @change="wrongAnswerChange"
-              ref="qsEditor"
-              :editorOptions="editorSettings"
+              ref="qsWrongEditor"
+              :options="editorSettings"
               v-model="wrongAnswerContent"
             />
           </b-col>
@@ -152,15 +154,30 @@
   </div>
 </template>
 
-<style scoped>
+<style>
 /* .ql-editor {
   max-height:200px;
 } */
-.choiceeditor .ql-editor {
-  min-height: 100px;
-  max-height: 100px;
+#qs-editor .ql-editor {
+  min-height: 300px;
+  max-height: 300px;
 }
 
+#qs-wrong-editor .ql-editor {
+  max-height: 200px;
+  min-height: 200px;
+}
+
+.choiceeditor .ql-editor {
+  min-height: 80px;
+  max-height: 80px;
+}
+
+
+</style>
+
+
+<style scoped>
 .checked {
   background: #2f7ae0;
 }
@@ -199,10 +216,7 @@
 .radio:checked {
   background-color: #f1f1f1;
 }
-</style>
 
-
-<style scoped>
 .choice-radio {
   cursor: pointer;
   border: 1px solid lightgray;
@@ -275,8 +289,8 @@ justify-content: center;
 .toolbar {
   display: none;
   position: relative;
-  top: 15px;
-  right: 20px;
+  top: 10px;
+  right: 25px;
 }
 
 .toolbar .row .tool {
@@ -312,6 +326,8 @@ import questionShow from "./question-show.vue";
 
 let initAnswerId = null;
 
+const debounceTime = 50;
+
 export default {
   components: {
     quillEditor,
@@ -343,7 +359,7 @@ export default {
       isInit: false,
 
       // 元件復原(取消)狀態
-      isRecovery: true,
+      // isRecovery: true,
 
       // 答案的UUID
       answerId: null,
@@ -391,12 +407,14 @@ export default {
       questions: "questions",
       isLoaded: "isLoaded",
       isLoadedFail: "isLoadedFail",
-      initQuestion: "initQuestions"
+      initQuestion: "initQuestions",
+      isRecovery: "isRecovery",
     }),
 
     ...mapGetters("quiz", {
       questionNumber: "questionNumber",
-      getQuestion: "getQuestion"
+      getQuestion: "getQuestion",
+      getIsSave: "getIsSave",
     }),
     getClientHeight() {
       return innerHeight - document.querySelector("nav").clientHeight - 5;
@@ -406,10 +424,18 @@ export default {
   updated() {
     // 確認是否為變更選項操作
     if (this.currentId !== this.inputId) {
+      this.setIsQuestionLoaded(false);
       // 在下次更新才將內部狀態更新，用於判斷是否修改
       this.$nextTick(() => {
+
         this.currentId = this.inputId;
+
       });
+      setTimeout(() => {
+        this.$nextTick(() => {
+          this.setIsQuestionLoaded(true);
+        });
+      }, debounceTime);
     }
 
     if (this.initAnswerId !== this.answerId) {
@@ -430,7 +456,6 @@ export default {
     },
 
     wrongAnswer(val) {
-      console.log("qq", val);
       this.wrongAnswerContent = val;
     }
   },
@@ -445,7 +470,8 @@ export default {
       updateChoice: "updateChoice",
       recoveyQuestion: "recoveyQuestion",
       saveQuestion: "saveQuestion",
-      addChoice: "addChoice"
+      addChoice: "addChoice",
+      setIsQuestionLoaded: "setIsQuestionLoaded",
     }),
 
     // 選項是否可以繼續刪除(小於兩項不能刪)
@@ -466,17 +492,17 @@ export default {
     // 問題輸入框debounce功能(50ms間隔)
     contentDebounce: debounce(function() {
       this.updateQuestionContent(this.content);
-    }, 50),
+    }, debounceTime),
 
     wrongAnswerDebounce: debounce(function() {
       this.updateWrongAnswerExplain(this.wrongAnswerContent);
-    }, 50),
+    }, debounceTime),
 
     // 取消按鈕事件(復原回原本狀態)
     recoveryQuestion() {
       // 告訴該組件目前為復原狀態
       this.recoveyQuestion();
-      this.isRecovery = true;
+      // this.isRecovery = true;
       this.answerId = initAnswerId;
     },
 
@@ -485,9 +511,9 @@ export default {
       this.contentDebounce();
     },
 
-    choiceContentChange({ quill, html, text }, index) {
+    choiceContentChange: debounce(function({ quill, html, text }, index) {
       this.updateChoice({ index: index, content: html });
-    },
+    }, debounceTime),
 
     wrongAnswerChange() {
       this.wrongAnswerDebounce();
@@ -575,7 +601,6 @@ export default {
         // 暫存來源資料
         const sourceData = this.choices[sourceIndex];
         const finalIndex = this.choices.length - 1;
-        console.log(targetIndex);
         // 插入物件
         this.swapChoice({ sourceIndex, targetIndex });
 
