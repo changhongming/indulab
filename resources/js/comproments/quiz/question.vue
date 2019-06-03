@@ -149,6 +149,9 @@
         <b-col>
           <b-button :disabled="isProcess" variant="danger" @click="recoveryQuestion">取消</b-button>
         </b-col>
+        <b-col>
+          <b-button :disabled="isProcess" variant="primary" @click="previewQuesiton">檢索題目</b-button>
+        </b-col>
       </b-row>
     </div>
   </div>
@@ -472,6 +475,9 @@ export default {
       saveQuestion: "saveQuestion",
       addChoice: "addChoice",
       setIsQuestionLoaded: "setIsQuestionLoaded",
+      setIsPreviewQuestionMode: "setIsPreviewQuestionMode",
+      setIsPreviewTestMode: "setIsPreviewTestMode",
+      setIsEditorQuestionMode: "setIsEditorQuestionMode",
     }),
 
     // 選項是否可以繼續刪除(小於兩項不能刪)
@@ -504,6 +510,12 @@ export default {
       this.recoveyQuestion();
       // this.isRecovery = true;
       this.answerId = initAnswerId;
+    },
+
+    previewQuesiton() {
+      this.setIsPreviewQuestionMode(true);
+      this.setIsPreviewTestMode(false);
+      this.setIsEditorQuestionMode(false);
     },
 
     // question欄位內容改變

@@ -14,16 +14,6 @@
       </div>
     </div>
 
-    <div v-show="!isLoaded">
-      <div class="loading">
-        <div class="lds-ring">
-          <div></div>
-          <div></div>
-          <div></div>
-          <div></div>
-        </div>
-      </div>
-    </div>
     <div v-show="isLoadedFail">
       <span style="color:red;">讀取失敗，請重新整理頁面再試試</span>
     </div>
@@ -211,7 +201,7 @@ function getCookie(cname) {
 
 function initState() {
   const data = {
-    questions: [],
+    // questions: [],
     dismissSecs: 5,
     dismissCountDown: 0,
     showDismissibleAlert: false
@@ -223,11 +213,6 @@ export default {
   components: {
     question,
     questionShow
-  },
-
-  props: {
-    quizId: Number,
-    initSelId: Number
   },
 
   data() {
@@ -249,10 +234,6 @@ export default {
       this.selId = val;
     },
 
-    questionsState(val) {
-      this.questions = val;
-    },
-
     isSaveSuccess(val) {
       if (val) {
         this.showAlert();
@@ -264,18 +245,17 @@ export default {
   computed: {
     ...mapState("quiz", {
       selId: "selectId",
-      questionsState: "questions",
+      questions: "questions",
       isLoaded: "isLoaded",
       isLoadedFail: "isLoadedFail",
       isLoading: "isLoading",
       initQuestion: "initQuestions",
       isSaveSuccess: "isSaveSuccess",
-      isQuestionLoaded: 'isQuestionLoaded'
+      isQuestionLoaded: "isQuestionLoaded"
     }),
 
     ...mapGetters("quiz", {
-      questionNumber: "questionNumber",
-      getQuestion: "getQuestion"
+      questionNumber: "questionNumber"
     }),
 
     getClientHeight() {
@@ -285,10 +265,11 @@ export default {
 
   methods: {
     ...mapActions("quiz", {
+      getQuestions: "getQuestions",
       changeSelectId: "changeSelectId",
       addQuestion: "addQuestion",
       setIsSaveSucess: "setIsSaveSucess",
-      recoveyQuestion: "recoveyQuestion",
+      recoveyQuestion: "recoveyQuestion"
     }),
 
     countDownChanged(dismissCountDown) {
@@ -306,7 +287,7 @@ export default {
       this.changeSelectId(id);
     },
 
-    addQuestionEvent(){
+    addQuestionEvent() {
       this.addQuestion();
       setTimeout(() => {
         this.$refs.questionShow[this.selId].isSave = false;
@@ -343,6 +324,10 @@ export default {
             console.log(err);
           });
       }
+    },
+
+    beforeCreate() {
+      this.getQuestions();
     },
 
     uuid() {

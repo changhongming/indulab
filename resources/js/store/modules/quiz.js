@@ -50,6 +50,9 @@ const state = {
     isSaveSuccess: null,
     isRecovery: false,
     isQuestionLoaded: false,
+    isPreviewQuestionMode: false,
+    isPreviewTestMode: false,
+    isEditorQuestionMode: true,
 }
 
 const getters = {
@@ -66,10 +69,6 @@ const getters = {
             const id = index ? index : state.selectId;
             return state.questions[id].isSave
         }
-    },
-
-    selectIsSave(state) {
-        return state.questions[state.selectId].isSave;
     }
 }
 
@@ -165,6 +164,18 @@ const mutations = {
     SET_IS_QUESTION_LOADED(state, status) {
         state.isQuestionLoaded = status;
     },
+
+    SET_IS_PREVIEW_QUESTION_MODE(state, status) {
+        state.isPreviewQuestionMode = status;
+    },
+
+    SET_IS_PREVIEW_PREVIEW_TEST_MODE(state, status) {
+        state.isPreviewTestMode = status;
+    },
+
+    SET_IS_EDITOR_QUESTION_MODE(state, status) {
+        state.isEditorQuestionMode = status;
+    }
 }
 
 const actions = {
@@ -254,28 +265,28 @@ const actions = {
     },
 
     removeQuestion({ commit, dispatch }, { selId, qid }) {
-      // 如果問題已建立，但尚未保存置資料庫(資料庫還沒有索引)
-      if (qid === null) {
-        setTimeout(() => {
-            dispatch('changeSelectId', 0);
-            commit('REMOVE_QUESTION', selId);
-        }, 0);
-      }
-      // 如果資料庫已建立索引
-      else {
-        axios
-          .delete(`/question/${qid}`)
-          .then(res => {
-            console.log(res);
+        // 如果問題已建立，但尚未保存置資料庫(資料庫還沒有索引)
+        if (qid === null) {
             setTimeout(() => {
                 dispatch('changeSelectId', 0);
                 commit('REMOVE_QUESTION', selId);
             }, 0);
-          })
-          .catch(err => {
-            console.log(err);
-          });
-      }
+        }
+        // 如果資料庫已建立索引
+        else {
+            axios
+                .delete(`/question/${qid}`)
+                .then(res => {
+                    console.log(res);
+                    setTimeout(() => {
+                        dispatch('changeSelectId', 0);
+                        commit('REMOVE_QUESTION', selId);
+                    }, 0);
+                })
+                .catch(err => {
+                    console.log(err);
+                });
+        }
     },
 
     addChoice({ commit, dispatch }, { choice = new Choice, index = 0 }) {
@@ -335,6 +346,18 @@ const actions = {
 
     setIsQuestionLoaded({ commit }, state) {
         commit('SET_IS_QUESTION_LOADED', state);
+    },
+
+    setIsEditorQuestionMode({ commit }, state) {
+        commit('SET_IS_EDITOR_QUESTION_MODE', state);
+    },
+
+    setIsPreviewTestMode({ commit }, state) {
+        commit('SET_IS_PREVIEW_PREVIEW_TEST_MODE', state);
+    },
+
+    setIsPreviewQuestionMode({ commit }, state) {
+        commit('SET_IS_PREVIEW_QUESTION_MODE', state);
     }
 }
 

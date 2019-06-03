@@ -99,7 +99,6 @@ export default {
 
     ...mapGetters("quiz", {
       questionNumber: "questionNumber",
-      selectIsSave: "selectIsSave",
     })
   },
 

@@ -43,7 +43,7 @@ export default {
 
   data() {
     return {
-      currentPage: this.selectPage
+      currentPage: this.selectPage,
     };
   },
 
@@ -67,6 +67,10 @@ export default {
       this.$refs.pageList[val - 1].classList.add("active");
       this.$refs.pageList[oldVal - 1].classList.remove("active");
       console.log(val);
+    },
+
+    selectPage(val) {
+      this.currentPage = val;
     }
   },
 
