@@ -35,7 +35,7 @@ class QuizEditorContorller extends Controller {
         $record->question = $data['question'];
         $record->choices = $data['choices'];
         $record->answer_id = $data['answer_id'];
-        $record->qt_id = 1;
+        $record->qt_id = $data['qid'];
         $record->order = $data['order'];
         $record->wrong_answer_message = $data['wrong_answer'];
         // 新增到資料庫
@@ -71,6 +71,7 @@ class QuizEditorContorller extends Controller {
     }
 
     public function deleteQuestion($id) {
+        Debugbar::info($id);
         $question = QuizQuestion::find($id);
 
         // 刪除使用者

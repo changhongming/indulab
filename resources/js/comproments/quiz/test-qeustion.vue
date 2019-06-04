@@ -15,7 +15,7 @@
               :checked="choice.id === answer ? true : false"
               :disabled="isReadOnly"
             />
-            <label :for="choice.id">{{removePtag(choice.content)}}</label>
+            <label v-html="removePtag(choice.content)" :for="choice.id">{{removePtag(choice.content)}}</label>
             <!-- <span v-html="choice.content">{{ choice.content }}</span> -->
           </div>
         </div>
@@ -165,26 +165,33 @@ export default {
     onSelectAnswerChange(e) {
       if(this.isReadOnly)
         return;
-
       const target = (function sortTarget(e) {
         switch (e.target.tagName) {
+          case "LABEL":
           case "INPUT":
             return e.target;
           case "DIV":
             return e.target
               .getElementsByTagName("input")[0];
           case "SPAN":
+          default:
             return e.target.parentNode.firstChild;
         }
       })(e);
 
-      this.answer = target.getAttribute("value");
+      // 取消以選答案
+      if(this.answer === target.getAttribute("value")) {
+        this.answer = null;
+      }
+      else{
+        this.answer = target.getAttribute("value");
+      }
+
       this.$emit("choice-change", this.answer);
     }
   },
 
   beforeMount() {
-    console.log("test");
     if (this.initAnswer) {
       this.answer = this.initAnswer;
     } else {

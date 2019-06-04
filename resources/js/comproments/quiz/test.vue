@@ -5,11 +5,7 @@
       <button @click="startTest">開始</button>
     </template>
     <template v-if="isTestStage">
-      <div
-        ref="tikTok"
-        @mousedown="mouseDownTikTok"
-        class="tik-tok"
-      >
+      <div ref="tikTok" @mousedown="mouseDownTikTok" class="tik-tok">
         <span>剩餘{{padingDigit(minute)}}分{{padingDigit(second)}}秒</span>
       </div>
 
@@ -26,7 +22,7 @@
         <b-col>
           <test-question-bar
             :total-page="questions.length"
-            :selectPage="selectId + 1"
+            :selectPage="questionNumber + 1"
             @change="pageChange"
             :is-answer-list="answers"
           />
@@ -34,7 +30,20 @@
       </b-row>
       <b-row>
         <b-col>
-          <button class="btn btn-danger btn-lg btn-block" v-show="showSumbit" @click="sumbit">交卷</button>
+          <button
+            class="btn btn-primary"
+            v-show="notAnswers.length"
+            @click="showNextNotAnswerQuestion"
+          >跳至未作答的題目</button>
+        </b-col>
+      </b-row>
+      <b-row>
+        <b-col>
+          <button
+            class="btn btn-danger btn-lg btn-block"
+            v-show="showSumbit || allQuestionDone"
+            @click="sumbit"
+          >{{allQuestionDone ? '送出答案' : '尚有題目未完成(送出答案)'}}</button>
         </b-col>
       </b-row>
     </template>
@@ -47,19 +56,19 @@
 }
 
 .tik-tok {
-    display: block;
-    position: fixed;
-    top: 5%;
-    right: 5%;
-    font-size: 1.5rem;
-    color: var(--white);
-    background: var(--danger);
-    border-radius: 5px;
-    max-width: 10%;
-    min-width: 10%;
-    text-align: center;
-    cursor: pointer;
-    z-index: 9999;
+  display: block;
+  position: fixed;
+  top: 5%;
+  right: 5%;
+  font-size: 1.5rem;
+  color: var(--white);
+  background: var(--danger);
+  border-radius: 5px;
+  max-width: 10%;
+  opacity: 0.9;
+  text-align: center;
+  cursor: pointer;
+  z-index: 9999;
 }
 </style>
 
@@ -83,6 +92,8 @@ export default {
       // 這裡等價於selectID
       questionNumber: 0,
 
+      notAnswerIndex: 0,
+
       // 計時
       minute: Math.floor(this.testTime / 60),
       second: Math.floor(this.testTime % 60),
@@ -93,11 +104,13 @@ export default {
       tikTokOffsetY: null,
 
       showSumbit: false,
+      allQuestionDone: false,
 
       isIntroStage: true,
       isTestStage: false,
       isResultStage: false,
-      answers: new Array(this.questions.length)
+      answers: Array(this.questions.length).fill(null),
+      notAnswers: []
     };
   },
 
@@ -151,6 +164,19 @@ export default {
 
     initSelId(val) {
       this.questionNumber = val;
+    },
+
+    notAnswers(val, oldVal) {
+      if (val.length === 0 && oldVal.length > 0) {
+        this.allQuestionDone = true;
+      } else {
+        this.allQuestionDone = false;
+      }
+    },
+
+    questions(val) {
+      this.answers = Array(this.questions.length).fill(null);
+      this.showSumbit = false;
     }
   },
 
@@ -168,16 +194,51 @@ export default {
 
     choiceAnswer(answer) {
       this.answers[this.questionNumber] = answer;
+      this.listNotAnswerNumber();
     },
 
     pageChange(page) {
       this.questionNumber = page - 1;
     },
 
+    listNotAnswerNumber() {
+      const notAnswers = [];
+      this.answers.forEach((answer, index) => {
+        if (answer === null) {
+          notAnswers.push(index + 1);
+        }
+      });
+      this.notAnswers = notAnswers;
+    },
+
     sumbit() {
+      // 列出尚未作答題號
+      this.notAnswers = (answers => {
+        const notAnswers = [];
+        answers.forEach((answer, index) => {
+          if (answer === null) {
+            notAnswers.push(index + 1);
+          }
+        });
+        return notAnswers;
+      })(this.answers);
+
+      // 如果有未作答題目
+      if (this.notAnswers.length !== 0) {
+        const res = confirm(
+          `題目${this.notAnswers.toString()}尚未作答，確定要提交答案？`
+        );
+        // 回到第一個未作答題目
+        if (!res) {
+          setTimeout(() => {
+            this.showSumbit = true;
+          }, 0);
+          return (this.questionNumber = this.notAnswers[0] - 1);
+        }
+      }
       const total = this.questions.length;
       let correct = 0;
-      for (let i = 0; i < this.questions.length; i++) {
+      for (let i = 0; i < total; i++) {
         if (this.questions[i].answer === this.answers[i]) {
           correct++;
         }
@@ -186,11 +247,24 @@ export default {
       console.log(this.questions, this.answers);
     },
 
+    showNextNotAnswerQuestion() {
+      // this.listNotAnswerNumber();
+
+      if (this.notAnswers.length > 0) {
+        console.log(this.notAnswers[this.notAnswerIndex]);
+        if (this.questionNumber === this.notAnswers[this.notAnswerIndex] - 1) {
+          this.notAnswerIndex++;
+        }
+        if (this.notAnswers.length <= this.notAnswerIndex) {
+          this.notAnswerIndex = 0;
+        }
+        this.questionNumber = this.notAnswers[this.notAnswerIndex] - 1;
+      }
+    },
+
     /* tik-tok */
     mouseDownTikTok(e) {
       const dom = this.$refs.tikTok;
-      // console.log(e.offsetX, e.offsetY, dom.clientY, dom.clientX);
-      console.log(innerHeight)
       this.isTickTokDown = true;
       this.tikTokOffsetX = e.offsetX;
       this.tikTokOffsetY = e.offsetY;
@@ -210,34 +284,40 @@ export default {
         let resX = deltaX - this.tikTokOffsetX;
         let resY = deltaY - this.tikTokOffsetY;
         console.log(resX, resY);
-        if(resX < 0) {
+        if (resX < 0) {
           resX = 0;
+        } else if (
+          resX + (dom.offsetWidth - this.tikTokOffsetX + 25) >
+          document.documentElement.clientWidth
+        ) {
+          console.log("xBorder");
+          resX =
+            document.documentElement.clientWidth -
+            (dom.offsetWidth - this.tikTokOffsetX + 25);
         }
-        else if(resX + (dom.offsetWidth - this.tikTokOffsetX + 25) > document.documentElement.clientWidth) {
-          console.log('xBorder');
-          resX = document.documentElement.clientWidth - (dom.offsetWidth - this.tikTokOffsetX + 25);
-        }
-        if(resY < 0) {
+        if (resY < 0) {
           resY = 0;
-        }
-        else if(resY + (dom.offsetWidth - this.tikTokOffsetX) > innerHeight) {
-          console.log('yBorder')
+        } else if (
+          resY + (dom.offsetWidth - this.tikTokOffsetX) >
+          innerHeight
+        ) {
+          console.log("yBorder");
           resY = innerHeight - (dom.offsetHeight - this.tikTokOffsetY);
         }
         // console.log(rect, {x:deltaX,y:deltaY}, {x: rect.x + deltaX, y: rect.x + deltaX})
-        dom.style.left = resX  + "px";
+        dom.style.left = resX + "px";
         dom.style.top = resY + "px";
       }
     }
   },
 
   created() {
-    console.log("created", this.$data);
+    this.listNotAnswerNumber();
   },
 
   mounted() {
-    this.$el.addEventListener('mouseup', this.mouseUpTikTok);
-    this.$el.addEventListener('mousemove', this.mouseMoveTikTok);
+    this.$el.addEventListener("mouseup", this.mouseUpTikTok);
+    this.$el.addEventListener("mousemove", this.mouseMoveTikTok);
   }
 };
 </script>

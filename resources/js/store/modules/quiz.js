@@ -53,6 +53,7 @@ const state = {
     isPreviewQuestionMode: false,
     isPreviewTestMode: false,
     isEditorQuestionMode: true,
+    qid: undefined,
 }
 
 const getters = {
@@ -73,6 +74,10 @@ const getters = {
 }
 
 const mutations = {
+    SET_QID(state, id) {
+        state.qid = id;
+    },
+
     /* 問題選項 */
     SET_SELECT_ID(state, id) {
         state.selectId = id;
@@ -186,7 +191,7 @@ const actions = {
 
     getQuestions({ commit, dispatch }) {
         commit('SET_IS_LOADING', true);
-        axios.get(`/question?id=1`)
+        axios.get(`/question?id=${state.qid}`)
             .then(res => {
                 const questions = [];
                 res.data.forEach(row => {
@@ -230,6 +235,7 @@ const actions = {
             question: question.question,
             wrong_answer: question.wronganswer,
             choices: JSON.stringify(question.choices),
+            qid: state.qid,
             order: 0
         };
 
@@ -358,6 +364,10 @@ const actions = {
 
     setIsPreviewQuestionMode({ commit }, state) {
         commit('SET_IS_PREVIEW_QUESTION_MODE', state);
+    },
+
+    setTestId({commit}, state) {
+        commit('SET_QID', state);
     }
 }
 

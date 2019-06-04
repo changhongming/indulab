@@ -101,7 +101,8 @@ export default {
       addQuestion: "addQuestion",
       setIsPreviewQuestionMode: "setIsPreviewQuestionMode",
       setIsPreviewTestMode: "setIsPreviewTestMode",
-      setIsEditorQuestionMode: "setIsEditorQuestionMode"
+      setIsEditorQuestionMode: "setIsEditorQuestionMode",
+      setTestId: "setTestId",
     }),
 
     getData: async function() {
@@ -139,6 +140,7 @@ export default {
   },
 
   created() {
+    this.setTestId(2)
     this.getQuestions();
     // console.log(this.getQuestion);
   }

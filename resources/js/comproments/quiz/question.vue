@@ -87,7 +87,7 @@
                     @change="choiceContentChange($event, index)"
                     :ref="`choice-${choice.id}`"
                     @mousedown="returnFalse"
-                    :editorOptions="editorSettings"
+                    :options="editorSettings"
                   />
                   <!-- v-model="choice.content" -->
                 </b-col>
@@ -175,8 +175,6 @@
   min-height: 80px;
   max-height: 80px;
 }
-
-
 </style>
 
 
@@ -379,6 +377,22 @@ export default {
       // quill套件擴展功能
       editorSettings: {
         modules: {
+          toolbar: [
+            [{ size: ["small", false, "large", "huge"] }],
+            [{ header: [1, 2, 3, 4, 5, 6, false] }],
+            [
+              "bold",
+              "italic",
+              "underline",
+              "strike",
+              "formula",
+              "link",
+              "script",
+              "color"
+            ],
+            [{ list: "ordered" }, { list: "bullet" }],
+            ["image", "video"]
+          ],
           // imageDrop: true,
           imageResize: {}
         }
@@ -411,13 +425,13 @@ export default {
       isLoaded: "isLoaded",
       isLoadedFail: "isLoadedFail",
       initQuestion: "initQuestions",
-      isRecovery: "isRecovery",
+      isRecovery: "isRecovery"
     }),
 
     ...mapGetters("quiz", {
       questionNumber: "questionNumber",
       getQuestion: "getQuestion",
-      getIsSave: "getIsSave",
+      getIsSave: "getIsSave"
     }),
     getClientHeight() {
       return innerHeight - document.querySelector("nav").clientHeight - 5;
@@ -430,9 +444,7 @@ export default {
       this.setIsQuestionLoaded(false);
       // 在下次更新才將內部狀態更新，用於判斷是否修改
       this.$nextTick(() => {
-
         this.currentId = this.inputId;
-
       });
       setTimeout(() => {
         this.$nextTick(() => {
@@ -477,7 +489,7 @@ export default {
       setIsQuestionLoaded: "setIsQuestionLoaded",
       setIsPreviewQuestionMode: "setIsPreviewQuestionMode",
       setIsPreviewTestMode: "setIsPreviewTestMode",
-      setIsEditorQuestionMode: "setIsEditorQuestionMode",
+      setIsEditorQuestionMode: "setIsEditorQuestionMode"
     }),
 
     // 選項是否可以繼續刪除(小於兩項不能刪)

@@ -1,5 +1,6 @@
-import QuestionEditor from './comproments/quiz/question-container.vue';
-import BootstrapVue from 'bootstrap-vue'
+import MyTest from '././comproments/quiz/my-test.vue';
+import store from './store';
+import BootstrapVue from 'bootstrap-vue';
 import 'bootstrap/scss/bootstrap.scss';
 import 'bootstrap';
 
@@ -7,7 +8,8 @@ Vue.use(BootstrapVue);
 
 const app = new Vue({
     el: '#app',
+    store,
     components: {
-        QuestionEditor
+        MyTest
     }
 });
