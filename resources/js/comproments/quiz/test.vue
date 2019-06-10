@@ -1,9 +1,15 @@
 <template>
   <b-container fluid>
+    <!-- 測驗介紹階段 -->
     <template v-if="isIntroStage">
       <h1>測驗</h1>
+      <div>
+        <span>此測驗總共有{{questions.length}}題，測驗時間為 {{minute}}分{{second}}秒，按下開始按鈕即可開始測驗</span>
+      </div>
       <button @click="startTest">開始</button>
     </template>
+
+    <!-- 測驗階段 -->
     <template v-if="isTestStage">
       <div ref="tikTok" @mousedown="mouseDownTikTok" class="tik-tok">
         <span>剩餘{{padingDigit(minute)}}分{{padingDigit(second)}}秒</span>
@@ -16,6 +22,8 @@
           :choices="questions[questionNumber].choices"
           :init-answer="answers[questionNumber]"
           v-on:choice-change="choiceAnswer"
+          :isReadOnly="isResultStage"
+          :correct-answer="questions[questionNumber].answer"
         />
       </div>
       <b-row>
@@ -25,6 +33,15 @@
             :selectPage="questionNumber + 1"
             @change="pageChange"
             :is-answer-list="answers"
+            :answer-result-list="resultAnswer"
+          />
+        </b-col>
+      </b-row>
+      <b-row>
+        <b-col>
+          <error-explain
+            v-if="isResultStage && questions[questionNumber].answer !== answers[questionNumber]"
+            :content="questions[questionNumber].wronganswer"
           />
         </b-col>
       </b-row>
@@ -32,7 +49,7 @@
         <b-col>
           <button
             class="btn btn-primary"
-            v-show="notAnswers.length"
+            v-show="notAnswers.length && !isResultStage"
             @click="showNextNotAnswerQuestion"
           >跳至未作答的題目</button>
         </b-col>
@@ -41,12 +58,13 @@
         <b-col>
           <button
             class="btn btn-danger btn-lg btn-block"
-            v-show="showSumbit || allQuestionDone"
+            v-show="(showSumbit || allQuestionDone) && !isResultStage"
             @click="sumbit"
           >{{allQuestionDone ? '送出答案' : '尚有題目未完成(送出答案)'}}</button>
         </b-col>
       </b-row>
     </template>
+    <button v-if="isEditorMode" @click="resetData">重置題目</button>
   </b-container>
 </template>
 
@@ -76,6 +94,7 @@
 import "../../../sass/quiz.scss";
 import TestQuestion from "./test-qeustion.vue";
 import TestQuestionBar from "./test-question-bar";
+import ErrorExplain from "./error-explain";
 
 import { mapState } from "vuex";
 
@@ -84,7 +103,8 @@ let leftTimer = null;
 export default {
   components: {
     TestQuestion,
-    TestQuestionBar
+    TestQuestionBar,
+    ErrorExplain
   },
 
   data() {
@@ -110,7 +130,10 @@ export default {
       isTestStage: false,
       isResultStage: false,
       answers: Array(this.questions.length).fill(null),
-      notAnswers: []
+      resultAnswer: Array(this.questions.length).fill(true),
+      notAnswers: Array(this.questions.length)
+        .fill(null)
+        .map((_, index) => index + 1)
     };
   },
 
@@ -119,18 +142,19 @@ export default {
       type: Array
     },
     testTime: {
-      default: 100,
+      default: 180,
       type: Number
     },
     initSelId: {
       type: Number,
       default: 0
+    },
+    isEditorMode: {
+      type: Boolean,
+      default: false
     }
   },
   computed: {
-    ...mapState("quiz", {
-      selectId: "selectId"
-    }),
     // 個位數自動補0轉換(補2碼)
     padingDigit(val) {
       return val => (val > 9 ? val : "0" + val);
@@ -149,6 +173,12 @@ export default {
         this.second = 0;
         window.clearInterval(leftTimer);
         leftTimer = null;
+        alert(
+          `由於測驗時間已到，自動送出答案!(未作答題目${this.notAnswers.toString()}，共${
+            this.notAnswers.length
+          }題)`
+        );
+        this.checkAnswer();
       }
     },
 
@@ -167,7 +197,7 @@ export default {
     },
 
     notAnswers(val, oldVal) {
-      if (val.length === 0 && oldVal.length > 0) {
+      if (val.length === 0) {
         this.allQuestionDone = true;
       } else {
         this.allQuestionDone = false;
@@ -181,6 +211,32 @@ export default {
   },
 
   methods: {
+    resetData() {
+      // 待拷貝的預設props物件
+      const copyDefaultProps = {};
+      // props的定義
+      const defaultProps = this.$options.props;
+
+      // 找出props內有預設值的內容並拷貝出來
+      Object.keys(defaultProps).forEach(key => {
+        if (defaultProps[key].hasOwnProperty("default")) {
+          copyDefaultProps[key] = defaultProps[key].default;
+        }
+      });
+
+      // 將預設props資料與當前外部傳入的props資料進行結合，後複製到_props
+      const _props = Object.assign(
+        {},
+        copyDefaultProps,
+        this.$options.propsData
+      );
+      // console.log( this.$options.data.bind(_props)());
+      // 清空前一次狀態的Timer
+      window.clearInterval(leftTimer);
+      // 進行複製
+      Object.assign(this.$data, this.$options.data.bind(_props)());
+    },
+
     startTest() {
       const vm = this;
       vm.isIntroStage = false;
@@ -236,22 +292,34 @@ export default {
           return (this.questionNumber = this.notAnswers[0] - 1);
         }
       }
+      this.checkAnswer();
+    },
+
+    checkAnswer() {
+      clearInterval(leftTimer);
       const total = this.questions.length;
       let correct = 0;
       for (let i = 0; i < total; i++) {
         if (this.questions[i].answer === this.answers[i]) {
           correct++;
         }
+        else {
+          // 因Vue無法監聽到陣列內數值的變化，故使用$set來主動告知並設定
+          this.$set(this.resultAnswer, i, false);
+        }
       }
       alert(`${correct}/${total}，正確率${correct / total}`);
       console.log(this.questions, this.answers);
+      this.isResultStage = true;
+      // this.$nextTick(() => {
+      //   this.resetData();
+      // });
     },
 
     showNextNotAnswerQuestion() {
       // this.listNotAnswerNumber();
 
       if (this.notAnswers.length > 0) {
-        console.log(this.notAnswers[this.notAnswerIndex]);
         if (this.questionNumber === this.notAnswers[this.notAnswerIndex] - 1) {
           this.notAnswerIndex++;
         }
@@ -278,19 +346,16 @@ export default {
       e.preventDefault();
       if (this.isTickTokDown) {
         const dom = this.$refs.tikTok;
-        // console.log(e)
         const deltaX = e.clientX;
         const deltaY = e.clientY;
         let resX = deltaX - this.tikTokOffsetX;
         let resY = deltaY - this.tikTokOffsetY;
-        console.log(resX, resY);
         if (resX < 0) {
           resX = 0;
         } else if (
           resX + (dom.offsetWidth - this.tikTokOffsetX + 25) >
           document.documentElement.clientWidth
         ) {
-          console.log("xBorder");
           resX =
             document.documentElement.clientWidth -
             (dom.offsetWidth - this.tikTokOffsetX + 25);
@@ -301,7 +366,6 @@ export default {
           resY + (dom.offsetWidth - this.tikTokOffsetX) >
           innerHeight
         ) {
-          console.log("yBorder");
           resY = innerHeight - (dom.offsetHeight - this.tikTokOffsetY);
         }
         // console.log(rect, {x:deltaX,y:deltaY}, {x: rect.x + deltaX, y: rect.x + deltaX})
@@ -313,6 +377,20 @@ export default {
 
   created() {
     this.listNotAnswerNumber();
+
+    // 如果choices物件尚未解析成JSON字串，則解析
+    if (
+      this.questions.length > 0 &&
+      typeof this.questions[0].choices === "string"
+    ) {
+      const quesitons = this.questions.map(question => {
+        return {
+          ...question,
+          choices: JSON.parse(question.choices)
+        };
+      });
+      Object.assign(this.questions, quesitons);
+    }
   },
 
   mounted() {

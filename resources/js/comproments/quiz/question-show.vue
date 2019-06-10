@@ -4,10 +4,10 @@
       <div class="ql-viewer">
         <span>{{serial + 1}}.</span>
         <h1 class="title">題目</h1>
-        <div v-html="showText(question)">{{ showText(question) }}</div>
+        <div v-html="showText(question)"></div>
         <span class="ql-notsave" v-show="!isSave">未儲存</span>
         <h1 class="title">答案錯誤解釋：</h1>
-        <div v-html="showText(wrongAnswer)">{{ showText(wrongAnswer) }}</div>
+        <div v-html="showText(wrongAnswer)"></div>
         <h1 class="title">選項：</h1>
       </div>
     </b-row>

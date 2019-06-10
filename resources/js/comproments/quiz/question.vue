@@ -1,5 +1,6 @@
 <template>
   <div>
+    <input type="hidden" id="quiz-test-url" :value="quizTestURL">
     <div class="c-scollbar" ref="ediotorBlock">
       <div class="row-group">
         <b-row class="mb-2">
@@ -151,6 +152,9 @@
         </b-col>
         <b-col>
           <b-button :disabled="isProcess" variant="primary" @click="previewQuesiton">檢索題目</b-button>
+        </b-col>
+        <b-col>
+          <b-button variant="success" @click="copyTestURL">複製連結</b-button>
         </b-col>
       </b-row>
     </div>
@@ -376,6 +380,7 @@ export default {
 
       // quill套件擴展功能
       editorSettings: {
+        placeholder: "請輸入文字...",
         modules: {
           toolbar: [
             [{ size: ["small", false, "large", "huge"] }],
@@ -387,34 +392,20 @@ export default {
               "strike",
               "formula",
               "link",
-              "script",
-              "color"
+              "script"
             ],
+            [{ color: [] }, { background: [] }],
+            [{ align: [] }, { indent: "-1" }, { indent: "+1" }],
             [{ list: "ordered" }, { list: "bullet" }],
-            ["image", "video"]
+            ["image", "video"],
+            ["clean"]
           ],
           // imageDrop: true,
           imageResize: {}
         }
       },
 
-      // quill套件的toolbar選項設定
-      editorToolbar: [
-        [{ size: ["small", false, "large", "huge"] }],
-        [{ header: [1, 2, 3, 4, 5, 6, false] }],
-        [
-          "bold",
-          "italic",
-          "underline",
-          "strike",
-          "formula",
-          "link",
-          "script",
-          "color"
-        ],
-        [{ list: "ordered" }, { list: "bullet" }],
-        ["image", "video"]
-      ]
+      quizTestURL: null
     };
   },
 
@@ -425,7 +416,8 @@ export default {
       isLoaded: "isLoaded",
       isLoadedFail: "isLoadedFail",
       initQuestion: "initQuestions",
-      isRecovery: "isRecovery"
+      isRecovery: "isRecovery",
+      qid: "qid"
     }),
 
     ...mapGetters("quiz", {
@@ -663,11 +655,30 @@ export default {
       this.returnFalse(e);
     },
 
+    copyTestURL() {
+      let testURLToCopy = document.getElementById("quiz-test-url");
+      // 不是 hidden 才能複製
+      testURLToCopy.setAttribute("type", "text");
+      testURLToCopy.select();
+
+      try {
+        const successful = document.execCommand("copy");
+        const msg = successful ? "成功" : `失敗 => ${this.quizTestURL}`;
+        alert("題目連結以複製" + msg);
+      } catch (err) {
+        alert("抱歉，無法複製!連結為 => this.quizTestURL");
+      }
+
+      testURLToCopy.setAttribute("type", "hidden");
+      window.getSelection().removeAllRanges();
+    },
+
     initCreated() {
       this.content = this.question;
       this.wrongAnswerContent = this.wrongAnswer;
       this.isInit = true;
       initAnswerId = this.answerId;
+      this.quizTestURL = window.location.origin + "/test/" + this.qid;
     },
 
     initMounted() {

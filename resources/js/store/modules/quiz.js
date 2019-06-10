@@ -196,11 +196,7 @@ const actions = {
                 const questions = [];
                 res.data.forEach(row => {
                     questions.push(new Question({
-                        id: row.id,
-                        order: row.order,
-                        question: row.question,
-                        wronganswer: row.wrong_answer_message,
-                        answer: row.answer_id,
+                        ...row,
                         choices: JSON.parse(row.choices).map(x => new Choice(x)),
                         isSave: true
                     }));
@@ -231,9 +227,9 @@ const actions = {
         commit('SET_IS_LOADING', true);
         const question = state.questions[state.selectId];
         const payload = {
-            answer_id: question.answer,
+            answer: question.answer,
             question: question.question,
-            wrong_answer: question.wronganswer,
+            wronganswer: question.wronganswer,
             choices: JSON.stringify(question.choices),
             qid: state.qid,
             order: 0

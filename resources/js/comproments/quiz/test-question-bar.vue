@@ -6,7 +6,7 @@
     <li
       v-for="index in totalPage"
       ref="pageList"
-      :class="['page-item', {'active': currentPage === index, 'non-answer': !isAnswerList[index - 1] }]"
+      :class="['page-item', {'active': currentPage === index, 'non-answer': !isAnswerList[index - 1], 'wrong-answer': answerResultList[index - 1] === false}]"
       :key="index"
       :value="isAnswerList"
     >
@@ -31,6 +31,21 @@
   color: var(--white);
   background-color: var(--primary);
   border-color: var(--primary);
+}
+
+.page-item.wrong-answer.active .page-link {
+  z-index: 1;
+  color: var(--white);
+  background-color: var(--primary);
+  border-color: var(--primary);
+}
+
+
+.page-item.wrong-answer .page-link{
+  z-index: 1;
+  color: var(--white);
+  background-color: var(--danger);
+  border-color: var(--danger);
 }
 </style>
 
@@ -57,6 +72,10 @@ export default {
       default: DEFAULT_SELECT_PAGE
     },
     isAnswerList: {
+      type: Array,
+      default: () => new Array(DEFAULT_TOTAL_PAGE).fill(true)
+    },
+    answerResultList: {
       type: Array,
       default: () => new Array(DEFAULT_TOTAL_PAGE).fill(true)
     }
@@ -92,10 +111,6 @@ export default {
       this.currentPage--;
       this.$emit("change", this.currentPage);
     }
-  },
-
-  created() {
-    console.log(this.$props);
   }
 };
 </script>

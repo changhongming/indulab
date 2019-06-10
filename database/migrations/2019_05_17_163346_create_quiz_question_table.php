@@ -17,7 +17,7 @@ class CreateQuizQuestionTable extends Migration
             $table->increments('id');
             $table->integer('qt_id')->unsigned();
             $table->foreign('qt_id')->references('id')->on('quiz_test')->onDelete('cascade')->onUpdate('cascade')->comment('對應到quiz_test的id');
-            $table->uuid('answer_id');
+            $table->uuid('answer');
             $table->longText('question');
             $table->longText('choices');
             $table->integer('order')->unsigned();

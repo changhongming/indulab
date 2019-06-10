@@ -23,6 +23,8 @@ const mix = require('laravel-mix');
  .js('resources/js/drawData-page.js', 'public/js')
 
  .js('resources/js/question-editor.js', 'public/js')
+
+ .js('resources/js/quiz-test.js', 'public/js')
  // 將js庫進行抽取(vendor.js)，以利於不常變更的js庫不用重新下載
  .extract([
 	'jquery',
@@ -53,6 +55,7 @@ const mix = require('laravel-mix');
 
  // 打包css
  .sass('resources/sass/app.scss','public/css/site.css')
+ // .sass('resources/sass/quiz.scss','public/css/quiz.css')
  // devtool: "inline-source-map" 可以將打包的程式碼還原(source map)，以便看到打包前的程式碼
  //.webpackConfig({ devtool: "inline-source-map" });
  // 如果為產品版本，進行版本號管控(用於cache-control讓客戶端可以即時更新新版本的檔案)

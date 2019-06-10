@@ -3,9 +3,11 @@
 @section('full-content')
 
 
+
 <div id="app">
-  <my-test></my-test>
+  <test ref="test" :questions="{{$questions}}"/>
 </div>
+
 
 @section('script')
     {{--  KaTex使用在quill的formula顯示上  --}}
@@ -17,8 +19,6 @@
     <!-- To automatically render math in text elements, include the auto-render extension: -->
     <script defer src="https://cdn.jsdelivr.net/npm/katex@0.10.2/dist/contrib/auto-render.min.js" integrity="sha384-kWPLUVMOks5AQFrykwIup5lo0m3iMkkHrD0uJ4H5cjeGihAutqP0yW0J6dpFiVkI" crossorigin="anonymous"
         onload="renderMathInElement(document.body);"></script>
-
-
-  <script src="{{ mix('/js/question-editor.js') }}"></script>
+  <script src="{{ mix('/js/quiz-test.js') }}"></script>
 @endsection
 @stop

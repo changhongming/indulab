@@ -44,3 +44,5 @@ Route::delete('question/{id}', 'QuizEditorContorller@deleteQuestion')->name('que
 Route::get('question', 'QuizEditorContorller@getQuestions');
 Route::get('quizs', 'QuizEditorContorller@getQuizes');
 Route::get('quizs/edit', 'QuizEditorContorller@getQuestionEditorView')->name('quizs.edit');
+
+Route::get('test/{id}', 'QuizTestContorller@getQuestions');

@@ -51,7 +51,7 @@
                 v-bind:key="question.id"
                 @click="questionClick(index)"
               >
-                <questionShow
+                <question-show
                   ref="questionShow"
                   :qid="question.id"
                   :serial="index"
@@ -62,7 +62,7 @@
                   :removeDisgabled="questions.length <= 1 ? true : false"
                   :init-is-save="question.isSave"
                   v-on:destroy="destroy"
-                ></questionShow>
+                ></question-show>
               </li>
             </div>
             <div>
@@ -172,6 +172,11 @@ const newObj = obj => {
 };
 
 // 深拷貝覆蓋資料(並且會刪除多的內容) => 註：由於JS內物件是採用參考(reference)方式，所以需要將物件內各個數值一一覆蓋(因數值是by value)。
+/**
+ * 深拷貝覆蓋資料(並且會刪除多的內容)
+ * @param {object} obj 目標物件
+ * @param {object} overObj 來源物件
+ */
 const copyData = (obj, overObj) => {
   // overObj = JSON.parse(JSON.stringify(overObj));
   Object.keys(obj).forEach(key => {
@@ -326,9 +331,6 @@ export default {
       }
     },
 
-    beforeCreate() {
-      this.getQuestions();
-    },
 
     uuid() {
       return uuid();

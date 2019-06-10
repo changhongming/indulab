@@ -34,10 +34,10 @@ class QuizEditorContorller extends Controller {
 
         $record->question = $data['question'];
         $record->choices = $data['choices'];
-        $record->answer_id = $data['answer_id'];
+        $record->answer = $data['answer'];
         $record->qt_id = $data['qid'];
         $record->order = $data['order'];
-        $record->wrong_answer_message = $data['wrong_answer'];
+        $record->wronganswer = $data['wronganswer'];
         // 新增到資料庫
         $record->save();
         Debugbar::info($record);
@@ -57,7 +57,7 @@ class QuizEditorContorller extends Controller {
         if(!$req_id) {
             return JsonMsgResponse::response('Need to provide query id value', 400);
         }
-        $rows = QuizQuestion::where('qt_id', $req_id)->select('id', 'answer_id', 'question', 'choices', 'order', 'wrong_answer_message')->get();
+        $rows = QuizQuestion::where('qt_id', $req_id)->select('id', 'answer', 'question', 'choices', 'order', 'wronganswer')->get();
         Debugbar::info($rows);
         return response()->json($rows, 200);
     }

@@ -1,7 +1,11 @@
 <template>
   <div>
-    <div v-html="content"></div>
-    <div>abc</div>
+    <b-card border-variant="danger" header-border-variant="danger">
+      <template slot="header">
+        <div class="text-danger text-center">錯誤解釋</div>
+      </template>
+      <div class="ql-viewer" v-html="content"></div>
+    </b-card>
   </div>
 </template>
 
@@ -9,14 +13,11 @@
 import "../../../sass/quiz.scss";
 export default {
   data() {
-    return {}
+    return {};
   },
 
   props: {
-    content: String,
+    content: String
   },
-  created() {
-    console.log(this.$data)
-  }
-}
+};
 </script>

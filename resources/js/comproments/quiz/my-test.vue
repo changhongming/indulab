@@ -10,21 +10,30 @@
         </div>
       </div>
     </div>
+
     <template v-if="questions.length != 0">
       <question-container v-show="isEditorQuestionMode"/>
-        <test v-show="isPreviewTestMode" :init-sel-id="selectId" :questions="questions"/>
-        <test-question
-          v-show="isPreviewQuestionMode"
-          :questionNumber="selectId"
-          :question="getQuestion.question"
-          :choices="getQuestion.choices"
-          :init-answer="getQuestion.answer"
-          :isReadOnly="true"
-        />
-        <button v-show="isPreviewTestMode || isPreviewQuestionMode" @click="clickBackEditor">返回編輯模式</button>
-        <button v-show="isPreviewQuestionMode" @click="clickOpenPreviewtest">開啟全題預覽</button>
-        <button v-show="isPreviewTestMode" @click="clickClosePreviewtest">關閉全題預覽</button>
-        <!-- <error-explain :content="getQuestion.wronganswer"/> -->
+      <test
+        v-show="isPreviewTestMode"
+        :init-sel-id="selectId"
+        :questions="questions"
+        :isEditorMode="true"
+      />
+
+      <test-question
+        v-show="isPreviewQuestionMode"
+        :questionNumber="selectId"
+        :question="getQuestion.question"
+        :choices="getQuestion.choices"
+        :init-answer="getQuestion.answer"
+        :correct-answer="getQuestion.answer"
+        :isReadOnly="true"
+      />
+      <error-explain v-show="isPreviewQuestionMode" :content="getQuestion.wronganswer"/>
+
+      <button v-show="isPreviewTestMode || isPreviewQuestionMode" @click="clickBackEditor">返回編輯模式</button>
+      <button v-show="isPreviewQuestionMode" @click="clickOpenPreviewtest">開啟全題預覽</button>
+      <button v-show="isPreviewTestMode" @click="clickClosePreviewtest">關閉全題預覽</button>
     </template>
   </div>
 </template>
@@ -77,7 +86,7 @@ export default {
       isLoading: "isLoading",
       isEditorQuestionMode: "isEditorQuestionMode",
       isPreviewTestMode: "isPreviewTestMode",
-      isPreviewQuestionMode: "isPreviewQuestionMode",
+      isPreviewQuestionMode: "isPreviewQuestionMode"
     }),
 
     ...mapGetters("quiz", {
@@ -102,7 +111,7 @@ export default {
       setIsPreviewQuestionMode: "setIsPreviewQuestionMode",
       setIsPreviewTestMode: "setIsPreviewTestMode",
       setIsEditorQuestionMode: "setIsEditorQuestionMode",
-      setTestId: "setTestId",
+      setTestId: "setTestId"
     }),
 
     getData: async function() {
@@ -140,9 +149,15 @@ export default {
   },
 
   created() {
-    this.setTestId(2)
+    // 註冊當使用者修改要離開
+    window.document.body.onbeforeunload = () => true;
+
+    this.setTestId(window.location.href.split("?id=")[1].split("#")[0]);
     this.getQuestions();
-    // console.log(this.getQuestion);
+  },
+
+  destroyed() {
+    window.document.body.onbeforeunload = null;
   }
 };
 </script>

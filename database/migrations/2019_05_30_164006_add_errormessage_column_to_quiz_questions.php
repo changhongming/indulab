@@ -14,7 +14,7 @@ class AddErrormessageColumnToQuizQuestions extends Migration
     public function up()
     {
         Schema::table('quiz_questions', function (Blueprint $table) {
-            $table->longText('wrong_answer_message');
+            $table->longText('wronganswer');
         });
     }
 
@@ -26,7 +26,7 @@ class AddErrormessageColumnToQuizQuestions extends Migration
     public function down()
     {
         Schema::table('quiz_questions', function (Blueprint $table) {
-            $table->dropColumn('wrong_answer_message');
+            $table->dropColumn('wronganswer');
         });
     }
 }
