@@ -11,7 +11,13 @@
 
     <!-- 測驗階段 -->
     <template v-if="isTestStage">
-      <div ref="tikTok" @mousedown="mouseDownTikTok" class="tik-tok">
+      <div
+        ref="tikTok"
+        @mousedown="mouseDownTikTok"
+        @touchstart="mouseDownTikTok"
+        @touchend="mouseUpTikTok"
+        class="tik-tok"
+      >
         <span>剩餘{{padingDigit(minute)}}分{{padingDigit(second)}}秒</span>
       </div>
 
@@ -332,10 +338,21 @@ export default {
 
     /* tik-tok */
     mouseDownTikTok(e) {
-      const dom = this.$refs.tikTok;
+      switch (e.type) {
+        case "touchstart":
+          e.preventDefault();
+          const rect = e.target.getBoundingClientRect();
+          this.tikTokOffsetX = e.touches[0].clientX - rect.left;
+          this.tikTokOffsetY = e.touches[0].clientY - rect.top;
+          break;
+        case "mousedown":
+          this.tikTokOffsetX = e.offsetX;
+          this.tikTokOffsetY = e.offsetY;
+          break;
+        default:
+          return console.error("非預期事件");
+      }
       this.isTickTokDown = true;
-      this.tikTokOffsetX = e.offsetX;
-      this.tikTokOffsetY = e.offsetY;
     },
 
     mouseUpTikTok() {
@@ -343,11 +360,15 @@ export default {
     },
 
     mouseMoveTikTok(e) {
-      e.preventDefault();
+      if (e.type === "mousemove") {
+        e.preventDefault();
+      }
       if (this.isTickTokDown) {
         const dom = this.$refs.tikTok;
-        const deltaX = e.clientX;
-        const deltaY = e.clientY;
+
+        const deltaX = e.clientX || e.changedTouches[0].clientX;
+        const deltaY = e.clientY || e.changedTouches[0].clientY;
+
         let resX = deltaX - this.tikTokOffsetX;
         let resY = deltaY - this.tikTokOffsetY;
         if (resX < 0) {
@@ -396,6 +417,7 @@ export default {
   mounted() {
     this.$el.addEventListener("mouseup", this.mouseUpTikTok);
     this.$el.addEventListener("mousemove", this.mouseMoveTikTok);
+    this.$el.addEventListener("touchmove", this.mouseMoveTikTok);
   }
 };
 </script>
