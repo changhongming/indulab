@@ -3,8 +3,9 @@
 @section('full-content')
 
 
-<div id="app">
+<div id="app" style="position: relative;">
   <my-test></my-test>
+  <go-back message="返回題庫選單" href="{{ Route('quizs') }}"></go-back>
 </div>
 
 @section('script')
