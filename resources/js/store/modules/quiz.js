@@ -204,7 +204,6 @@ const actions = {
         axios.get(`/question?id=${state.qid}`)
             .then(res => {
                 const questions = [];
-                console.log(res.data.test_name, res.data.test_time);
                 res.data.questions.forEach(row => {
                     questions.push(new Question({
                         ...row,
@@ -219,7 +218,7 @@ const actions = {
                 commit('SET_QUESTIONS', questions);
 
                 // 此問題庫資料為空
-                if (res.data.length === 0) {
+                if (res.data.questions.length === 0) {
                     // 等待空陣列初始化完成直接加入一個新問題
                     setTimeout(() => {
                         dispatch('addQuestion');
