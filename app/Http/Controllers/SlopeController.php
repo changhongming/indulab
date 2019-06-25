@@ -16,13 +16,13 @@ class SlopeController extends Controller
 {
     public function postSlope(Request $request) {
         // 檢查Session是否有student_id欄位
-        if($request->session()->has('student_id')) {
+        if($request->user()) {
             // 取得所有請求欄位與資料
             $input = $request->all();
 
             // 建構一個Slope模型
             $record = new Slope;
-            $record->student_id = $request->session()->get('student_id');
+            $record->student_id = $request->user()->id;
             $record->mass = $input['mass'];
             $record->angle = $input['angle'];
             $record->length = $input['length'];
@@ -35,16 +35,17 @@ class SlopeController extends Controller
             return JsonMsgResponse::response('ok', 200);
 
         }
-        return JsonMsgResponse::response('the student session is not found', 404);    }
+        return JsonMsgResponse::response('the student session is not found', 400);
+    }
 
     public function postSimSlopeSurvey(Request $request) {
         // 檢查Session是否有student_id欄位
-        if($request->session()->has('student_id')) {
+        if($request->user()) {
             // 取得所有請求欄位與資料
             $input = $request->all();
 
             // 取得學生id
-            $student_id = $request->session()->get('student_id');
+            $student_id = $request->user()->id;
 
             // 創建一個ORM資料陣列
             $record = array();
@@ -64,7 +65,7 @@ class SlopeController extends Controller
     }
 
     public function getSurveyQuestion(Request $request, $class) {
-        if($request->session()->has('student_id')) {
+        if($request->user()) {
             $db_table = \App\SurveyQuestion::where('class', $class)->select('question', 'number', 'id');
             $survey_data = $db_table->get();
             //$this.unicodeDecode($survey_data);
