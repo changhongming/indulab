@@ -18,6 +18,8 @@
         :init-sel-id="selectId"
         :questions="questions"
         :isEditorMode="true"
+        :test-name="testName"
+        :test-time="testTime"
       />
 
       <test-question
@@ -86,7 +88,9 @@ export default {
       isLoading: "isLoading",
       isEditorQuestionMode: "isEditorQuestionMode",
       isPreviewTestMode: "isPreviewTestMode",
-      isPreviewQuestionMode: "isPreviewQuestionMode"
+      isPreviewQuestionMode: "isPreviewQuestionMode",
+      testName: "testName",
+      testTime: "testTime"
     }),
 
     ...mapGetters("quiz", {

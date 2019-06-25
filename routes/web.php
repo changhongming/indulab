@@ -42,6 +42,7 @@ Auth::routes();
 Route::post('question', 'QuizEditorContorller@postQuestion')->name('questions.create');
 Route::delete('question/{id}', 'QuizEditorContorller@deleteQuestion')->name('questions.destroy');
 Route::get('question', 'QuizEditorContorller@getQuestions');
+Route::get('quiz', 'QuizEditorContorller@getQuiz');
 Route::get('quizs', 'QuizEditorContorller@getQuizes')->name('quizs');
 Route::get('quizs/edit', 'QuizEditorContorller@getQuestionEditorView')->name('quizs.edit');
 Route::get('quizs/create', 'QuizEditorContorller@getQuestionCreateView')->name('quizs.create');

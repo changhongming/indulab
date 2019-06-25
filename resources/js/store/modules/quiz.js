@@ -53,6 +53,8 @@ const state = {
     isPreviewQuestionMode: false,
     isPreviewTestMode: false,
     isEditorQuestionMode: true,
+    testName: null,
+    testTime: null,
     qid: undefined,
 }
 
@@ -74,6 +76,14 @@ const getters = {
 }
 
 const mutations = {
+    SET_TEST_NAME(state, name) {
+        state.testName = name;
+    },
+
+    SET_TEST_TIME(state, time) {
+        state.testTime = time;
+    },
+
     SET_QID(state, id) {
         state.qid = id;
     },
@@ -194,7 +204,8 @@ const actions = {
         axios.get(`/question?id=${state.qid}`)
             .then(res => {
                 const questions = [];
-                res.data.forEach(row => {
+                console.log(res.data.test_name, res.data.test_time);
+                res.data.questions.forEach(row => {
                     questions.push(new Question({
                         ...row,
                         choices: JSON.parse(row.choices).map(x => new Choice(x)),
@@ -202,6 +213,8 @@ const actions = {
                     }));
                 });
 
+                commit('SET_TEST_NAME', res.data.test_name);
+                commit('SET_TEST_TIME', res.data.test_time)
                 commit('SET_SELECT_ID', 0);
                 commit('SET_QUESTIONS', questions);
 

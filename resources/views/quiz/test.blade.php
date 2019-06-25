@@ -5,7 +5,7 @@
 
 
 <div id="app">
-  <test ref="test" :questions="{{$questions}}"/>
+  <test ref="test" :questions="{{$questions}}" test-name="{{$test_name}}" :test-time="{{$test_time}}"/>
 </div>
 
 

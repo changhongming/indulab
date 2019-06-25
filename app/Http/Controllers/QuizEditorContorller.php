@@ -59,7 +59,17 @@ class QuizEditorContorller extends Controller {
         }
         $rows = QuizQuestion::where('qt_id', $req_id)->select('id', 'answer', 'question', 'choices', 'order', 'wronganswer')->get();
         Debugbar::info($rows);
-        return response()->json($rows, 200);
+        $testInfo = QuizTest::find($req_id);
+        return response()->json(array('questions'=>$rows, 'test_time'=>$testInfo->test_time , 'test_name'=>$testInfo->test_name), 200);
+    }
+
+    public function getQuiz(Request $request) {
+        $req_id = $request->query('id');
+        if(!$req_id) {
+            return JsonMsgResponse::response('Need to provide query id value', 400);
+        }
+        $testInfo = QuizTest::find($req_id);
+        return response()->json($testInfo, 200);
     }
 
     public function getQuizes() {
