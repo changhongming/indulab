@@ -1,7 +1,7 @@
 <template>
   <div>
     <h1>Q{{ questionNumber + 1 }}.<span class="non-answer-block" v-show="isReadOnly && answer === null">未作答</span></h1>
-    <div class="question" v-html="question"></div>
+    <div class="question ql-viewer" v-html="question"></div>
     <b-row>
       <b-col md="6" v-for="choice in choices" v-bind:key="choice.id">
         <div class="choice">

@@ -63,7 +63,7 @@ class QuizEditorContorller extends Controller {
     }
 
     public function getQuizes() {
-        $rows = QuizTest::get(['id', 'test_name']);
+        $rows = QuizTest::get(['id', 'test_name', 'test_time']);
 
         Debugbar::info($rows);
         return view('quiz.index')->with('quizs', $rows);
@@ -82,4 +82,44 @@ class QuizEditorContorller extends Controller {
         return JsonMsgResponse::response('ok', 200);
     }
 
+    public function getQuestionCreateView() {
+        return view('quiz.create');
+    }
+
+    public function postTest(Request $request) {
+        $data = $request->all();
+        $record = new QuizTest;
+        $record->test_name = $data['test_name'];
+        $record->test_time = $data['test_time'];
+        $record->save();
+        return $this->getQuizes();
+    }
+
+    public function deleteTest($id) {
+        Debugbar::info($id);
+        $quiz = QuizTest::find($id);
+
+        // 刪除使用者
+        $quiz->delete();
+
+        Debugbar::info($quiz);
+
+        return $this->getQuizes();
+    }
+
+    public function changeTest(Request $request) {
+        $data = $request->all();
+        Debugbar::info($data);
+        $record = QuizTest::find($data['id']);
+        $record->test_name = $data['test_name'];
+        $record->test_time = $data['test_time'];
+        $record->save();
+        return $this->getQuizes();
+    }
+    public function getEditTestView($id) {
+        $row = QuizTest::find($id);
+
+        Debugbar::info($row);
+        return view('quiz.edit_quiz')->with('quiz', $row);
+    }
 }

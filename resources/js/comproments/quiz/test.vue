@@ -2,11 +2,11 @@
   <b-container fluid>
     <!-- 測驗介紹階段 -->
     <template v-if="isIntroStage">
-      <h1>測驗</h1>
+      <h1>{{testName}}</h1>
       <div>
         <span>此測驗總共有{{questions.length}}題，測驗時間為 {{minute}}分{{second}}秒，按下開始按鈕即可開始測驗</span>
       </div>
-      <button @click="startTest">開始</button>
+      <button class="btn btn-success" @click="startTest">開始</button>
     </template>
 
     <!-- 測驗階段 -->
@@ -158,7 +158,11 @@ export default {
     isEditorMode: {
       type: Boolean,
       default: false
-    }
+    },
+    testName: {
+      type: String,
+      default: "測驗"
+    },
   },
   computed: {
     // 個位數自動補0轉換(補2碼)
