@@ -40,6 +40,7 @@
             @change="pageChange"
             :is-answer-list="answers"
             :answer-result-list="resultAnswer"
+            :isAnswerState="isResultStage"
           />
         </b-col>
       </b-row>
@@ -259,7 +260,7 @@ export default {
     },
 
     choiceAnswer(answer) {
-      this.answers[this.questionNumber] = answer;
+      this.$set(this.answers, this.questionNumber, answer)
       this.listNotAnswerNumber();
     },
 
