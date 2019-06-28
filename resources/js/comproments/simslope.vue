@@ -163,6 +163,11 @@
                 <v-shape ref="base" :config="baseConfig"/>
                 <v-text ref="angleText" :config="configAngleText"/>
                 <v-arc :config="configAngleArc"/>
+                <v-image-src
+                  ref="ultraImage"
+                  v-on:onload="onUltraImgLoad"
+                  :config="configUltraImg"
+                />
               </v-layer>
               <v-layer ref="gridLayer"></v-layer>
               <v-layer ref="breakPoinLyaer"></v-layer>
@@ -215,7 +220,6 @@
       @dismissed="dismissCountDown=0"
       @dismiss-count-down="countDownChanged(dismissCountDown)"
     >模擬動畫結束</b-alert>
-    <input type="hidden" v-model="streamLog" ref="historyData">
   </b-container>
 </template>
 <style scoped>
@@ -274,6 +278,7 @@ import { Draggable } from "draggable-vue-directive";
 import rangeInput from "./range-input.vue";
 import logTable from "./log-table.vue";
 import pictureContent from "./picture-content.vue";
+import vImageSrc from "./v-image-src";
 import tutorData from "../json/simSlopeTurtor.json.js";
 import sort from "fast-sort";
 import uuidGen from "../uuid-gen.js";
@@ -327,7 +332,8 @@ export default {
   components: {
     rangeInput,
     logTable,
-    pictureContent
+    pictureContent,
+    vImageSrc
   },
   directives: {
     Draggable
@@ -360,12 +366,12 @@ export default {
       ],
       fields: [
         { key: "id", label: "#", sortable: true },
-        { key: "g", label: "重力加速度", sortable: true },
+        // { key: "g", label: "重力加速度", sortable: true },
         { key: "angle", label: "傾斜角度", sortable: true },
         { key: "mass", label: "質量", sortable: true },
         { key: "vol", label: "結束瞬時速度", sortable: true },
-        { key: "disp", label: "結束位移", sortable: true },
-        { key: "time", label: "結束時間", sortable: true }
+        { key: "disp", label: "位移", sortable: true },
+        { key: "time", label: "使用時間", sortable: true }
       ],
       streamLog: [],
       log: [],
@@ -393,6 +399,14 @@ export default {
       configKonva: {
         width: 2000,
         height: 1000
+      },
+      ultraWidth: null,
+      ultraHeight: null,
+      configUltraImg: {
+        src: "image/hc-sr04-nobg.png",
+        rotation: 60,
+        x: 0,
+        y: 0
       },
       configRect: {
         x: 50,
@@ -435,8 +449,8 @@ export default {
       angle: 45,
       ratioTime: 1,
       slope_len: 1000,
-      offsetX: 0,
-      offsetY: 37.8 * 2,
+      offsetX: 250,
+      offsetY: 37.8 * 2 + 150,
       ratio2cm: 1000,
       inputCubeLength: 0.1,
       baseConfig: {
@@ -468,6 +482,10 @@ export default {
     inputSlopeLength: function(val, oldVal) {
       this.ratio2cm = (1 / val) * 1000;
       this.cubeLength = this.inputCubeLength * this.ratio2cm;
+
+      // 更新超音波元件位置
+      this.ultraImageRender();
+
       this.updateBreakPointsLengthLocation(oldVal);
       this.updateGridLines();
     },
@@ -526,19 +544,21 @@ export default {
         height: this.slope_len * Math.sin(deg2rad(val)) + this.offsetY
       };
 
+      const rectX =
+        this.offsetX + this.cubeLength * Math.sin(deg2rad(Number(val)));
+      const rectY =
+        this.offsetY - this.cubeLength * Math.cos(deg2rad(Number(val)));
+
       // 設定斜坡方塊屬性
-      this.configRect.x =
-        this.offsetX +
-        this.cubeLength *
-          Math.cos(deg2rad(Number(val))) *
-          Math.tan(deg2rad(Number(val)));
-      this.configRect.y =
-        this.offsetY -
-        (this.cubeLength * Math.sin(deg2rad(Number(val)))) /
-          Math.tan(deg2rad(Number(val)));
+      this.configRect.x = rectX;
+
+      this.configRect.y = rectY;
+
       this.configRect.rotation = Number(val);
       // this.width = this.cubeLength;
       // this.height = this.cubeLength;
+      // 更新超音波元件位置
+      this.ultraImageRender();
       // 更新角度顯示
       this.updateAngleDraw(val);
 
@@ -571,13 +591,17 @@ export default {
   },
   // 請不要在這邊調用箭頭函式，否則無法有效地指到vue的this
   methods: {
-    json2csv: function(json = this.streamLog) {
-      // {"g":9.8,"angle":45,"slopeLen":1000,"mass":1,"stream":[{"d":"0.00","t":"0.01","v":"0.07"},{"d":"0.01","t"
-      let stream = json[0].stream;
+    json2csv: function() {
       let csv = "距離,時間,速度,加速度\n公尺,秒,公尺/秒,公尺/秒^2\nd,t,v,a\n";
-      stream.forEach(obj => {
-        csv += `${obj.d},${obj.t},${obj.v},${json[0].g}\n`;
-      });
+      const goal = this.inputSlopeLength - this.inputCubeLength;
+      let d = 0;
+      this.angle;
+      let a = (this.g * Math.sin(deg2rad(this.angle))).toFixed(2);
+
+      for (let t = 0; d < goal; t += 0.01) {
+        d = (0.5 * a * t ** 2).toFixed(2);
+        csv += `${d},${t.toFixed(2)},${(a * t).toFixed(2)},${a}\n`;
+      }
       return csv;
     },
     onMassChange(val) {
@@ -626,19 +650,10 @@ export default {
       const angle = this.angle;
       slopeBox
         .getStage()
-        .setX(
-          this.offsetX +
-            this.cubeLength *
-              Math.cos(deg2rad(angle)) *
-              Math.tan(deg2rad(angle))
-        );
+        .setX(this.offsetX + this.cubeLength * Math.sin(deg2rad(angle)));
       slopeBox
         .getStage()
-        .setY(
-          this.offsetY -
-            (this.cubeLength * Math.sin(deg2rad(angle))) /
-              Math.tan(deg2rad(angle))
-        );
+        .setY(this.offsetY - this.cubeLength * Math.cos(deg2rad(angle)));
       stage.draw();
     },
     updateBreakPointsLengthLocation(oldVal) {
@@ -785,9 +800,7 @@ export default {
       // 用斜率公式計算不超過三角型高度的值 => y = tan(θ) * x
       const yPointHeight =
         slopeRate *
-        (vm.$data.offsetX +
-          xLen -
-          this.configAngleArc.outerRadius * Math.cos(deg2rad(val / 2)));
+        (xLen - this.configAngleArc.outerRadius * Math.cos(deg2rad(val / 2)));
       // 計算可用高度
       const yHeight =
         yLen -
@@ -907,15 +920,14 @@ export default {
             .getStage()
             .setX(
               vm.$data.offsetX +
-                vm.$data.cubeLength * cos * Math.tan(deg2rad(vm.$data.angle)) +
+                vm.$data.cubeLength * sin +
                 d.x * vm.$data.ratio2cm
             );
           vm.$refs.mrect
             .getStage()
             .setY(
               vm.$data.offsetY -
-                (vm.$data.cubeLength * sin) /
-                  Math.tan(deg2rad(vm.$data.angle)) +
+                vm.$data.cubeLength * cos +
                 d.y * vm.$data.ratio2cm
             );
         } else {
@@ -932,26 +944,18 @@ export default {
             .getStage()
             .setX(
               vm.$data.offsetX +
-                vm.$data.cubeLength * cos * Math.tan(deg2rad(vm.$data.angle)) +
+                vm.$data.cubeLength * sin +
                 d.x * vm.$data.ratio2cm
             );
           vm.$refs.mrect
             .getStage()
             .setY(
               vm.$data.offsetY -
-                (vm.$data.cubeLength * sin) /
-                  Math.tan(deg2rad(vm.$data.angle)) +
+                vm.$data.cubeLength * cos +
                 d.y * vm.$data.ratio2cm
             );
           vm.pushSlopeLog();
           vm.dismissCountDown = vm.dismissSecs;
-          vm.streamLog.push({
-            g: vm.g,
-            angle: vm.angle,
-            slopeLen: vm.slope_len,
-            mass: vm.mass,
-            stream: vm.log
-          });
           vm.slopeBreakPoint = [];
           if (_breakPointGroup !== null && "destroy" in _breakPointGroup) {
             _breakPointGroup.destroy();
@@ -1152,6 +1156,39 @@ export default {
       };
       vm.logKeyId++;
       vm.dataLog.push(record);
+    },
+    onUltraImgLoad(size) {
+      this.ultraWidth = size.width;
+      this.ultraHeight = size.height;
+      this.ultraImageRender();
+      console.log(size);
+    },
+
+    ultraImageRender() {
+      const vm = this;
+      // 取得超音波圖片物件
+      const ultraImage = vm.$refs.ultraImage.$children[0].getStage();
+
+      // 設定圖片縮放比例
+      ultraImage.width(vm.ultraWidth * (1 / vm.inputSlopeLength));
+      ultraImage.height(vm.ultraHeight * (1 / vm.inputSlopeLength));
+
+      // 取得大邊來確保部會吃掉滑動方塊
+      const bigSide =
+        ultraImage.width() > ultraImage.height()
+          ? ultraImage.width()
+          : ultraImage.height();
+
+      const rect = vm.$refs.mrect.getStage();
+      // 確保滑動方塊的數值已經更新，才計算超音波位置
+      vm.$nextTick(() => {
+        const offsetX = rect.getX() - bigSide * Math.cos(deg2rad(vm.angle));
+        const offsetY = rect.getY() - bigSide * Math.sin(deg2rad(vm.angle));
+        vm.configUltraImg.rotation = vm.angle;
+        ultraImage.setX(offsetX);
+        ultraImage.setY(offsetY);
+        ultraImage.draw();
+      });
     }
   },
 
@@ -1217,6 +1254,10 @@ export default {
     this.updateAngleDraw(vm.angle);
 
     this.updateGridLines();
+
+    // 更新超音波元件位置
+    this.ultraImageRender();
+
     // 取得使用者電腦的DPI(pixel/inch)，用於計算實際長度
     //getDPI();
     if (this.is_ani_start) {
