@@ -33,7 +33,7 @@
             class="text-left"
           >
             <h6 slot="header">
-              <i class="fas fa-compress-arrows-alt"></i> 即時數據
+              <i class="fas fa-compress-arrows-alt"></i> 瞬間數據
             </h6>
             <table>
               <tr>
@@ -47,7 +47,7 @@
                 <td>公尺/秒^2</td>
               </tr>
               <tr>
-                <td>速度</td>
+                <td>瞬時速度</td>
                 <td>{{vol}}</td>
                 <td>公尺/秒</td>
               </tr>
@@ -168,6 +168,7 @@
                   v-on:onload="onUltraImgLoad"
                   :config="configUltraImg"
                 />
+                <v-text ref="infoText" :config="configInfoText"/>
               </v-layer>
               <v-layer ref="gridLayer"></v-layer>
               <v-layer ref="breakPoinLyaer"></v-layer>
@@ -416,6 +417,13 @@ export default {
         radius: 50,
         fill: "green",
         rotation: 45
+      },
+      configInfoText: {
+        x: 0,
+        y: 0,
+        text: "",
+        fontSize: 30,
+        fill: "red"
       },
       configAngleText: {
         x: 0,
@@ -1173,7 +1181,7 @@ export default {
       ultraImage.width(vm.ultraWidth * (1 / vm.inputSlopeLength));
       ultraImage.height(vm.ultraHeight * (1 / vm.inputSlopeLength));
 
-      // 取得大邊來確保部會吃掉滑動方塊
+      // 取得大邊來確保不會吃掉滑動方塊
       const bigSide =
         ultraImage.width() > ultraImage.height()
           ? ultraImage.width()
@@ -1182,17 +1190,50 @@ export default {
       const rect = vm.$refs.mrect.getStage();
       // 確保滑動方塊的數值已經更新，才計算超音波位置
       vm.$nextTick(() => {
-        const offsetX = rect.getX() - bigSide * Math.cos(deg2rad(vm.angle));
-        const offsetY = rect.getY() - bigSide * Math.sin(deg2rad(vm.angle));
+        const offsetX =
+          rect.getX() -
+          bigSide * Math.cos(deg2rad(vm.angle)) +
+          26 * (1 / vm.inputSlopeLength);
+        const offsetY =
+          rect.getY() -
+          bigSide * Math.sin(deg2rad(vm.angle)) -
+          30 * (1 / vm.inputSlopeLength);
         vm.configUltraImg.rotation = vm.angle;
         ultraImage.setX(offsetX);
         ultraImage.setY(offsetY);
+
         ultraImage.draw();
       });
     }
   },
 
   mounted() {
+
+    // 綁定訊息監聽事件
+    (function setInfoEventListener() {
+      const ultraImage = this.$refs.ultraImage.$children[0].getStage();
+      ultraImage.on("mouseover", () => {
+        this.configInfoText.text = "超音波感測器";
+      });
+      ultraImage.on("mouseleave", () => {
+        this.configInfoText.text = "";
+      });
+      const mrect = this.$refs.mrect.getStage();
+      mrect.on("mouseover", () => {
+        this.configInfoText.text = "滑車";
+      });
+      mrect.on("mouseleave", () => {
+        this.configInfoText.text = "";
+      });
+      const triangle = this.$refs.base.getStage();
+      triangle.on("mouseover", () => {
+        this.configInfoText.text = "滑軌";
+      });
+      triangle.on("mouseleave", () => {
+        this.configInfoText.text = "";
+      });
+    }).call(this);
+
     this.ratio2cm = (1 / this.inputSlopeLength) * 1000;
     this.dragRealTime.boundingElement = this.$refs.container;
     //console.log(window.devicePixelRatio);
