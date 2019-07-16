@@ -83,6 +83,10 @@
                             <a class="dropdown-item" href="{{ route('users.index') }}">
                               <i class="fas fa-users"></i>  {{ __('User Management') }}
                             </a>
+
+                            <a class="dropdown-item" href="{{ route('quizs') }}">
+                              <i class="fas fa-edit"></i>  {{ __('Edit Quiz')}}
+                            </a>
                             <div class="dropdown-divider"></div>
                             @endif
 
