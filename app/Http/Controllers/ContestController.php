@@ -92,7 +92,16 @@ class ContestController extends Controller {
             return redirect('import');
         }
 
+        //取得學生輸入的學號
+        // $student_number = $request->input('id');
 
+        //檢查所有欄位是否都有填寫
+        $validator = Validator::make($request->all(), [
+            'name' => 'required',
+            'id' => 'required',
+            'school' => 'required',
+            'experiment' => 'required',
+        ]);
         //如果檢查沒過發出提醒
         if ($validator->fails()) {
             // redirect our user back to the form with the errors from the validator
@@ -133,20 +142,26 @@ class ContestController extends Controller {
     //進入上傳資料的頁面
     public function getImport()
     {
+        $user = Auth::user();
+        $csv_upload = \App\CsvUpload::select('id', 'experiment', 'created_at')->where('student_id', '=', $user->id)->get();
+        \Debugbar::info($csv_upload);
+
+        $tables = Experiment::All();
+        $experiment_name = collect();
+        //下拉選單顯示資料庫內有的實驗
+        foreach ($tables as $experiment_table) {
+           $experiment_name->push($experiment_table->experiment);
+        }
+
         //顯示contest.contest-import.blade.php的頁面
-        return view('contest.contest-import');
+        return view('contest.contest-import')
+            ->with('upload_data', $csv_upload)
+            ->with('experiments', $experiment_name);
     }
 
     //提交上傳資料的頁面（點選上傳資料按鈕）
     public function postImport(Request $request) {
-        //判斷session裡面是否有學生資料，沒有的話顯示錯誤
-        if ($request->session()->has('student_number')) {
-            $student_number = $request->session()->get('student_number');
-        } else {
-            $message = "請先填寫資料。再開始建模";
-            $request->session()->put('error_message', $message);
-            return redirect('error');
-        }
+        $request->session()->put('experiment', $request->input('experiment'));
 
         $user = Auth::user();
         //建立data儲存上傳檔案裡面的資料，上傳功能的程式碼在contest-import.blade.php
@@ -155,29 +170,26 @@ class ContestController extends Controller {
         $csv_obj = json_decode($request->input('data'), true);
 
         $record = new CsvUpload;
-        // 如果資料庫沒有此欄位，則產生欄位並將值初始為0
-        Schema::table($record->getTable() , function (Blueprint $table) use ($csv_obj, $record) {
-            // 取得資料庫現有欄位名稱
-            $table_col = Schema::getColumnListing($record->getTable());
-            $table_col = array_flip($table_col);
-            foreach($csv_obj as $col) {
-                $tmp = strtolower($col['title'].'('.$col['unit'].')');
-                if(!isset($table_col[$tmp])) {
-                    $table->boolean($tmp)->default(0);
-                }
-            }
-        });
-        // 如果CSV檔內有此欄位則將值設定為1
-        foreach($csv_obj as $col) {
-            $tmp = $col['title'].'('.$col['unit'].')';
-            $record->$tmp = 1;
-        }
+
         $record->student_id = $user->id;
         $record->student_number = $user->student_id;
         $record->name = $user->name;
-        $record->experiment = $request->session()->get('experiment');
+        $record->experiment = $request->input('experiment');
         $record->raw_data = $request->input('data');
         $record->save();
+
+
+        foreach ($csv_obj as $key => $value) {
+            $csv_column = new \App\CsvUploadColumn;
+            $csv_column->csv_id = $record->id;
+            $csv_column->title = $value['title'];
+            $csv_column->unit = $value['unit'];
+            $csv_column->symbol = $value['symbol'];
+            $csv_column->save();
+        }
+
+        \Debugbar::info($csv_obj);
+        // \DB::table('upload_columns')->insert($csv_obj);
 
         //將數據儲存到session、這樣重新整理數據才不會消失
         $request->session()->put('upload_data_id', $record->id);

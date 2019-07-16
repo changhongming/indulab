@@ -11,7 +11,7 @@
 |
 */
 
-Route::get('/', 'ContestController@getRule');
+Route::get('/', 'ContestController@getImport');
 Route::get('error', 'ContestController@getError');
 Route::get('rule', 'ContestController@getRule');
 Route::post('rule', 'ContestController@postRule');

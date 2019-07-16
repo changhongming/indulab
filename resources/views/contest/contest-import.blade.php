@@ -10,8 +10,22 @@
 	</ul>
 
 	<form class="mt-4" role="form" id="import-form" method="post" action="/import">
-		{!! csrf_field() !!}
-		<div class="form-group col-sm-7">
+    {!! csrf_field() !!}
+
+
+    <div class="form-group row">
+			<div class="col-sm-5">
+				<select class="form-control" name="experiment">
+                    @foreach($experiments as $experiment)
+                        <option {{ old('experiment') === $experiment? 'selected' : '' }}>
+                            {{ $experiment }}
+                        </option>
+                    @endforeach
+                </select>
+			</div>
+		</div>
+
+		<div class="form-group col-sm-7" style="padding:0px;">
 			<div class="input-group input-file" name="Fichier1">
 				<input type="text" class="form-control" placeholder='Choose a file...' />
 				<span class="input-group-btn">
@@ -23,7 +37,7 @@
 
 		<input type="hidden" id="time" name="time">
 		<input type="hidden" id="value" name="value">
-		<input type="hidden" id="data" name="data">
+    <input type="hidden" id="data" name="data">
 	</form>
 </div>
 
