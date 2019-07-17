@@ -64,6 +64,12 @@ php artisan serve
 - `--host={YOUR ALLOW IP}`可設定ip白名單(預設為`localhost`)
 - `--port={YOUR PORT}`可設定伺服器的監聽通訊埠(預設為8000)
 
+
+建置資料表開啟命令提示字元，輸入以下指令
+```
+php artisan migrate
+```
+
 ## 前端
 1. **打包前端程式碼**
    在專案目錄下開啟命令提示字元，可以使用```npm run watch```或```npm run dev```，dev為使用webpack編譯檔案，完成後輸出檔案到指定目錄；watch則是初次編譯完成後，會持續監聽指定打包的目錄檔案是否有變更，如果有變更則重新進行打包。
