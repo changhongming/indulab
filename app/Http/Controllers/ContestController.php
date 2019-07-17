@@ -178,16 +178,6 @@ class ContestController extends Controller {
         $record->raw_data = $request->input('data');
         $record->save();
 
-
-        foreach ($csv_obj as $key => $value) {
-            $csv_column = new \App\CsvUploadColumn;
-            $csv_column->csv_id = $record->id;
-            $csv_column->title = $value['title'];
-            $csv_column->unit = $value['unit'];
-            $csv_column->symbol = $value['symbol'];
-            $csv_column->save();
-        }
-
         \Debugbar::info($csv_obj);
         // \DB::table('upload_columns')->insert($csv_obj);
 
