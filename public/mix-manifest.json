@@ -1,6 +1,10 @@
 {
     "/js/app.js": "/js/app.js",
     "/css/site.css": "/css/site.css",
-    "/js/vendor.js": "/js/vendor.js",
-    "/js/manifest.js": "/js/manifest.js"
+    "/js/drawData-page.js": "/js/drawData-page.js",
+    "/js/manifest.js": "/js/manifest.js",
+    "/js/modelling-page.js": "/js/modelling-page.js",
+    "/js/question-editor.js": "/js/question-editor.js",
+    "/js/survey-component.js": "/js/survey-component.js",
+    "/js/vendor.js": "/js/vendor.js"
 }

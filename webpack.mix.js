@@ -20,6 +20,11 @@ const mix = require('laravel-mix');
 
  .js('resources/js/survey-component.js', 'public/js')
 
+ .js('resources/js/drawData-page.js', 'public/js')
+
+ .js('resources/js/question-editor.js', 'public/js')
+
+ .js('resources/js/quiz-test.js', 'public/js')
  // 將js庫進行抽取(vendor.js)，以利於不常變更的js庫不用重新下載
  .extract([
 	'jquery',
@@ -30,15 +35,34 @@ const mix = require('laravel-mix');
  // 自動加載js庫到特定變數 https://github.com/JeffreyWay/laravel-mix/blob/master/docs/autoloading.md
  .autoload({
     jquery: ['$', 'window.jQuery', 'jQuery', 'jquery'],
-    vue: ['Vue','window.Vue']
+    vue: ['Vue','window.Vue'],
+    quill: ['window.Quill']
+ })
+
+ .browserSync({
+    ui: {
+        port: 3002
+    },
+    port: 3001,
+    // 監聽的伺服器
+    proxy: 'localhost:8000',
+    host: 'localhost',
+    // 打包完成不開啟網頁
+    open: false,
+    // 關閉對外連線
+    online: false
  })
 
  // 打包css
  .sass('resources/sass/app.scss','public/css/site.css')
+ // .sass('resources/sass/quiz.scss','public/css/quiz.css')
  // devtool: "inline-source-map" 可以將打包的程式碼還原(source map)，以便看到打包前的程式碼
  //.webpackConfig({ devtool: "inline-source-map" });
  // 如果為產品版本，進行版本號管控(用於cache-control讓客戶端可以即時更新新版本的檔案)
  if (mix.inProduction()) {
     mix.version();
+ }
+ else {
+    mix.webpackConfig({ devtool: "inline-source-map" });
  }
 

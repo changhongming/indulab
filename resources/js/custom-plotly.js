@@ -1,7 +1,7 @@
-// �ޤJplotly�֤߮w
+// 引入plotly核心庫
 var Plotly = require('plotly.js/lib/core');
 
-// �[���ݭn�Ψ쪺�M��
+// 加載需要用到的套件
 Plotly.register([
     require('plotly.js/lib/scatter'),
 ]);
