@@ -86,6 +86,15 @@ php artisan migrate
     - ```SourceMap```：只要在開模式下，目前設定將此功能開啟。此功能主要用於webpack打包後可以有效地進行Debug，可以實際顯示執行的行號與位置，但會增加檔案大小及實際上線很容易使用者可以輕易查看到你的原始碼，所以這邊建議產品模式將此功能關閉。設定將```webpackConfig```的```devtool: "inline-source-map"```去除即可。(預設的設定會自行判斷目前為開發模式或產品模式，如果為產品模式則不會設定此行，也就是說**產品模式不會有SourceMap功能**)
     <br/>
     - 其他： 其他功能部分如```laravel```內的```mix```版本```JS```及```CSS```號管控、將常用的套件打包進行抽取到```vendor.js```以減少請求同樣內容的問題、如何打包檔案及```SASS```如何編譯為```CSS```檔案等等。可依照需求自行查看文檔進行修改，這邊就不贅述了。
+3. **Vue開發須知**
+   - 變數命名規則：
+     開發時請注意Vue內部採用小寫駝峰型(lower camel case)命名規則，例如: ``getItem``、``componentIndex`` 等。但因為 HTML 本身是無法區分大小寫的，所以在模板(templete)或HTML請使用破折號隔開(kebab case)，例如``get-item``、``component-index``等。(詳細請參考[連結](https://cn.vuejs.org/v2/style-guide/index.html#Prop-%E5%90%8D%E5%A4%A7%E5%B0%8F%E5%86%99-%E5%BC%BA%E7%83%88%E6%8E%A8%E8%8D%90))
+
+   -  元件(component)內的``data``：
+    data必須返回一個函式，而不是物件，詳細請參考[連結](https://cn.vuejs.org/v2/style-guide/index.html#%E7%BB%84%E4%BB%B6%E6%95%B0%E6%8D%AE-%E5%BF%85%E8%A6%81)。
+    
+   - 其他：
+    其他開發注意事項可參考官方的開發風格指南[連結](https://cn.vuejs.org/v2/style-guide/index.html#%E8%A7%84%E5%88%99%E5%BD%92%E7%B1%BB)。
 
 # 上線伺服器設定(以Apache教學 >= 1.4版)
 
