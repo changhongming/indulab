@@ -6,11 +6,16 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="description" content="">
         <meta name="author" content="">
+
+        <meta name="csrf-token" content="{{ csrf_token() }}">
+
         <link rel="icon" href="/image/favicon.png">
         <title>InduLab</title>
 
         <link href="{{ mix('css/site.css') }}" rel="stylesheet">
-
+        {{-- 新增fontawsome css --}}
+        <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.3/css/solid.css" integrity="sha384-+0VIRx+yz1WBcCTXBkVQYIBVNEFH1eP6Zknm16roZCyeNg2maWEpk/l/KsyFKs7G" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.3/css/fontawesome.css" integrity="sha384-jLuaxTTBR42U2qJ/pm4JRouHkEDHkVqH0T1nyQXn1mZ7Snycpf6Rl25VBNthU4z0" crossorigin="anonymous">
     </head>
 
     <body>
@@ -21,25 +26,109 @@
             </button>
 
             <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav mr-auto">
+                <ul class="nav navbar-nav mr-auto">
                     <li class="nav-item active">
-                        <a class="nav-link" href="/">開始實驗</a>
+                        <a class="nav-link" href="/import">開始實驗</a>
+                    </li>
+                    <li class="nav-item active">
+                      <a class="nav-link" href="/slope">斜坡運動</a>
                     </li>
                     <!--
                     <li class="nav-item active">
-                            <a class="nav-link" href="/slope">斜坡運動</a>
+                      <a class="nav-link" href="/draw-data">繪製圖表</a>
                     </li>
                     -->
                 </ul>
-            </div>
+                <ul class="nav navbar-nav navbar-right">
+                    @guest
+                      @if (Session::has('name'))
+                      <a id="navbarDropdown" class="nav-link dropdown-toggle active" href="#" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" v-pre>
+                          {{Session::get('name')}},您好! <span class="caret"></span>
+                      </a>
+                      <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdown">
+                      <li class="nav-item active">
+                          <a class="dropdown-item" href="{{ route('logout') }}"
+                          onclick="event.preventDefault();
+                                        document.getElementById('logout-form').submit();">
+                          {{ __('登出') }}
+                          </a>
+                       <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">
+                           @csrf
+                       </form>
+                      </div>
+                      </li>
+                      @else
+                      <li class="nav-item">
+                        <a class="nav-link" href="{{ route('login') }}">{{ __('登入') }}</a>
+                      </li>
+                      @endif
+                    @else
+                    <li class="nav-item dropdown">
+                        <a id="navbarDropdown" class="nav-link dropdown-toggle active" href="#" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" v-pre>
+                            {{ Auth::user()->name }} <span class="caret"></span>
+                        </a>
 
+                        <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdown">
+
+                            {{-- 如果為管理員，出現額外設定欄位 --}}
+                            @if (!!Auth::user()->is_admin)
+                            <h6 class="dropdown-header">{{ __('Admin Functions') }}</h6>
+                            <div class="dropdown-divider"></div>
+                            <a class="dropdown-item" href="{{ route('groupregister') }}">
+                              <i class="fas fa-users-cog"></i>  {{ __('Group Register') }}
+                            </a>
+
+                            <a class="dropdown-item" href="{{ route('users.create') }}">
+                              <i class="fas fa-user-plus"></i>  {{ __('Register User') }}
+                            </a>
+
+                            <a class="dropdown-item" href="{{ route('users.index') }}">
+                              <i class="fas fa-users"></i>  {{ __('User Management') }}
+                            </a>
+
+                            <a class="dropdown-item" href="{{ route('quizs') }}">
+                              <i class="fas fa-edit"></i>  {{ __('Edit Quiz')}}
+                            </a>
+                            <div class="dropdown-divider"></div>
+                            @endif
+
+                            {{-- 通用使用者欄位 --}}
+                            <h6 class="dropdown-header">{{ __('Account Functions') }}</h6>
+                            <div class="dropdown-divider"></div>
+                            <a class="dropdown-item" href="{{ route('users.show', Auth::user()->id) }}">
+                              <i class="fas fa-id-card-alt"></i>  {{ __('User Profile') }}
+                            </a>
+
+                            <a class="dropdown-item" href="{{ route('users.edit', Auth::user()->id) }}">
+                                <i class="fas fa-user-edit"></i>  {{ __('Edit User Profile') }}
+                            </a>
+
+                            <a class="dropdown-item" href="{{ route('changepassword') }}">
+                              <i class="fas fa-key"></i>  {{ __('Change Password') }}
+                            </a>
+
+                            <div class="dropdown-divider"></div>
+
+                            <a class="dropdown-item" href="{{ route('logout') }}"
+                               onclick="event.preventDefault();
+                                             document.getElementById('logout-form').submit();">
+                               <i class="fas fa-sign-out-alt"></i>  {{ __('Logout') }}
+                            </a>
+                            <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">
+                                @csrf
+                            </form>
+                        </div>
+                    </li>
+                @endguest
+                </ul>
+            </div>
         </nav>
 
 
         <div class="container">
             @yield('content')
         </div>
-
+        @yield('full-content')
         <script src="{{ mix('/js/manifest.js') }}"></script>
         <script src="{{ mix('/js/vendor.js') }}"></script>
         <script src="{{ mix('/js/app.js') }}"></script>

@@ -14,6 +14,10 @@ class Authenticate extends Middleware
      */
     protected function redirectTo($request)
     {
+
+        $request->session()->flash('message', '請先登入');
+        $request->session()->flash('alert-type', 'info');
+
         return route('login');
     }
 }

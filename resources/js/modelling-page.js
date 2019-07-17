@@ -131,12 +131,25 @@ var Plotly = require('./custom-plotly');
                 });*/
                 // 繪製實驗數據
                 $scope.drawExperimentData();
-
+                // 觸發hover時間
+                var hoverTime;
                 // 建立plotly事件監聽紀錄，回調函式內參數 e為觸發的事件 data為plotly emit出來的資料
                 // TODO: 加入debounce來確保hover事件使用者是真的關注這個點，而不是鼠標剛好經過 //
-                $("#myDiv").on("plotly_click plotly_hover", (e, data) => {
+                $("#myDiv").on("plotly_click plotly_hover plotly_unhover", (e, data) => {
                     // 紀錄當前時間(格式配合資料庫時間格式)
-                    const now = moment().format("YYYY-MM-DD HH:mm:ss");
+                    const nowTime = moment();
+                    const now = nowTime.format("YYYY-MM-DD HH:mm:ss");
+                    if(e.type === "plotly_hover") {
+                        hoverTime = now;
+                    }
+                    else if(e.type === "plotly_unhover") {
+                        // 取得停留此點的時間(目前預留，如未來需要可搭配資料庫)
+                        const diffTime = nowTime.diff(hoverTime);
+                        // 如果停留超過1.1秒
+                        if(diffTime > 1100)
+                            console.log(data.points[0], nowTime.diff(hoverTime));
+                        //alert(`you leave point at ${nowTime.format("YYYY-MM-DD HH:mm:ss")}, and you stay ${nowTime.diff(hoverTime)/1000} seconds`)
+                    }
                     // 將資料放入歷史紀錄中
                     plotly_log.push({
                         "event": e.type.replace("plotly_", ""),
