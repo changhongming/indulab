@@ -33,11 +33,9 @@
                     <li class="nav-item active">
                       <a class="nav-link" href="/slope">斜坡運動</a>
                     </li>
-                    <!--
                     <li class="nav-item active">
                       <a class="nav-link" href="/draw-data">繪製圖表</a>
                     </li>
-                    -->
                 </ul>
                 <ul class="nav navbar-nav navbar-right">
                     @guest
