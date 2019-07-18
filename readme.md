@@ -18,7 +18,7 @@
 
 # 開始
 首先確保`composer`與`npm`已經安裝完成可使用`composer --version`與`npm --version`測試有沒有安裝成功。
-- 安裝後端`PHP`套件
+- 安裝後端`PHP`套件 (產品模式下請使用`composer install --no-dev`)
     ```
     composer install
     ```
@@ -98,55 +98,86 @@ php artisan migrate
 
 # 上線伺服器設定(以Apache教學 >= 1.4版)
 
-首先記得使用`composer install`先安裝`PHP`相關的套件，設定虛擬主機(Virtaul Host)。假設伺服器欲監通訊埠(port) 8000的位置，並且允許所有主機IP連入，設定如下範例。(請先確認proxy的模組已啟用 => `httpd.conf`)
+- **快速開始**
+    1. **安裝前後端套件**
+        開啟CLI視窗輸入指令
+        ```
+        composer install --no-dev & npm install
+        ```
+    2. **建置後端**
+        專案下複製`.env.example`檔案並改名為`.env`在專案根目錄下，並產生`APP_KEY`。<br />
+        開啟CLI視窗輸入指令
+        ```
+        php artisan key:generate
+        ```
+        完成配置後開啟`.env`檔案並設定資料庫相關設定，如資料庫名稱、資料庫使用者帳號與密碼，完成後開始資料庫的遷移(migration)。
+        <br />
+        開啟CLI視窗輸入指令
+        ```
+        php artisan migrate
+        ```
+    3. **建置前端**
+        開啟CLI視窗輸入指令
+        ```
+        npm run prod
+        ```
+    4. **測試伺服器**
+        等待上方步驟都已經成功完成後，開啟CLI視窗輸入指令
+        ```
+        php artisan serve
+        ```
+        完成測試後關閉測試伺服器，並開始配置伺服器應用(`Apache`)設定部分
 
-***注意：如果僅需架設單獨一個伺服器，可不用設定虛擬主機與代理，直接設定`httpd.conf`即可。***
+- **配置伺服器應用(Apache)**
+    設定虛擬主機(Virtaul Host)。假設伺服器欲監通訊埠(port) 8000的位置，並且允許所有主機IP連 入，設定如下範例。(請先確認proxy的模組已啟用 => `httpd.conf`)
 
-- **apache/conf/httpd.conf**
+    ***注意：如果僅需架設單獨一個伺服器，可不用設定虛擬主機與代理，直接設定`httpd.conf`即可。***
+
+    - **apache/conf/httpd.conf**
+        ```
+        LoadModule proxy_module modules/mod_proxy.so
+        LoadModule proxy_http_module modules/mod_proxy_http.so
+        ```
+
+    - **apache/conf/extra/httpd-vhosts.conf**
+        ```
+        # 監聽 0.0.0.0:8000 位置
+        Listen 8000
+
+        # 虛擬主機設定
+        <VirtualHost *:8000>
+        # 首頁位置，這邊設定在laravel專案下之public的index.php作為啟動處
+        DocumentRoot D:/phy/InduLab_laravel5/public
+
+            # 掛載專案目錄
+            <Directory "D:/phy/InduLab_laravel5">
+                # 允許專案內的.htaccess檔案覆寫設定
+                AllowOverride All
+                # 設定允許及拒絕的Domain及IP
+                <RequireAll>
+                    Require ip 140.125.32
+                </RequireAll>
+            </Directory>
+
+            # 將一些敏感的設定檔如.htaccess、web.config拒絕存取。
+            <LocationMatch “\.htaccess|web\.config”>
+                Order Allow,Deny
+                Deny from all
+            </LocationMatch>
+
+        # 錯誤訊息紀錄位置
+        ErrorLog D:/xampp/logs/error_slope.log
+
+        # 一般訊息紀錄位置
+        CustomLog D:/xampp/logs/access_slope.log combined
+        </VirtualHost>
+        ```
+
+    設定完成後，即可開啟伺服器測試是否可以成功開啟，完成後接者將前端程式碼進行編譯，使用以下指  令
     ```
-    LoadModule proxy_module modules/mod_proxy.so
-    LoadModule proxy_http_module modules/mod_proxy_http.so
+    npm run prod
     ```
-
-- **apache/conf/extra/httpd-vhosts.conf**
-    ```
-    # 監聽 0.0.0.0:8000 位置
-    Listen 8000
-
-    # 虛擬主機設定
-    <VirtualHost *:8000>
-    # 首頁位置，這邊設定在laravel專案下之public的index.php作為啟動處
-    DocumentRoot D:/phy/InduLab_laravel5/public
-
-        # 掛載專案目錄
-        <Directory "D:/phy/InduLab_laravel5">
-            # 允許專案內的.htaccess檔案覆寫設定
-            AllowOverride All
-            # 設定允許及拒絕的Domain及IP
-            <RequireAll>
-                Require ip 140.125.32
-            </RequireAll>
-        </Directory>
-
-        # 將一些敏感的設定檔如.htaccess、web.config拒絕存取。
-        <LocationMatch “\.htaccess|web\.config”>
-            Order Allow,Deny
-            Deny from all
-        </LocationMatch>
-
-    # 錯誤訊息紀錄位置
-    ErrorLog D:/xampp/logs/error_slope.log
-
-    # 一般訊息紀錄位置
-    CustomLog D:/xampp/logs/access_slope.log combined
-    </VirtualHost>
-    ```
-
-設定完成後，即可開啟伺服器測試是否可以成功開啟，完成後接者將前端程式碼進行編譯，使用以下指令
-```
-npm run prod
-```
-以上步驟完成後即可檢視網頁是否架設成功。
+    以上步驟完成後即可檢視網頁是否架設成功。
 
 # 常見問題
 - ## 狀態碼419
