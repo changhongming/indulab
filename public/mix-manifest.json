@@ -1,10 +1,11 @@
 {
-    "/js/app.js": "/js/app.js",
-    "/css/site.css": "/css/site.css",
-    "/js/drawData-page.js": "/js/drawData-page.js",
-    "/js/manifest.js": "/js/manifest.js",
-    "/js/modelling-page.js": "/js/modelling-page.js",
-    "/js/question-editor.js": "/js/question-editor.js",
-    "/js/survey-component.js": "/js/survey-component.js",
-    "/js/vendor.js": "/js/vendor.js"
+    "/js/manifest.js": "/js/manifest.js?id=01c8731923a46c30aaed",
+    "/js/vendor.js": "/js/vendor.js?id=2c620f09de4cefb023f3",
+    "/js/app.js": "/js/app.js?id=76c554f5bb77211ef80e",
+    "/css/site.css": "/css/site.css?id=28e553625a8b1c56b87f",
+    "/js/drawData-page.js": "/js/drawData-page.js?id=a027f087566cfad88132",
+    "/js/modelling-page.js": "/js/modelling-page.js?id=4fad461ac0d6e5d88ae7",
+    "/js/question-editor.js": "/js/question-editor.js?id=a885515a611701f76f08",
+    "/js/quiz-test.js": "/js/quiz-test.js?id=044a21b1289c0984fbe2",
+    "/js/survey-component.js": "/js/survey-component.js?id=b6c8875f823f625ab477"
 }
