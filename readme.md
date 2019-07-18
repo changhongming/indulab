@@ -71,14 +71,14 @@ php artisan migrate
 ```
 
 ## 前端
-1. **打包前端程式碼**
+1. **打包前端程式碼**<br/>
    在專案目錄下開啟命令提示字元，可以使用```npm run watch```或```npm run dev```，dev為使用webpack編譯檔案，完成後輸出檔案到指定目錄；watch則是初次編譯完成後，會持續監聽指定打包的目錄檔案是否有變更，如果有變更則重新進行打包。
     ```
     npm run watch
     ```
 
     註記：watch與dev為開發階段使用，請勿拿到線上直接使用此打包的檔案。
-2. **相關設定**
+2. **相關設定**<br/>
     如果想要改變webpack相關設定，可以自行查閱專案跟目錄下的```webpack.mix.js```檔案。
     <br/>
     - ```BrowserSyc```：```host```會綁定到全位置，所以注意要將轉發頁面及UI控制板的頁面對外之```port```進行封鎖。
@@ -86,7 +86,7 @@ php artisan migrate
     - ```SourceMap```：只要在開模式下，目前設定將此功能開啟。此功能主要用於webpack打包後可以有效地進行Debug，可以實際顯示執行的行號與位置，但會增加檔案大小及實際上線很容易使用者可以輕易查看到你的原始碼，所以這邊建議產品模式將此功能關閉。設定將```webpackConfig```的```devtool: "inline-source-map"```去除即可。(預設的設定會自行判斷目前為開發模式或產品模式，如果為產品模式則不會設定此行，也就是說**產品模式不會有SourceMap功能**)
     <br/>
     - 其他： 其他功能部分如```laravel```內的```mix```版本```JS```及```CSS```號管控、將常用的套件打包進行抽取到```vendor.js```以減少請求同樣內容的問題、如何打包檔案及```SASS```如何編譯為```CSS```檔案等等。可依照需求自行查看文檔進行修改，這邊就不贅述了。
-3. **Vue開發須知**
+3. **Vue開發須知**<br/>
    - 變數命名規則：
      開發時請注意Vue內部採用小寫駝峰型(lower camel case)命名規則，例如: ``getItem``、``componentIndex`` 等。但因為 HTML 本身是無法區分大小寫的，所以在模板(templete)或HTML請使用破折號隔開(kebab case)，例如``get-item``、``component-index``等。(詳細請參考[連結](https://cn.vuejs.org/v2/style-guide/index.html#Prop-%E5%90%8D%E5%A4%A7%E5%B0%8F%E5%86%99-%E5%BC%BA%E7%83%88%E6%8E%A8%E8%8D%90))
 
@@ -98,86 +98,82 @@ php artisan migrate
 
 # 上線伺服器設定(以Apache教學 >= 1.4版)
 
-- **快速開始**
-    1. **安裝前後端套件**
-        開啟CLI視窗輸入指令
-        ```
-        composer install --no-dev & npm install
-        ```
-    2. **建置後端**
-        專案下複製`.env.example`檔案並改名為`.env`在專案根目錄下，並產生`APP_KEY`。<br />
-        開啟CLI視窗輸入指令
-        ```
-        php artisan key:generate
-        ```
-        完成配置後開啟`.env`檔案並設定資料庫相關設定，如資料庫名稱、資料庫使用者帳號與密碼，完成後開始資料庫的遷移(migration)。
-        <br />
-        開啟CLI視窗輸入指令
-        ```
-        php artisan migrate
-        ```
-    3. **建置前端**
-        開啟CLI視窗輸入指令
-        ```
-        npm run prod
-        ```
-    4. **測試伺服器**
-        等待上方步驟都已經成功完成後，開啟CLI視窗輸入指令
-        ```
-        php artisan serve
-        ```
-        完成測試後關閉測試伺服器，並開始配置伺服器應用(`Apache`)設定部分
-
-- **配置伺服器應用(Apache)**
-    設定虛擬主機(Virtaul Host)。假設伺服器欲監通訊埠(port) 8000的位置，並且允許所有主機IP連 入，設定如下範例。(請先確認proxy的模組已啟用 => `httpd.conf`)
-
-    ***注意：如果僅需架設單獨一個伺服器，可不用設定虛擬主機與代理，直接設定`httpd.conf`即可。***
-
-    - **apache/conf/httpd.conf**
-        ```
-        LoadModule proxy_module modules/mod_proxy.so
-        LoadModule proxy_http_module modules/mod_proxy_http.so
-        ```
-
-    - **apache/conf/extra/httpd-vhosts.conf**
-        ```
-        # 監聽 0.0.0.0:8000 位置
-        Listen 8000
-
-        # 虛擬主機設定
-        <VirtualHost *:8000>
-        # 首頁位置，這邊設定在laravel專案下之public的index.php作為啟動處
-        DocumentRoot D:/phy/InduLab_laravel5/public
-
-            # 掛載專案目錄
-            <Directory "D:/phy/InduLab_laravel5">
-                # 允許專案內的.htaccess檔案覆寫設定
-                AllowOverride All
-                # 設定允許及拒絕的Domain及IP
-                <RequireAll>
-                    Require ip 140.125.32
-                </RequireAll>
-            </Directory>
-
-            # 將一些敏感的設定檔如.htaccess、web.config拒絕存取。
-            <LocationMatch “\.htaccess|web\.config”>
-                Order Allow,Deny
-                Deny from all
-            </LocationMatch>
-
-        # 錯誤訊息紀錄位置
-        ErrorLog D:/xampp/logs/error_slope.log
-
-        # 一般訊息紀錄位置
-        CustomLog D:/xampp/logs/access_slope.log combined
-        </VirtualHost>
-        ```
-
-    設定完成後，即可開啟伺服器測試是否可以成功開啟，完成後接者將前端程式碼進行編譯，使用以下指  令
+## **快速開始**<br />
+1. 安裝前後端套件<br/>
+    開啟CLI視窗輸入指令
+    
+    ```
+    composer install --no-dev & npm install
+    ```
+2. **建置後端**<br />
+    專案下複製`.env.example`檔案並改名為`.env`在專案根目錄下，並產生`APP_KEY`。<br />
+    開啟CLI視窗輸入指令<br />
+    ```
+    php artisan key:generate
+    ```
+    完成配置後開啟`.env`檔案並設定資料庫相關設定，如資料庫名稱、資料庫使用者帳號與密碼，完成後開始資料庫的遷移(migration)。
+    <br />
+    開啟CLI視窗輸入指令
+    ```
+    php artisan migrate
+    ```
+3. **建置前端**<br />
+    開啟CLI視窗輸入指令
     ```
     npm run prod
     ```
-    以上步驟完成後即可檢視網頁是否架設成功。
+4. **測試伺服器**<br />
+    等待上方步驟都已經成功完成後，開啟CLI視窗輸入指令
+    ```
+    php artisan serve
+    ```
+    完成測試後關閉測試伺服器，並開始配置伺服器應用(`Apache`)設定部分
+
+## **配置伺服器應用(Apache)**<br />
+設定虛擬主機(Virtaul Host)。假設伺服器欲監通訊埠(port) 8000的位置，並且允許所有主機IP連 入，設定如下範例。(請先確認proxy的模組已啟用 => `httpd.conf`)
+
+***注意：如果僅需架設單獨一個伺服器，可不用設定虛擬主機與代理，直接設定`httpd.conf`即可。***
+- **apache/conf/httpd.conf**
+    ```
+    LoadModule proxy_module modules/mod_proxy.so
+    LoadModule proxy_http_module modules/mod_proxy_http.so
+    ```
+
+- **apache/conf/extra/httpd-vhosts.conf**
+    ```
+    # 監聽 0.0.0.0:8000 位置
+    Listen 8000
+
+    # 虛擬主機設定
+    <VirtualHost *:8000>
+    # 首頁位置，這邊設定在laravel專案下之public的index.php作為啟動處
+    DocumentRoot D:/phy/InduLab_laravel5/public
+
+        # 掛載專案目錄
+        <Directory "D:/phy/InduLab_laravel5">
+            # 允許專案內的.htaccess檔案覆寫設定
+            AllowOverride All
+            # 設定允許及拒絕的Domain及IP
+            <RequireAll>
+                Require ip 140.125.32
+            </RequireAll>
+        </Directory>
+
+        # 將一些敏感的設定檔如.htaccess、web.config拒絕存取。
+        <LocationMatch “\.htaccess|web\.config”>
+            Order Allow,Deny
+            Deny from all
+        </LocationMatch>
+
+    # 錯誤訊息紀錄位置
+    ErrorLog D:/xampp/logs/error_slope.log
+
+    # 一般訊息紀錄位置
+    CustomLog D:/xampp/logs/access_slope.log combined
+    </VirtualHost>
+    ```
+
+    設定完成後，即可開啟瀏覽器測試是否可以成功開啟網頁。
 
 # 常見問題
 - ## 狀態碼419
@@ -217,9 +213,10 @@ php artisan migrate
 
 # 自定義指令說明(本專案)
 以下指令都會配置在```php artisan {command}``` 下面，所以命令開頭請自行加上```php artisan```。
-  1. ```make:hash {待加密密碼}```：
-   將輸入的密碼進行hash加密，並將結果印出在命令提示視窗上。
-        ```
-        D:\workspace\master\InduLab_laravel5>php artisan make:hash 123456
-        $2y$10$U25mbHdNnM.Xu/.rB8jqvu6NJZAMvuErR3p7xF7LPqZTLT/sh.9Yq
-        ```
+1. ```make:hash {待加密密碼}```：<br />
+    將輸入的密碼進行hash加密，並將結果印出在命令提示視窗上。
+    
+    ```
+    D:\workspace\master\InduLab_laravel5>php artisan make:hash 123456
+    $2y$10$U25mbHdNnM.Xu/.rB8jqvu6NJZAMvuErR3p7xF7LPqZTLT/sh.9Yq
+    ```
