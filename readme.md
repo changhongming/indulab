@@ -18,15 +18,17 @@
 
 # 開始
 首先確保`composer`與`npm`已經安裝完成可使用`composer --version`與`npm --version`測試有沒有安裝成功。
-- 安裝後端`PHP`套件 (產品模式下請使用`composer install --no-dev`)
+- **安裝後端`PHP`套件 (產品模式下請使用`composer install --no-dev`)**<br/>
     ```
     composer install
     ```
-- 安裝前端`JavaScript`套件
+- **安裝前端`JavaScript`套件**<br/>
     ```
     npm install
     ```
-- 設定`.env`檔案
+- **建立資料庫**<br/>
+    建立資料庫請使用`MysqlDB`或`MariaDB`，編碼模式請選`utf8_general_ci`，並且設定到`.env`的`DB_DATABASE`變數中。
+- **設定`.env`檔案**<br/>
     先將專案下的`.env.example`複製一份並改名為`.env`，並且開啟編輯`.env`檔案
     - `APP_NAME`為應用名稱。
     - `APP_ENV`為環境變數。(此變數值本身沒什麼特別的作用，但對於某些套件會依照此值做出不同的變化)
@@ -48,7 +50,7 @@
 
         ...
         ```
-- 產生APP_KEY
+- **產生APP_KEY**<br/>
   ```
   php artisan key:generate
   ```
