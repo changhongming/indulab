@@ -1,9 +1,3 @@
-
-
-<p align="center">
-<span>Laravel版本：</span><a href="https://packagist.org/packages/laravel/framework"><img src="https://poser.pugx.org/laravel/framework/v/stable.svg" alt="Latest Stable Version"></a>
-</p>
-
 # 開發所需工具
 必要開發套件：
 
@@ -19,10 +13,12 @@
 # 開始
 首先確保`composer`與`npm`已經安裝完成可使用`composer --version`與`npm --version`測試有沒有安裝成功。
 - **安裝後端`PHP`套件 (產品模式下請使用`composer install --no-dev`)**<br/>
+
     ```
     composer install
     ```
 - **安裝前端`JavaScript`套件**<br/>
+
     ```
     npm install
     ```
@@ -40,6 +36,7 @@
     - `APP_KEY`為應用密鑰。可使用指令`php artisan key:generate`自動產生
     - `APP_DEBUG`為應用Debug模式。主要用於`Debugbar`這個laravel的debug套件，***注意上線時一定要將此值設為`false`***。(為`true`則開啟Debug訊息；反之`false`為關閉)
     - `APP_URL`為設定Laravel伺服器的URL位址，有一些需要監聽伺服器的套件會需要用到。
+    
         ```
         # 應用程式設定
         APP_NAME=InduLab
@@ -59,7 +56,7 @@
 
 ## 後端
 在專案目錄下開啟命令提示字元，輸入以下指令
-```
+``` bash
 php artisan serve
 ```
 
@@ -68,26 +65,23 @@ php artisan serve
 
 
 建置資料表開啟命令提示字元，輸入以下指令
-```
+``` bash
 php artisan migrate
 ```
 
 ## 前端
 1. **打包前端程式碼**<br/>
    在專案目錄下開啟命令提示字元，可以使用```npm run watch```或```npm run dev```，dev為使用webpack編譯檔案，完成後輸出檔案到指定目錄；watch則是初次編譯完成後，會持續監聽指定打包的目錄檔案是否有變更，如果有變更則重新進行打包。
-    ```
+    ``` bash
     npm run watch
     ```
 
     註記：watch與dev為開發階段使用，請勿拿到線上直接使用此打包的檔案。
 2. **相關設定**<br/>
-    如果想要改變webpack相關設定，可以自行查閱專案跟目錄下的```webpack.mix.js```檔案。
-    <br/>
-    - ```BrowserSyc```：```host```會綁定到全位置，所以注意要將轉發頁面及UI控制板的頁面對外之```port```進行封鎖。
-    <br/>
-    - ```SourceMap```：只要在開模式下，目前設定將此功能開啟。此功能主要用於webpack打包後可以有效地進行Debug，可以實際顯示執行的行號與位置，但會增加檔案大小及實際上線很容易使用者可以輕易查看到你的原始碼，所以這邊建議產品模式將此功能關閉。設定將```webpackConfig```的```devtool: "inline-source-map"```去除即可。(預設的設定會自行判斷目前為開發模式或產品模式，如果為產品模式則不會設定此行，也就是說**產品模式不會有SourceMap功能**)
-    <br/>
-    - 其他： 其他功能部分如```laravel```內的```mix```版本```JS```及```CSS```號管控、將常用的套件打包進行抽取到```vendor.js```以減少請求同樣內容的問題、如何打包檔案及```SASS```如何編譯為```CSS```檔案等等。可依照需求自行查看文檔進行修改，這邊就不贅述了。
+    如果想要改變webpack相關設定，可以自行查閱專案跟目錄下的`webpack.mix.js`檔案。
+    - `BrowserSyc`：`host`會綁定到全位置，所以注意要將轉發頁面及UI控制板的頁面對外之`port`進行封鎖。
+    - `SourceMap`：只要在開模式下，目前設定將此功能開啟。此功能主要用於webpack打包後可以有效地進行Debug，可以實際顯示執行的行號與位置，但會增加檔案大小及實際上線很容易使用者可以輕易查看到你的原始碼，所以這邊建議產品模式將此功能關閉。設定將```webpackConfig```的```devtool: "inline-source-map"```去除即可。(預設的設定會自行判斷目前為開發模式或產品模式，如果為產品模式則不會設定此行，也就是說**產品模式不會有SourceMap功能**)
+    - 其他： 其他功能部分如`laravel`內的`mix`版本`JS`及`CSS`號管控、將常用的套件打包進行抽取到`vendor.js`以減少請求同樣內容的問題、如何打包檔案及`SASS`如何編譯為`CSS`檔案等等。可依照需求自行查看文檔進行修改，這邊就不贅述了。
 3. **Vue開發須知**<br/>
    - 變數命名規則：
      開發時請注意Vue內部採用小寫駝峰型(lower camel case)命名規則，例如: ``getItem``、``componentIndex`` 等。但因為 HTML 本身是無法區分大小寫的，所以在模板(templete)或HTML請使用破折號隔開(kebab case)，例如``get-item``、``component-index``等。(詳細請參考[連結](https://cn.vuejs.org/v2/style-guide/index.html#Prop-%E5%90%8D%E5%A4%A7%E5%B0%8F%E5%86%99-%E5%BC%BA%E7%83%88%E6%8E%A8%E8%8D%90))
@@ -104,29 +98,29 @@ php artisan migrate
 1. 安裝前後端套件<br/>
     開啟CLI視窗輸入指令
     
-    ```
-    composer install --no-dev & npm install
+    ``` bash
+    composer install --no-dev && npm install
     ```
 2. **建置後端**<br />
     專案下複製`.env.example`檔案並改名為`.env`在專案根目錄下，並產生`APP_KEY`。<br />
     開啟CLI視窗輸入指令<br />
-    ```
+    ``` bash
     php artisan key:generate
     ```
     完成配置後開啟`.env`檔案並設定資料庫相關設定，如資料庫名稱、資料庫使用者帳號與密碼，完成後開始資料庫的遷移(migration)。
     <br />
     開啟CLI視窗輸入指令
-    ```
+    ``` bash
     php artisan migrate
     ```
 3. **建置前端**<br />
     開啟CLI視窗輸入指令
-    ```
+    ``` bash
     npm run prod
     ```
 4. **測試伺服器**<br />
     等待上方步驟都已經成功完成後，開啟CLI視窗輸入指令
-    ```
+    ``` bash
     php artisan serve
     ```
     完成測試後關閉測試伺服器，並開始配置伺服器應用(`Apache`)設定部分
@@ -142,7 +136,7 @@ php artisan migrate
     ```
 
 - **apache/conf/extra/httpd-vhosts.conf**
-    ```
+    ``` xml
     # 監聽 0.0.0.0:8000 位置
     Listen 8000
 
@@ -188,7 +182,7 @@ php artisan migrate
     如果出現狀態碼419的問題，確認```.env```檔案內的```APP_KEY```及```session```相關的設定。另外在使用```POST```方法時，請務必要加上```@csrf```在表單內，伺服器會驗證裡面的```_token```欄位。
     - 確認```.env```檔案內的```APP_KEY```變數是否有正確的配置，可使用`php artisan key:generate`來配置```APP_KEY```。
     - 確認```.env```檔案內的```SESSION_LIFETIME```來設定```session```存在的時間(單位以分鐘計時)，因如果```session```過期會造成驗證```session```錯誤，會擲回```TokenMismatchException```錯誤，如果未來有需要可在```app/Exceptions/Handler.php```來處理錯誤，範例如以下程式碼。
-        ```
+        ``` php
         public function render($request, Exception $exception)
         {
             if($exception instanceof \Illuminate\Session\TokenMismatchException)    {
@@ -203,7 +197,7 @@ php artisan migrate
         }
         ```
     - 使用```POST```方法時，請在表單內加入```@csrf```或```{!! csrf_field() !!}```在```blade.php```檔案內，範例如下
-        ```
+        ``` html
         <form method="POST" action="/data">
             @csrf
             <input type="text" name="data1" id="data1"/>
