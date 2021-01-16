@@ -12,7 +12,7 @@
     },
     "devDependencies": {
         "angular": "^1.8.0",
-        "axios": "^0.18",
+        "axios": "^0.21",
         "bootstrap": "^4.0.0",
         "bootstrap-vue": "^2.0.0-rc.20",
         "browser-sync": "^2.26.5",
