@@ -35,7 +35,7 @@
         "resolve-url-loader": "^2.3.1",
         "sass": "^1.17.0",
         "sass-loader": "^7.1.0",
-        "showdown": "^1.9.0",
+        "showdown": "^1.9.1",
         "showdown-katex": "^0.5.1",
         "simple-vue-validator": "^0.16.0",
         "survey-vue": "^1.0.60",
