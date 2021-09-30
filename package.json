@@ -23,7 +23,7 @@
         "draggable-vue-directive": "^2.0.6",
         "editorconfig": "^0.15.2",
         "fast-sort": "^1.5.5",
-        "handsontable": "^6.2.2",
+        "handsontable": "^10.0.0",
         "jquery": "^3.5.0",
         "konva": "^2.6.0",
         "laravel-mix": "^4.0.15",
